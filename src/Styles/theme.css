@@ -1,0 +1,50 @@
+/* =============================================
+   theme.css — Central theme variables
+   Switch themes by editing values here only
+   ============================================= */
+
+:root {
+  /* --- Primary Palette --- */
+  --color-primary: #111111;
+  --color-primary-light: #2a2a2a;
+  --color-secondary: #c8a96e;        /* warm gold accent */
+  --color-secondary-hover: #b8934a;
+
+  /* --- Background & Surface --- */
+  --color-bg: #ffffff;
+  --color-bg-overlay: rgba(10, 10, 10, 0.72);
+  --color-surface: #f5f5f3;
+  --color-surface-dark: #ececea;
+
+  /* --- Text --- */
+  --color-text-primary: #111111;
+  --color-text-secondary: #555550;
+  --color-text-muted: #999990;
+  --color-text-on-dark: #ffffff;
+  --color-text-on-dark-muted: rgba(255, 255, 255, 0.72);
+
+  /* --- Navbar --- */
+  --navbar-bg: #ffffff;
+  --navbar-text: #111111;
+  --navbar-shadow: 0 1px 0 rgba(0,0,0,0.08);
+
+  /* --- Hero --- */
+  --hero-overlay: rgba(8, 8, 8, 0.68);
+
+  /* --- Border & Radius --- */
+  --border-color: rgba(0,0,0,0.08);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+
+  /* --- Typography --- */
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'DM Sans', 'Helvetica Neue', sans-serif;
+
+  /* --- Spacing --- */
+  --nav-height: 68px;
+
+  /* --- Transition --- */
+  --transition-fast: 0.18s ease;
+  --transition-mid: 0.32s ease;
+}

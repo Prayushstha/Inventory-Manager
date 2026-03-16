@@ -1,12 +1,328 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Hello World!</title>
+<!DOCTYPE html>
+<html lang="en">
 
-  </head>
-  <body>
-    <h1>💖 Hello World!</h1>
-    <p>Welcome to your Electron application.</p>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory Manager</title>
+  <link rel="stylesheet" href="./Styles/index.css" />
+  <link rel="stylesheet" href="./Styles/navbar.css" />
+  <link rel="stylesheet" href="./Styles/theme.css" />
+
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar__inner">
+      <!-- Logo -->
+      <a href="#" class="navbar__logo">
+        <div class="navbar__logo-mark">
+          <!-- Box / inventory icon -->
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M21 8a1 1 0 0 0-.52-.87l-8-4.5a1 1 0 0 0-1 0l-8 4.5A1 1 0 0 0 3 8v8a1 1 0 0 0 .52.87l8 4.5a1 1 0 0 0 1 0l8-4.5A1 1 0 0 0 21 16ZM12 4.15 18.06 7.5 12 10.85 5.94 7.5Zm-8 4.84 7 3.94V19l-7-3.94Zm9 3.94 7-3.94V15L13 18.93Z" />
+          </svg>
+        </div>
+        <span class="navbar__logo-text">Inventory Manager</span>
+      </a>
+      <!-- Center Links -->
+      <ul class="navbar__links">
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Dashboard</a></li>
+        <li><a href="#">About</a></li>
+        <li>
+          <!-- Search Icon as button -->
+          <button class="navbar__search-btn" aria-label="Search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+              stroke-linejoin="round">
+              <circle cx="11" cy="11" r="7" />
+              <line x1="16.5" y1="16.5" x2="22" y2="22" />
+            </svg>
+          </button>
+        </li>
+      </ul>
+
+      <!-- Profile -->
+      <div class="navbar__profile">
+        <button class="navbar__profile-btn" aria-label="Profile">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+            stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero__bg"></div>
+    <div class="hero__overlay"></div>
+    <div class="hero__grain"></div>
+
+    <div class="hero__content">
+      <span class="hero__eyebrow">Inventory Management</span>
+      <h1 class="hero__title">Hello, <span>business</span> partner.</h1>
+      <p class="hero__subtitle">
+        Keep your stock organized, your orders on time, and your business moving forward — all from one clean, simple
+        dashboard.
+      </p>
+      <div class="hero__actions">
+        <a href="#" class="btn btn--primary">Get Started</a>
+        <a href="#" class="btn btn--outline">View Dashboard</a>
+      </div>
+    </div>
+
+    <div class="hero__scroll">
+      <div class="hero__scroll-line"></div>
+      <span>Scroll</span>
+    </div>
+  </section>
+
+  <!-- description of the app -->
+  <section class="about-app" id="about">
+    <div class="container">
+      <div class="section-label">What We Offer</div>
+      <h2 class="section-title">Everything your business needs,<br><span>in one place.</span></h2>
+      <p class="section-sub">Inventory Manager is built for small to medium business owners who want control over their
+        inventory without the complexity. Here's what it does.</p>
+
+      <div class="features-grid">
+
+        <div class="feature-card">
+          <div class="feature-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
+            </svg>
+          </div>
+          <h3 class="feature-card__title">Generate Reports</h3>
+          <p class="feature-card__desc">Automatically generate detailed sales, stock, and performance reports. Export
+            them as PDF or CSV to share with your team or accountant.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+              stroke-linejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" />
+              <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+              <line x1="12" y1="12" x2="12" y2="16" />
+              <line x1="10" y1="14" x2="14" y2="14" />
+            </svg>
+          </div>
+          <h3 class="feature-card__title">Stock Tracking</h3>
+          <p class="feature-card__desc">Monitor your inventory in real time. Get alerts when stock runs low, track
+            quantities across categories, and never run out unexpectedly again.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+              stroke-linejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23" />
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+          </div>
+          <h3 class="feature-card__title">Sales Records</h3>
+          <p class="feature-card__desc">Keep a clean log of every sale made. Filter by date, product, or amount to
+            understand your revenue trends and best-selling items.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <h3 class="feature-card__title">Customer History</h3>
+          <p class="feature-card__desc">View a complete purchase history for each customer. Build stronger relationships
+            by knowing what they buy, how often, and how much they spend.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M4 6h16M4 10h16M4 14h8M4 18h8" />
+              <rect x="14" y="12" width="8" height="8" rx="1" />
+            </svg>
+          </div>
+          <h3 class="feature-card__title">Product Catalog</h3>
+          <p class="feature-card__desc">A dedicated page for every product in your shop — wholesale price, retail price,
+            product descriptions, methods of use, and more. Browse your full catalog at a glance or search for any item
+            instantly.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+              stroke-linejoin="round">
+              <rect x="3" y="5" width="18" height="14" rx="2" />
+              <path d="M3 10h18" />
+              <path d="M7 15h.01M11 15h2" />
+            </svg>
+          </div>
+          <h3 class="feature-card__title">Barcode Scanning</h3>
+          <p class="feature-card__desc">Scan product barcodes to instantly pull up item details, update stock counts, or
+            process a sale — fast, accurate, and no manual typing needed.</p>
+        </div>
+
+      </div>
+  </section>
+
+  <!-- about the dev -->
+  <section class="developer" id="developer">
+    <div class="container container--narrow">
+      <div class="section-label">The Developer</div>
+      <div class="dev-card">
+        <div class="dev-card__avatar"><img id="dev-photo" alt="Prayush Shrestha"></div>
+        <div class="dev-card__info">
+          <h2 class="dev-card__name">Prayush Shrestha</h2>
+          <p class="dev-card__role">Frontend Developer &nbsp;·&nbsp; Student &nbsp;·&nbsp; Aspiring Flutter Developer
+          </p>
+          <p class="dev-card__bio">A Grade 12 student shaping ideas into clean, functional experiences on the web.
+            Started with HTML and CSS, currently deepening JavaScript skills to bring logic and interactivity to life.
+            Believes in learning by building — experimenting, breaking things, and refining them step by step. Long-term
+            goal: Flutter development.</p>
+          <div class="dev-card__stack">
+            <span class="stack-tag">HTML5</span>
+            <span class="stack-tag">CSS3</span>
+            <span class="stack-tag">JavaScript</span>
+            <span class="stack-tag">Git &amp; GitHub</span>
+            <span class="stack-tag">Vercel</span>
+            <span class="stack-tag stack-tag--learning">Flutter (Learning)</span>
+          </div>
+          <p class="dev-card__project-label">View My GitHub</p>
+          <div class="dev-card__project-links">
+            <a href="https://github.com/Prayushstha" target="_blank" class="dev-link">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.603-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.741 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
+              </svg>
+              GitHub
+            </a>
+          </div>
+          <div class="dev-card__project">
+            <p class="dev-card__project-label">Latest Project</p>
+            <p class="dev-card__project-name">Chulo — Modern Food Delivery Website</p>
+            <p class="dev-card__project-desc">A responsive food delivery website built with HTML, CSS, and JavaScript.
+              Features clean UI design and smooth interactions.</p>
+            <p class="dev-card__project-desc"><a href="https://chulo-fastfood.vercel.app/" target="_blank"
+                class="dev-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                  <polyline points="15 3 21 3 21 9" />
+                  <line x1="10" y1="14" x2="21" y2="3" />
+                </svg>
+                Live Demo
+              </a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Documentation section -->
+  <section class="docs" id="docs">
+    <div class="container">
+      <div class="section-label">Documentation</div>
+      <h2 class="section-title">How to use <span>Inventory Manager</span></h2>
+      <p class="section-sub">A quick guide to get you up and running. Full documentation coming soon.</p>
+
+      <div class="docs-grid">
+
+        <div class="doc-block">
+          <div class="doc-block__number">01</div>
+          <h3 class="doc-block__title">Setting Up Your Account</h3>
+          <p class="doc-block__text">Launch the app and create your business profile. Enter your shop name, contact
+            details, and preferred currency. This information will appear across your reports and invoices.</p>
+        </div>
+
+        <div class="doc-block">
+          <div class="doc-block__number">02</div>
+          <h3 class="doc-block__title">Adding Products</h3>
+          <p class="doc-block__text">Navigate to the Product Catalog and click "Add Product". Fill in the product name,
+            description, barcode, wholesale price, retail price, and method of use. You can also bulk import products
+            via CSV.</p>
+        </div>
+
+        <div class="doc-block">
+          <div class="doc-block__number">03</div>
+          <h3 class="doc-block__title">Managing Stock</h3>
+          <p class="doc-block__text">Head to the Inventory section to view current stock levels. Set minimum stock
+            thresholds for each product — Inventory Manager will alert you when items fall below that level so you can
+            restock in time.</p>
+        </div>
+
+        <div class="doc-block">
+          <div class="doc-block__number">04</div>
+          <h3 class="doc-block__title">Recording a Sale</h3>
+          <p class="doc-block__text">Use the Sales page to log each transaction. Scan a barcode or search by product
+            name, select the quantity sold, and confirm. The system updates stock automatically and saves the record to
+            customer history.</p>
+        </div>
+
+        <div class="doc-block">
+          <div class="doc-block__number">05</div>
+          <h3 class="doc-block__title">Generating Reports</h3>
+          <p class="doc-block__text">Go to Reports and choose a date range and report type — Sales Summary, Stock Level,
+            or Supplier Orders. Preview the report on screen or export it as a PDF or CSV file.</p>
+        </div>
+
+        <div class="doc-block">
+          <div class="doc-block__number">06</div>
+          <h3 class="doc-block__title">Managing Suppliers</h3>
+          <p class="doc-block__text">Add your suppliers under the Suppliers tab. Store their name, contact, and the
+            products they supply. When you need to restock, create a purchase order directly from the supplier's profile
+            page.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CTA ===================== -->
+  <section class="cta">
+    <div class="container container--narrow cta__inner">
+      <h2 class="cta__title">Ready to take control of your inventory?</h2>
+      <p class="cta__sub">Log in to your account or jump straight into the dashboard.</p>
+      <div class="cta__actions">
+        <a href="./pages/login.html" class="btn btn--cta-primary">Login</a>
+        <a href="./pages/dashboard.html" class="btn btn--cta-outline">Go to Dashboard</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div class="footer__brand">
+        <span class="footer__logo-text">Inventory Manager</span>
+        <p class="footer__tagline">Smart inventory for growing businesses.</p>
+      </div>
+      <div class="footer__links">
+        <a href="#about">Features</a>
+        <a href="#docs">Docs</a>
+        <a href="#developer">Developer</a>
+        <a href="https://github.com/Prayushstha" target="_blank">GitHub</a>
+      </div>
+      <p class="footer__copy">&copy; 2026 Inventory Manager. Built by Prayush Shrestha.</p>
+    </div>
+  </footer>
+
+</body>
+
 </html>

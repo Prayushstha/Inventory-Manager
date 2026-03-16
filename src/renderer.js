@@ -26,8 +26,11 @@
  * ```
  */
 
-import './index.css';
+import './Styles/index.css';
+import './Styles/navbar.css';
 
 console.log(
   '👋 This message is being logged by "renderer.js", included via webpack',
 );
+const devPhoto = require('./images/Prayush-Shrestha.jpg');
+document.getElementById('dev-photo').src = devPhoto;

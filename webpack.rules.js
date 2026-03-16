@@ -6,16 +6,17 @@ module.exports = [
     test: /native_modules[/\\].+\.node$/,
     use: 'node-loader',
   },
-  {
-    test: /[/\\]node_modules[/\\].+\.(m?js|node)$/,
-    parser: { amd: false },
-    use: {
-      loader: '@vercel/webpack-asset-relocator-loader',
-      options: {
-        outputAssetBase: 'native_modules',
-      },
+{
+  test: /[/\\]node_modules[/\\].+\.(m?js|node)$/,
+  parser: { amd: false },
+  use: {
+    loader: '@vercel/webpack-asset-relocator-loader',
+    options: {
+      outputAssetBase: 'native_modules',
     },
   },
+  exclude: /\.(png|jpg|jpeg|gif|svg|webp)$/i,
+},
   // Put your webpack loader rules in this array.  This is where you would put
   // your ts-loader configuration for instance:
   /**
@@ -32,4 +33,9 @@ module.exports = [
    *   }]
    * }
    */
+  {
+  test: /\.(png|jpg|jpeg|gif|svg|webp)$/i,
+  exclude: /node_modules/,
+  type: 'asset/resource',
+},
 ];
