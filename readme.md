@@ -21,7 +21,7 @@ A desktop inventory management application built with Electron, designed for sma
 
 ## Prerequisites
 
-Make sure you have the following installed before running Stockwise:
+Make sure you have the following installed before running Inventory Manager:
 
 | Tool | Version | Link |
 |------|---------|------|
@@ -116,7 +116,7 @@ You will also be able to bulk import products via CSV.
 
 ### 3. Tracking Stock
 
-Go to the **Inventory** section to view current stock levels. Set a minimum threshold for each product — Stockwise will alert you when stock falls below that level.
+Go to the **Inventory** section to view current stock levels. Set a minimum threshold for each product — Inventory Manager will alert you when stock falls below that level.
 
 ### 4. Recording a Sale
 
@@ -142,7 +142,7 @@ Preview the report on screen or export it as PDF or CSV.
 
 ### 8. Barcode Scanning
 
-Point a barcode scanner at any product. Stockwise will instantly pull up that product's details, current stock count, and pricing — no manual searching needed.
+Point a barcode scanner at any product. Inventory Manager will instantly pull up that product's details, current stock count, and pricing — no manual searching needed.
 
 ---
 
@@ -191,7 +191,7 @@ Inventory-Manager/
 **Prayush Shrestha**
 Grade 12 student · Frontend Developer · Aspiring Flutter Developer
 
-Built Stockwise as a real-world project to learn Electron, JavaScript, and professional development workflows — while solving an actual problem at a family paint shop.
+Built Inventory Manager as a real-world project to learn Electron, JavaScript, and professional development workflows — while solving an actual problem at a family paint shop.
 
 - GitHub: [github.com/Prayushstha](https://github.com/Prayushstha)
 
