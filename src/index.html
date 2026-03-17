@@ -4,10 +4,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; 
+           script-src 'self' 'unsafe-inline' 'unsafe-eval'; 
+           style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
+           font-src 'self' https://fonts.gstatic.com; 
+           img-src 'self' data: https://images.unsplash.com blob: file:;">
   <title>Inventory Manager</title>
-  <link rel="stylesheet" href="./Styles/index.css" />
+  <!-- <link rel="stylesheet" href="./Styles/index.css" />
   <link rel="stylesheet" href="./Styles/navbar.css" />
-  <link rel="stylesheet" href="./Styles/theme.css" />
+  <link rel="stylesheet" href="./Styles/theme.css" /> -->
 
 </head>
 
@@ -28,9 +33,8 @@
       </a>
       <!-- Center Links -->
       <ul class="navbar__links">
-        <li><a href="#">Home</a></li>
-        <li><a href="#">Dashboard</a></li>
-        <li><a href="#">About</a></li>
+        <li><a href="#" id="nav-home">Home</a></li>
+        <li><a href="#" id="nav-dashboard">Dashboard</a></li>
         <li>
           <!-- Search Icon as button -->
           <button class="navbar__search-btn" aria-label="Search">
@@ -71,8 +75,8 @@
         dashboard.
       </p>
       <div class="hero__actions">
-        <a href="#" class="btn btn--primary">Get Started</a>
-        <a href="#" class="btn btn--outline">View Dashboard</a>
+        <a href="#" class="btn btn--primary" id="btn-get-started">Get Started</a>
+        <a href="#" class="btn btn--outline" id="btn-view-dashboard">View Dashboard</a>
       </div>
     </div>
 
@@ -300,8 +304,8 @@
       <h2 class="cta__title">Ready to take control of your inventory?</h2>
       <p class="cta__sub">Log in to your account or jump straight into the dashboard.</p>
       <div class="cta__actions">
-        <a href="./pages/login.html" class="btn btn--cta-primary">Login</a>
-        <a href="./pages/dashboard.html" class="btn btn--cta-outline">Go to Dashboard</a>
+        <a href="#" class="btn btn--cta-primary" id="btn-login">Login</a>
+        <a href="#" class="btn btn--cta-outline" id="btn-view-dashboard">Go to Dashboard</a>
       </div>
     </div>
   </section>

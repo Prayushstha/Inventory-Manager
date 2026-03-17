@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+  content="default-src 'self';
+           script-src 'self' 'unsafe-inline' 'unsafe-eval';
+           style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+           font-src 'self' https://fonts.gstatic.com;
+           img-src 'self' data: https://images.unsplash.com blob: file:;">
+  <title>Inventory Manager - App</title>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar__inner">
+      <!-- Logo -->
+      <a href="#" class="navbar__logo">
+        <div class="navbar__logo-mark">
+          <!-- Box / inventory icon -->
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M21 8a1 1 0 0 0-.52-.87l-8-4.5a1 1 0 0 0-1 0l-8 4.5A1 1 0 0 0 3 8v8a1 1 0 0 0 .52.87l8 4.5a1 1 0 0 0 1 0l8-4.5A1 1 0 0 0 21 16ZM12 4.15 18.06 7.5 12 10.85 5.94 7.5Zm-8 4.84 7 3.94V19l-7-3.94Zm9 3.94 7-3.94V15L13 18.93Z" />
+          </svg>
+        </div>
+        <span class="navbar__logo-text">Inventory Manager</span>
+      </a>
+      <!-- Center Links -->
+      <ul class="navbar__links">
+        <li><a href="#" data-page="home">Home</a></li>
+        <li><a href="#" data-page="dashboard">Dashboard</a></li>
+        <li>
+          <!-- Search Icon as button -->
+          <button class="navbar__search-btn" aria-label="Search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+              stroke-linejoin="round">
+              <circle cx="11" cy="11" r="7" />
+              <line x1="16.5" y1="16.5" x2="22" y2="22" />
+            </svg>
+          </button>
+        </li>
+      </ul>
+
+      <!-- Profile -->
+      <div class="navbar__profile">
+        <button class="navbar__profile-btn" aria-label="Profile">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+            stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </nav>
+
+
+  <div id="app-content"></div>
+
+</body>
+</html>
