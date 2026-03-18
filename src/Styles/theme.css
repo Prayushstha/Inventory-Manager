@@ -1,50 +1,95 @@
-/* =============================================
-   theme.css — Central theme variables
-   Switch themes by editing values here only
-   ============================================= */
-
 :root {
-  /* --- Primary Palette --- */
-  --color-primary: #111111;
-  --color-primary-light: #2a2a2a;
-  --color-secondary: #c8a96e;        /* warm gold accent */
-  --color-secondary-hover: #b8934a;
+  /* --- Premium Dark Glassmorphism Variables --- */
+  --glass-bg: rgba(15, 23, 42, 0.45);
+  --glass-bg-hover: rgba(255, 255, 255, 0.08); /* Lighter glass */
+  --glass-bg-solid: rgba(15, 23, 42, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-border-light: rgba(255, 255, 255, 0.2);
+  --glass-blur: blur(24px);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 
-  /* --- Background & Surface --- */
-  --color-bg: #ffffff;
-  --color-bg-overlay: rgba(10, 10, 10, 0.72);
-  --color-surface: #f5f5f3;
-  --color-surface-dark: #ececea;
+  /* --- Base Colors --- */
+  --color-white: #ffffff;
+  --color-brand: #38bdf8; /* vibrant blue */
+  --color-accent: #818cf8; /* vibrant indigo */
 
-  /* --- Text --- */
-  --color-text-primary: #111111;
-  --color-text-secondary: #555550;
-  --color-text-muted: #999990;
-  --color-text-on-dark: #ffffff;
-  --color-text-on-dark-muted: rgba(255, 255, 255, 0.72);
+  /* Overrides for Legacy Dashboard Utility Colors */
+  --color-slate-900: var(--glass-bg); /* Prevents solid dark backgrounds */
+  --color-slate-800: var(--glass-bg-hover);
+  --color-slate-700: rgba(255, 255, 255, 0.2);
+  
+  --color-gray-800: #f8fafc; /* text-primary -> bright white */
+  --color-gray-500: #94a3b8; /* text-muted/secondary -> soft blue-gray */
+  --color-gray-400: #64748b;
+  --color-gray-200: var(--glass-border);
+  --color-gray-100: var(--glass-bg-hover);
+  --color-gray-50:  transparent;
 
-  /* --- Navbar --- */
-  --navbar-bg: #ffffff;
-  --navbar-text: #111111;
-  --navbar-shadow: 0 1px 0 rgba(0,0,0,0.08);
+  /* App Backgrounds */
+  --bg-app: transparent; 
+  --bg-sidebar: var(--glass-bg);
+  --bg-card: var(--glass-bg);
 
-  /* --- Hero --- */
-  --hero-overlay: rgba(8, 8, 8, 0.68);
+  /* Text Colors */
+  --text-primary: var(--color-gray-800);
+  --text-secondary: var(--color-gray-500);
+  --text-sidebar: var(--color-gray-500);
+  --text-sidebar-active: var(--color-white);
 
-  /* --- Border & Radius --- */
-  --border-color: rgba(0,0,0,0.08);
-  --radius-sm: 4px;
-  --radius-md: 8px;
+  /* Interface */
+  --border-color: var(--glass-border);
+  --radius-sm: 6px;
+  --radius-md: 10px;
   --radius-lg: 16px;
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-md: var(--glass-shadow);
 
-  /* --- Typography --- */
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-body: 'DM Sans', 'Helvetica Neue', sans-serif;
+  /* Typography */
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --transition-fast: 0.2s cubic-bezier(0.2, 0, 0, 1);
 
-  /* --- Spacing --- */
-  --nav-height: 68px;
+  /* Status Colors */
+  --color-green: #10b981;
+  --color-red: #ef4444;
+  --color-yellow: #f59e0b;
+}
 
-  /* --- Transition --- */
-  --transition-fast: 0.18s ease;
-  --transition-mid: 0.32s ease;
+/* =============================================
+   LIGHT GLASSMORPHISM THEME
+   ============================================= */
+body.light-theme {
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-bg-hover: rgba(255, 255, 255, 0.75);
+  --glass-bg-solid: rgba(240, 245, 255, 0.92);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-border-light: rgba(0, 0, 0, 0.06);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+
+  --color-brand: #3b82f6;
+  --color-accent: #6366f1;
+
+  --color-slate-900: var(--glass-bg);
+  --color-slate-800: var(--glass-bg-hover);
+  --color-slate-700: rgba(0, 0, 0, 0.06);
+
+  --color-gray-800: #0f172a;
+  --color-gray-500: #475569;
+  --color-gray-400: #64748b;
+  --color-gray-200: rgba(0, 0, 0, 0.08);
+  --color-gray-100: rgba(255, 255, 255, 0.6);
+  --color-gray-50: transparent;
+
+  --bg-app: transparent;
+  --bg-sidebar: rgba(255, 255, 255, 0.5);
+  --bg-card: rgba(255, 255, 255, 0.55);
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-sidebar: #334155;
+  --text-sidebar-active: #0f172a;
+  --color-white: #ffffff;
+
+  --border-color: rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.06);
 }
