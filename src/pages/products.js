@@ -34,9 +34,21 @@ export function renderProducts() {
         <input type="text" placeholder="Search by name, SKU, or barcode..." id="product-search">
       </div>
       <div class="action-buttons">
-        <button class="btn btn-outline" id="btn-scan"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg> Scan</button>
+        <button class="btn btn-primary" id="btn-scan"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg> Scan</button>
         <button class="btn btn-primary" id="btn-add-product">+ Add Product</button>
+              <div class="change-layout">
+      <button class="btn btn-primary layout-btn" id="layout-btn">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="var(--text-primary)" xmlns="http://www.w3.org/2000/svg">
+    <path d="M7 1H1V5H7V1Z"/>
+    <path d="M7 7H1V15H7V7Z"/>
+    <path d="M9 1H15V9H9V1Z"/>
+    <path d="M15 11H9V15H15V11Z"/>
+  </svg>
+      </button>
       </div>
+      </div>
+
+
     </div>
 
     <div class="panel">
@@ -85,9 +97,13 @@ export function initProducts() {
   const btnAdd = document.getElementById('btn-add-product');
   const btnClose = document.getElementById('modal-close');
   const form = document.getElementById('add-product-form');
+    const layoutBtn = document.getElementById('layout-btn'); 
+
 
   if (btnAdd) btnAdd.onclick = () => modal.classList.remove('hidden');
   if (btnClose) btnClose.onclick = () => modal.classList.add('hidden');
+  if (layoutBtn) layoutBtn.addEventListener('click', changelayout); 
+
 
   if (form) {
     form.onsubmit = (e) => {
@@ -110,5 +126,58 @@ export function initProducts() {
       document.getElementById('app-content').innerHTML = renderProducts();
       initProducts(); // Rebind events
     };
+  }
+}
+function renderProductCard(p) {
+  let badgeClass = 'badge-gray';
+  let stockText = 'Stock unknown';
+  if (p.stock === null) { badgeClass = 'badge-gray'; stockText = 'Unknown'; }
+  else if (p.stock === 0) { badgeClass = 'badge-red'; stockText = 'Out of stock'; }
+  else if (p.stock <= p.minStock) { badgeClass = 'badge-yellow'; stockText = `Low: ${p.stock}`; }
+  else { badgeClass = 'badge-green'; stockText = `${p.stock} in stock`; }
+
+  const retail = p.retail != null ? `NPR ${p.retail.toLocaleString()}` : '—';
+  const ws = p.wholesale != null ? `NPR ${p.wholesale.toLocaleString()}` : '—';
+
+  return `
+    <div class="prod-card">
+      <div class="card-img">
+        <span>No image</span>
+        <span class="card-category">${p.category}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-name">${p.name}</div>
+        <div class="card-sku">${p.sku}</div>
+        <div class="card-prices">
+          <div class="price-row">
+            <span class="price-label">Retail</span>
+            <span class="price-retail">${retail}</span>
+          </div>
+          <div class="price-row">
+            <span class="price-label">Wholesale</span>
+            <span class="price-ws">${ws}</span>
+          </div>
+        </div>
+        <div class="card-stock">
+          <span class="badge ${badgeClass}">${stockText}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+let isGridLayout = false;
+
+export function changelayout() {
+  isGridLayout = !isGridLayout;
+  const panel = document.querySelector('.panel');
+
+  if (isGridLayout) {
+    const products = store.getProducts();
+    panel.innerHTML = `<div class="prod-card-grid">${products.map(renderProductCard).join('')}</div>`;
+  } else {
+    // Re-render the full products page to restore the table
+    document.getElementById('app-content').innerHTML = renderProducts();
+    initProducts();
   }
 }

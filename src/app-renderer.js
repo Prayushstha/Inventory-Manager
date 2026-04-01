@@ -2,6 +2,7 @@ import './Styles/theme.css';
 import './Styles/index.css';
 import './Styles/navbar.css';
 import './Styles/homepage.css'; 
+import './Styles/landing-navbar.css'
 
 import { renderDashboard, initDashboard } from './pages/dashboard';
 import { renderProducts, initProducts } from './pages/products';
