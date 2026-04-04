@@ -1,4 +1,10 @@
 import { store } from '../store';
+import prayushImg from '../images/Prayush-Shrestha.jpg';
+const imageMap = {
+  'Prayush-Shrestha.jpg': prayushImg,
+  // add more as you add images
+};
+
 
 export function renderProducts() {
   const products = store.getProducts();
@@ -128,7 +134,18 @@ export function initProducts() {
     };
   }
 }
+function getProductImage(filename) {
+  if (!filename) return null;
+  try {
+    return require(`../images/product-images/${filename}`);
+  } catch {
+    return null;
+  }
+}
 function renderProductCard(p) {
+  
+  const imgSrc = p.image ? imageMap[p.image] : null;
+
   let badgeClass = 'badge-gray';
   let stockText = 'Stock unknown';
   if (p.stock === null) { badgeClass = 'badge-gray'; stockText = 'Unknown'; }
@@ -139,10 +156,13 @@ function renderProductCard(p) {
   const retail = p.retail != null ? `NPR ${p.retail.toLocaleString()}` : '—';
   const ws = p.wholesale != null ? `NPR ${p.wholesale.toLocaleString()}` : '—';
 
-  return `
-    <div class="prod-card">
-      <div class="card-img">
-        <span>No image</span>
+return `
+  <div class="prod-card">
+    <div class="card-img">
+      ${imgSrc 
+        ? `<img src="${imgSrc}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;">` 
+        : `<span class="no-img-text">No image</span>`
+      }
         <span class="card-category">${p.category}</span>
       </div>
       <div class="card-body">
