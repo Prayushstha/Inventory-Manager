@@ -1,9 +1,4 @@
 import { store } from '../store';
-import prayushImg from '../images/Prayush-Shrestha.jpg';
-const imageMap = {
-  'Prayush-Shrestha.jpg': prayushImg,
-  // add more as you add images
-};
 
 
 export function renderProducts() {
@@ -144,7 +139,7 @@ function getProductImage(filename) {
 }
 function renderProductCard(p) {
   
-  const imgSrc = p.image ? imageMap[p.image] : null;
+const imgSrc = getProductImage(p.image);
 
   let badgeClass = 'badge-gray';
   let stockText = 'Stock unknown';
