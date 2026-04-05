@@ -1,89 +1,349 @@
 import { store } from '../store.js';
 
+function formatMoney(value) {
+  return `NPR ${Number(value || 0).toFixed(2)}`;
+}
+
 export function renderSales() {
   const sales = store.getSales();
-  
-  const recentSalesHTML = sales.length === 0 ? `<div class="p-6 text-center text-muted">No sales yet. Searching for a product and recording a sale will populate this list.</div>` :
-    sales.map(s => `
+  const products = store
+    .getProducts()
+    .filter(product => Number.isFinite(Number(product.retail)));
+
+  const recentSalesHTML = sales.length === 0
+    ? `<div class="p-6 text-center text-muted">No sales yet. Add items below to record your first one-time sale.</div>`
+    : sales.map(sale => `
       <div class="list-item">
         <div class="sale-info">
-          <h4>${s.customer}</h4>
-          <div class="sale-items text-muted">${s.items}</div>
-          <div class="sale-date text-muted">${s.date}</div>
+          <h4>${sale.customer}</h4>
+          ${sale.phone ? `<div class="sale-date text-muted">${sale.phone}</div>` : ''}
+          <div class="sale-items text-muted">${sale.items}</div>
+          <div class="sale-date text-muted">${sale.date}</div>
         </div>
-        <div class="sale-total font-bold">NPR ${parseFloat(s.total).toFixed(2)}</div>
+        <div class="sale-total font-bold">${formatMoney(sale.total)}</div>
       </div>
     `).join('');
 
   return `
-    <div class="panel mb-6">
-      <div class="panel-header">
-        <h3><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg> New Sale</h3>
-      </div>
-      <div class="scanner-box">
-        <div class="search-box full-width flex gap-2">
-          <svg viewBox="0 0 24 24" fill="none" class="search-icon" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input type="text" id="sale-product-search" placeholder="Type a Product SKU to quick-sell (e.g. OIL-001)...">
-          <button id="quick-sell-btn" class="btn btn-primary ml-2 flex-shrink-0">Sell 1x</button>
+    <div class="sales-page">
+      <div class="panel">
+        <div class="panel-header">
+          <h3><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg> One-Time Sale</h3>
         </div>
-        <div id="sale-feedback" class="mt-4 text-green" style="display: none; text-align: center; font-weight: 500;"></div>
-      </div>
-    </div>
 
-    <div class="panel">
-      <div class="panel-header">
-        <h3>Recent Sales</h3>
+        <form id="sales-form" class="sales-form">
+          <div class="sales-grid">
+            <section class="sales-section">
+              <div class="sales-section__head">
+                <h4>Customer Details</h4>
+                <p class="text-muted">Record who bought the items and any note for the bill.</p>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="sale-customer-name">Customer Name</label>
+                  <input type="text" id="sale-customer-name" class="form-input" placeholder="Walk-in Customer">
+                </div>
+                <div class="form-group">
+                  <label for="sale-customer-phone">Phone Number</label>
+                  <input type="text" id="sale-customer-phone" class="form-input" placeholder="98XXXXXXXX">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="sale-date">Sale Date</label>
+                  <input type="date" id="sale-date" class="form-input" value="${new Date().toISOString().split('T')[0]}">
+                </div>
+                <div class="form-group">
+                  <label for="sale-note">Note</label>
+                  <input type="text" id="sale-note" class="form-input" placeholder="Optional note">
+                </div>
+              </div>
+            </section>
+
+            <section class="sales-section">
+              <div class="sales-section__head sales-section__head--inline">
+                <div>
+                  <h4>Items To Sell</h4>
+                  <p class="text-muted">Add products, set quantity, and the total will be calculated automatically.</p>
+                </div>
+                <button type="button" id="add-sale-line" class="btn btn-primary">+ Add Item</button>
+              </div>
+
+              <div id="sale-lines" class="sales-lines"></div>
+
+              <div class="sales-summary">
+                <div class="sales-summary__row">
+                  <span class="text-muted">Items</span>
+                  <strong id="sale-item-count">0</strong>
+                </div>
+                <div class="sales-summary__row">
+                  <span class="text-muted">Quantity</span>
+                  <strong id="sale-total-qty">0</strong>
+                </div>
+                <div class="sales-summary__row sales-summary__row--grand">
+                  <span>Total</span>
+                  <strong id="sale-grand-total">${formatMoney(0)}</strong>
+                </div>
+              </div>
+
+              <div class="sales-actions">
+                <button type="submit" class="btn btn-primary">Complete Sale</button>
+              </div>
+            </section>
+          </div>
+
+          <div id="sale-feedback" class="mt-4 text-green sales-feedback" style="display: none;"></div>
+        </form>
       </div>
-      <div class="list-container large-list">
-        ${recentSalesHTML}
+
+      <div class="panel">
+        <div class="panel-header">
+          <h3>Recent Sales</h3>
+        </div>
+        <div class="list-container large-list">
+          ${recentSalesHTML}
+        </div>
       </div>
     </div>
   `;
 }
 
 export function initSales() {
-  const btn = document.getElementById('quick-sell-btn');
-  const input = document.getElementById('sale-product-search');
+  const form = document.getElementById('sales-form');
+  const linesContainer = document.getElementById('sale-lines');
+  const addLineBtn = document.getElementById('add-sale-line');
   const feedback = document.getElementById('sale-feedback');
+  const itemCountEl = document.getElementById('sale-item-count');
+  const totalQtyEl = document.getElementById('sale-total-qty');
+  const grandTotalEl = document.getElementById('sale-grand-total');
+  const products = store
+    .getProducts()
+    .filter(product => Number.isFinite(Number(product.retail)));
 
-  if (btn && input) {
-    btn.onclick = () => {
-      const sku = input.value.trim().toUpperCase();
-      if (!sku) return;
+  if (!form || !linesContainer || !feedback) return;
 
-      const products = store.getProducts();
-      const product = products.find(p => p.sku === sku || p.name.toUpperCase().includes(sku));
+  let lineId = 0;
 
-      if (product) {
-        if (product.stock > 0) {
-          store.updateStock(product.sku, -1);
-          store.addSale({
-            customer: 'Walk-in Customer',
-            items: `${product.name} ×1`,
-            total: product.retail,
-            date: new Date().toISOString().split('T')[0]
-          });
-          
-          input.value = '';
-          feedback.textContent = `✅ Success! Sold 1x ${product.name} (NPR ${product.retail})`;
-          feedback.className = 'mt-4 text-green';
-          feedback.style.display = 'block';
-          
-          // Slight delay before re-render so they see the success text
-          setTimeout(() => {
-            document.getElementById('app-content').innerHTML = renderSales();
-            initSales();
-          }, 1500);
-        } else {
-          feedback.textContent = `❌ Out of stock: ${product.name}`;
-          feedback.className = 'mt-4 text-red';
-          feedback.style.display = 'block';
-        }
-      } else {
-        feedback.textContent = `❌ Product not found`;
-        feedback.className = 'mt-4 text-red';
-        feedback.style.display = 'block';
-      }
-    };
+  function getProductOptionsMarkup(selectedSku = '') {
+    if (products.length === 0) {
+      return '<option value="">No sellable products available</option>';
+    }
+
+    return `
+      <option value="">Select a product</option>
+      ${products.map(product => `
+        <option value="${product.sku}" ${product.sku === selectedSku ? 'selected' : ''}>
+          ${product.name} (${product.sku}) - ${formatMoney(product.retail)}
+        </option>
+      `).join('')}
+    `;
   }
+
+  function updateSummary() {
+    const rows = Array.from(linesContainer.querySelectorAll('.sale-line'));
+    let itemCount = 0;
+    let totalQty = 0;
+    let grandTotal = 0;
+
+    rows.forEach(row => {
+      const select = row.querySelector('.sale-product-select');
+      const qtyInput = row.querySelector('.sale-qty-input');
+      const product = products.find(entry => entry.sku === select.value);
+      const quantity = Math.max(1, Number(qtyInput.value) || 1);
+
+      if (!product) return;
+
+      itemCount += 1;
+      totalQty += quantity;
+      grandTotal += Number(product.retail) * quantity;
+    });
+
+    itemCountEl.textContent = String(itemCount);
+    totalQtyEl.textContent = String(totalQty);
+    grandTotalEl.textContent = formatMoney(grandTotal);
+  }
+
+  function syncLine(row) {
+    const select = row.querySelector('.sale-product-select');
+    const qtyInput = row.querySelector('.sale-qty-input');
+    const meta = row.querySelector('.sale-line__meta');
+    const unitPriceEl = row.querySelector('.sale-unit-price');
+    const lineTotalEl = row.querySelector('.sale-line-total');
+    const selectedProduct = products.find(product => product.sku === select.value);
+    const quantity = Math.max(1, Number(qtyInput.value) || 1);
+
+    qtyInput.value = String(quantity);
+
+    if (!selectedProduct) {
+      meta.textContent = 'Select a product to see price and stock.';
+      unitPriceEl.textContent = formatMoney(0);
+      lineTotalEl.textContent = formatMoney(0);
+      updateSummary();
+      return;
+    }
+
+    const unitPrice = Number(selectedProduct.retail);
+    const stockText = Number.isFinite(Number(selectedProduct.stock))
+      ? `${selectedProduct.stock} in stock`
+      : 'Stock not tracked';
+
+    meta.textContent = `${selectedProduct.name} � ${stockText}`;
+    unitPriceEl.textContent = formatMoney(unitPrice);
+    lineTotalEl.textContent = formatMoney(unitPrice * quantity);
+    updateSummary();
+  }
+
+  function addSaleLine(selectedSku = '') {
+    const row = document.createElement('div');
+    row.className = 'sale-line';
+    row.dataset.lineId = String(lineId++);
+    row.innerHTML = `
+      <div class="sale-line__grid">
+        <div class="form-group sale-line__product">
+          <label>Product</label>
+          <select class="form-input sale-product-select">
+            ${getProductOptionsMarkup(selectedSku)}
+          </select>
+          <div class="sale-line__meta text-muted">Select a product to see price and stock.</div>
+        </div>
+
+        <div class="form-group sale-line__qty">
+          <label>Quantity</label>
+          <input type="number" min="1" value="1" class="form-input sale-qty-input">
+        </div>
+
+        <div class="form-group sale-line__price">
+          <label>Unit Price</label>
+          <div class="sale-line__value sale-unit-price">${formatMoney(0)}</div>
+        </div>
+
+        <div class="form-group sale-line__total">
+          <label>Line Total</label>
+          <div class="sale-line__value sale-line-total">${formatMoney(0)}</div>
+        </div>
+
+        <div class="sale-line__remove">
+          <button type="button" class="btn btn-primary sale-remove-btn">Remove</button>
+        </div>
+      </div>
+    `;
+
+    linesContainer.appendChild(row);
+    syncLine(row);
+  }
+
+  if (products.length > 0) {
+    addSaleLine();
+  } else {
+    linesContainer.innerHTML = `
+      <div class="sale-line sale-line--empty">
+        <p class="text-muted">No products with a retail price are available yet. Add products first, then come back here to record sales.</p>
+      </div>
+    `;
+  }
+
+  if (addLineBtn) {
+    addLineBtn.onclick = () => addSaleLine();
+  }
+
+  linesContainer.addEventListener('change', event => {
+    const row = event.target.closest('.sale-line');
+    if (row) syncLine(row);
+  });
+
+  linesContainer.addEventListener('input', event => {
+    const row = event.target.closest('.sale-line');
+    if (row) syncLine(row);
+  });
+
+  linesContainer.addEventListener('click', event => {
+    const removeBtn = event.target.closest('.sale-remove-btn');
+    if (!removeBtn) return;
+
+    const rows = linesContainer.querySelectorAll('.sale-line');
+    if (rows.length === 1) {
+      feedback.textContent = 'At least one item row is required for a sale.';
+      feedback.className = 'mt-4 text-red sales-feedback';
+      feedback.style.display = 'block';
+      return;
+    }
+
+    removeBtn.closest('.sale-line').remove();
+    feedback.style.display = 'none';
+    updateSummary();
+  });
+
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+
+    const rows = Array.from(linesContainer.querySelectorAll('.sale-line'));
+    const customerName = document.getElementById('sale-customer-name').value.trim() || 'Walk-in Customer';
+    const phone = document.getElementById('sale-customer-phone').value.trim();
+    const note = document.getElementById('sale-note').value.trim();
+    const saleDate = document.getElementById('sale-date').value || new Date().toISOString().split('T')[0];
+    const lineItems = [];
+    let grandTotal = 0;
+
+    for (const row of rows) {
+      const select = row.querySelector('.sale-product-select');
+      const qtyInput = row.querySelector('.sale-qty-input');
+      const product = products.find(entry => entry.sku === select.value);
+      const quantity = Math.max(1, Number(qtyInput.value) || 1);
+
+      if (!product) {
+        feedback.textContent = 'Choose a product for every row before completing the sale.';
+        feedback.className = 'mt-4 text-red sales-feedback';
+        feedback.style.display = 'block';
+        return;
+      }
+
+      if (Number.isFinite(Number(product.stock)) && Number(product.stock) < quantity) {
+        feedback.textContent = `${product.name} only has ${product.stock} item(s) in stock.`;
+        feedback.className = 'mt-4 text-red sales-feedback';
+        feedback.style.display = 'block';
+        return;
+      }
+
+      const unitPrice = Number(product.retail);
+      const lineTotal = unitPrice * quantity;
+
+      lineItems.push({
+        sku: product.sku,
+        name: product.name,
+        quantity,
+        unitPrice,
+        total: lineTotal
+      });
+
+      grandTotal += lineTotal;
+    }
+
+    lineItems.forEach(item => {
+      const product = products.find(entry => entry.sku === item.sku);
+      if (product && Number.isFinite(Number(product.stock))) {
+        store.updateStock(item.sku, -item.quantity);
+      }
+    });
+
+    store.addSale({
+      customer: customerName,
+      phone,
+      note,
+      items: lineItems.map(item => `${item.name} x${item.quantity}`).join(', '),
+      lineItems,
+      total: grandTotal,
+      date: saleDate
+    });
+
+    feedback.textContent = `Sale recorded for ${customerName}. Total: ${formatMoney(grandTotal)}`;
+    feedback.className = 'mt-4 text-green sales-feedback';
+    feedback.style.display = 'block';
+
+    setTimeout(() => {
+      document.getElementById('app-content').innerHTML = renderSales();
+      initSales();
+    }, 900);
+  });
 }
