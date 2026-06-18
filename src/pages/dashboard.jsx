@@ -5,7 +5,7 @@ export function DashboardPage({ isDark, setIsDark }) {
     <div style={{ height: "100%" }}>
       <NavBar isDark={isDark} setIsDark={setIsDark} />
       <div className="products-container">
-    
+      
       </div>
     </div>
   );
