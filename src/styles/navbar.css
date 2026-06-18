@@ -1,0 +1,108 @@
+
+
+/* From Uiverse.io by Madflows */
+.header {
+  display: flex;
+  height: 60px;
+  width: 100%;
+  background: var(--background-secondary);
+  align-items: center;
+  padding: 0 20px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.searchbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  width: 100%;
+  align-items: center;
+}
+
+.search-wrapper {
+  position: relative;
+  width: 80%;
+  margin: 0 auto;
+}
+
+.search-input {
+  width: 100%;
+  background-color: var(--background-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--color-primary);
+  height: 36px;
+  border-radius: 10px;
+  font-size: 15px;
+  padding: 0 15px 0 36px;
+  box-sizing: border-box;
+}
+
+.search-input::placeholder {
+  color: var(--color-muted);
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: var(--color-muted);
+  pointer-events: none;
+}
+
+/* toggle switch — keeps its own internal --light/--dark vars */
+.toggle-switch {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  --light: #d8dbe0;
+  --dark: #28292c;
+}
+
+.switch-label {
+  position: absolute;
+  width: 100%;
+  height: 28px;
+  background-color: var(--dark);
+  border-radius: 14px;
+  cursor: pointer;
+  border: 2px solid var(--dark);
+}
+
+.checkbox {
+  position: absolute;
+  display: none;
+}
+
+.slider {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  transition: 0.3s;
+}
+
+.checkbox:checked~.slider {
+  background-color: var(--light);
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  box-shadow: inset 6px -2px 0px 0px var(--light);
+
+  transition: 0.3s;
+}
+
+.checkbox:checked~.slider::before {
+  transform: translateX(24px);
+  background-color: rgb(255, 119, 0);
+  box-shadow: none;
+}
