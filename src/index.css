@@ -2,6 +2,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+   scrollbar-width: none;
 }
 
 body {
@@ -10,6 +11,7 @@ body {
   display: flex;
   height: 100vh;
   background: #f5f5f5;
+ 
 }
 
 
@@ -71,4 +73,6 @@ html[data-theme="dark"] {
 .main-content {
   flex: 1;
   overflow-y: auto;
+    height: 100vh;
+
 }

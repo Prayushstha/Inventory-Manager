@@ -2,6 +2,7 @@
     {
         "id": "1be1bd22-5ccb-4cb0-b540-3af0eb9511b1",
         "name": "ACE AC1/6/10/17/18",
+        "images" : "images/product-images/ACE.jpg",
         "variants": [
             {
                 "bucket_size": 1,
@@ -60,6 +61,7 @@
     {
         "id": "475844e5-46e8-4860-a475-6e017769f0d2",
         "name": "APEX AB2/6/10/17/18",
+        "images" : "images/product-images/apex.jpg",
         "variants": [
             {
                 "bucket_size": 1,
@@ -118,6 +120,7 @@
     {
         "id": "c115128f-f577-4554-902e-f7c71602de09",
         "name": "APEX ULTIMA HQ2/6/16/17",
+        "images" : "images/product-images/apexultima.jpg",
         "variants": [
             {
                 "bucket_size": 1,
@@ -176,6 +179,7 @@
     {
         "id": "8a057f7a-5c0f-49c1-aa2b-9d226861fb65",
         "name": "ULTIMA PROTEK PS1",
+        "images" : "images/product-images/ultimaprotek.jpg",
         "variants": [
             {
                 "bucket_size": 1,
@@ -232,66 +236,10 @@
         ]
     },
     {
-        "id": "7878a2df-144a-4fb0-9a54-ec903b36ff61",
-        "name": "ULTIMA CLEAR",
-        "variants": [
-            {
-                "bucket_size": 1,
-                "rate": 936,
-                "tax_bucket": 65.52000000000001,
-                "scheme": 0,
-                "after_scheme": 936,
-                "after_trade": 936,
-                "net_value": 936,
-                "vat": 1001.52,
-                "with_vat": 1131.7176,
-                "sales": 1100,
-                "mp": 1358
-            },
-            {
-                "bucket_size": 4,
-                "rate": 3588,
-                "tax_bucket": 251.16000000000003,
-                "scheme": 0,
-                "after_scheme": 3588,
-                "after_trade": 3588,
-                "net_value": 3588,
-                "vat": 3839.16,
-                "with_vat": 4338.2508,
-                "sales": 4500,
-                "mp": 5229
-            },
-            {
-                "bucket_size": 10,
-                "rate": 8485,
-                "tax_bucket": 593.95,
-                "scheme": 0,
-                "after_scheme": 8485,
-                "after_trade": 8485,
-                "net_value": 8485,
-                "vat": 9078.95,
-                "with_vat": 10259.213500000002,
-                "sales": 10500,
-                "mp": 12474
-            },
-            {
-                "bucket_size": 20,
-                "rate": 16534,
-                "tax_bucket": 1157.38,
-                "scheme": 0,
-                "after_scheme": 16534,
-                "after_trade": 16534,
-                "net_value": 16534,
-                "vat": 17691.38,
-                "with_vat": 19991.259400000003,
-                "sales": 20700,
-                "mp": 24532
-            }
-        ]
-    },
-    {
         "id": "abc48abd-df5e-498a-a266-eb0787108d7c",
         "name": "DAMP DEFENSE DD01",
+         "images" : "images/product-images/dampdefense.jpg",
+       
         "variants": [
             {
                 "bucket_size": 1,
@@ -350,6 +298,7 @@
     {
         "id": "68af2e90-6e9d-4f39-88f4-6d5c26a6b1c4",
         "name": "TRACTOR TE1/6",
+        "images" : "images/product-images/tactor.jpg",
         "variants": [
             {
                 "bucket_size": 1,
@@ -405,67 +354,11 @@
             }
         ]
     },
-    {
-        "id": "693b850c-dccd-4ddc-91e2-ff04940c7ace",
-        "name": "TRACTOR EMULSION ADVANCED TA1/6",
-        "variants": [
-            {
-                "bucket_size": 1,
-                "rate": 400,
-                "tax_bucket": 28.000000000000004,
-                "scheme": 44,
-                "after_scheme": 356,
-                "after_trade": 356,
-                "net_value": 356,
-                "vat": 384,
-                "with_vat": 433.92,
-                "sales": 450,
-                "mp": 645
-            },
-            {
-                "bucket_size": 4,
-                "rate": 1393,
-                "tax_bucket": 97.51,
-                "scheme": 176,
-                "after_scheme": 1217,
-                "after_trade": 1217,
-                "net_value": 1217,
-                "vat": 1314.51,
-                "with_vat": 1485.3962999999999,
-                "sales": 1500,
-                "mp": 2231
-            },
-            {
-                "bucket_size": 10,
-                "rate": 3327,
-                "tax_bucket": 232.89000000000001,
-                "scheme": 440,
-                "after_scheme": 2887,
-                "after_trade": 2887,
-                "net_value": 2887,
-                "vat": 3119.89,
-                "with_vat": 3525.4757,
-                "sales": 3500,
-                "mp": 5325
-            },
-            {
-                "bucket_size": 20,
-                "rate": 6425,
-                "tax_bucket": 449.75000000000006,
-                "scheme": 880,
-                "after_scheme": 5545,
-                "after_trade": 5545,
-                "net_value": 5545,
-                "vat": 5994.75,
-                "with_vat": 6774.0675,
-                "sales": 6600,
-                "mp": 10253
-            }
-        ]
-    },
+   
     {
         "id": "5e581e4c-b501-4f35-9093-de7198e904e7",
         "name": "PREMIUM BW1/6",
+        "images" : "images/product-images/premium.jpg",
         "variants": [
             {
                 "bucket_size": 1,
@@ -524,6 +417,7 @@
     {
         "id": "f243427e-1696-4088-b0d9-87c69c465ca8",
         "name": "ROYAL RB1/6",
+        "images" : "images/product-images/royal.jpg",
         "variants": [
             {
                 "bucket_size": 1,
@@ -582,6 +476,7 @@
     {
         "id": "7ced9561-55b8-4d09-8020-ead2930d39b1",
         "name": "Shyne SN2/7",
+        "images" : "images/product-images/shyne.jpg",
         "variants": [
             {
                 "bucket_size": 1,
@@ -640,6 +535,7 @@
     {
         "id": "155030e1-8983-454c-b0f4-c9df21402fe0",
         "name": "ROYAL BLING BL1",
+        "images" : "images/product-images/bling.jpg",
         "variants": [
             {
                 "bucket_size": 1,
@@ -698,6 +594,7 @@
      {
         "id": "a6610cd1-e419-4d83-a54b-689114f6d069",
         "name": "TRACTOR AD1/6",
+        "images" : "images/product-images/TAD.jpg",
         "variants": [
             {
                 "bucket_size": 1,
@@ -755,7 +652,8 @@
     },
      {
         "id": "a1d0e0ba-a9c5-44eb-b5c3-a507f1f32100",
-        "name": "UTSAV UD1      TRACTOR UNO",
+        "name": "TRACTOR UNO",
+        "images" : "images/product-images/UD.jpg",
         "variants": [
             {
                 "bucket_size": 1,
@@ -814,6 +712,7 @@
      {
         "id": "4fe584cd-2b5f-4a05-9aa7-190e3c740cb2",
         "name": "EXTERIOR PRIMER",
+        "images" : "images/product-images/extprimer.jpg",
         "variants": [
             {
                 "bucket_size": 1,
@@ -872,6 +771,7 @@
      {
         "id": "468c467c-3677-446f-b926-b34479946f27",
         "name": "DCP PRIMER(M)",
+        "images" : "images/product-images/intprimer.jpg",
         "variants": [
             {
                 "bucket_size": 1,
@@ -930,6 +830,7 @@
      {
         "id": "aeac3566-4b62-4b83-9626-e199def8210c",
         "name": "DCP PRIMER(LUXURY)",
+        "images" : "images/product-images/intprimer.jpg",
         "variants": [
             {
                 "bucket_size": 1,
@@ -987,7 +888,8 @@
     },
       {
         "id": "330bed4c-4d79-452c-8bbb-973f930e678e",
-        "name": "ASIAN WOOD PRIMER       W/P",
+        "name": "ASIAN WOOD PRIMER",
+        "images" : "images/product-images/woodprimer.jpg",
         "variants": [
             {
                 "bucket_size": 0.5,
@@ -1032,7 +934,8 @@
     },
     {
         "id": "ef02548a-f31d-4287-9997-f9d92b2ff9f2",
-        "name": "ASIAN METAL PRIMER        M/P",
+        "name": "ASIAN METAL PRIMER",
+        "images" : "images/product-images/metalprimer.jpg",
         "variants": [
             {
                 "bucket_size": 0.5,
@@ -1088,67 +991,11 @@
             }
         ]
     },
- {
-        "id": "160584bf-581d-45f5-9a74-f081cd1f7f3e",
-        "name": "TRACTOR METAL PRIMER   (TMPRO)",
-        "variants": [
-            {
-                "bucket_size": 0.5,
-                "rate": 185,
-                "tax_bucket": 12.950000000000001,
-                "scheme": 0,
-                "after_scheme": 185,
-                "after_trade": 185,
-                "net_value": 185,
-                "vat": 197.95,
-                "with_vat": 223.68349999999998,
-                "sales": 200,
-                "mp": 263
-            },
-            {
-                "bucket_size": 1,
-                "rate": 343,
-                "tax_bucket": 24.01,
-                "scheme": 0,
-                "after_scheme": 343,
-                "after_trade": 343,
-                "net_value": 343,
-                "vat": 367.01,
-                "with_vat": 414.7213,
-                "sales": 375,
-                "mp": 491
-            },
-            {
-                "bucket_size": 4,
-                "rate": 1280,
-                "tax_bucket": 89.60000000000001,
-                "scheme": 0,
-                "after_scheme": 1280,
-                "after_trade": 1280,
-                "net_value": 1280,
-                "vat": 1369.6,
-                "with_vat": 1547.648,
-                "sales": 1400,
-                "mp": 1802
-            },
-            {
-                "bucket_size": 20,
-                "rate": 5937,
-                "tax_bucket": 415.59000000000003,
-                "scheme": 0,
-                "after_scheme": 5937,
-                "after_trade": 5937,
-                "net_value": 5937,
-                "vat": 6352.59,
-                "with_vat": 7178.4267,
-                "sales": 6500,
-                "mp": 8256
-            }
-        ]
-    },
+
      {
         "id": "87813e88-813b-4817-be00-2d26d4a5f4ea",
         "name": "  PGE GOLD",
+        "images" : "images/product-images/enamel.jpg",
         "variants": [
             {
                 "bucket_size": 0.1,
@@ -1220,6 +1067,7 @@
     {
         "id": "68793090-8e04-4088-b1fc-fbe064ef7b28",
         "name": "PGE BLAZZING WHITE",
+         "images" : "images/product-images/enamel.jpg",
         "variants": [
             {
                 "bucket_size": 0.5,
@@ -1265,6 +1113,7 @@
     {
         "id": "d844c900-3eff-472f-84d7-0b4a1e116cf5",
         "name": "PGE GRI",
+         "images" : "images/product-images/enamel.jpg",
         "variants": [
             {
                 "bucket_size": 0.5,
@@ -1310,6 +1159,7 @@
     {
         "id": "1592a709-5aab-49af-95a3-b007f65558bb",
         "name": "PGE GRII",
+         "images" : "images/product-images/enamel.jpg",
         "variants": [
             {
                 "bucket_size": 0.5,
@@ -1352,85 +1202,7 @@
             }
         ]
     },
-     {
-        "id": "fe4d8cc1-f938-47cb-a1db-145dec0cb985",
-        "name": "PGE EB1",
-        "variants": [
-            {
-                "bucket_size": 1,
-                "rate": 549,
-                "tax_bucket": 38.43000000000001,
-                "scheme": 10,
-                "after_scheme": 539,
-                "after_trade": 539,
-                "net_value": 539,
-                "vat": 577.4300000000001,
-                "with_vat": 652.4959000000001,
-                "sales": 700,
-                "mp": 978
-            },
-            {
-                "bucket_size": 4,
-                "rate": 2077,
-                "tax_bucket": 145.39000000000001,
-                "scheme": 40,
-                "after_scheme": 2037,
-                "after_trade": 2037,
-                "net_value": 2036.9999999999998,
-                "vat": 2182.39,
-                "with_vat": 2466.1007,
-                "sales": 2700,
-                "mp": 3787
-            }
-        ]
-    },
-
-    {
-        "id": "c28174d5-adba-46ac-9dfc-c443f8a09bdf",
-        "name": "Damp Proof",
-        "variants": [
-            {
-                "bucket_size": 4,
-                "rate": 2758,
-                "tax_bucket": 193.06000000000003,
-                "scheme": 280,
-                "after_scheme": 2478,
-                "after_trade": 2478,
-                "net_value": 2478,
-                "vat": 2671.06,
-                "with_vat": 3018.2978,
-                "sales": 3200,
-                "mp": 4083
-            },
-            {
-                "bucket_size": 10,
-                "rate": 6789,
-                "tax_bucket": 475.23,
-                "scheme": 700,
-                "after_scheme": 6089,
-                "after_trade": 6089,
-                "net_value": 6089,
-                "vat": 6564.23,
-                "with_vat": 7417.5799,
-                "sales": 7500,
-                "mp": 10063
-            },
-            {
-                "bucket_size": 20,
-                "rate": 13470,
-                "tax_bucket": 942.9000000000001,
-                "scheme": 1400,
-                "after_scheme": 12070,
-                "after_trade": 12070,
-                "net_value": 12070,
-                "vat": 13012.9,
-                "with_vat": 14704.577,
-                "sales": 14500,
-                "mp": 19895
-            }
-        ]
-    },
-
+   
      {
         "id": "1d3d93ef-bee2-4740-93ea-4cfeaf4ce82c",
         "name": "Clear Varnish",
