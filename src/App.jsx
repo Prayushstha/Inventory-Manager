@@ -35,7 +35,7 @@ function App() {
             />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/finances" element={<FinancesPage />} />
-            <Route path="/inventory" element={<InventoryPage />} />
+            <Route path="/inventory" element={<InventoryPage isDark={isDark} setIsDark={setIsDark}/>} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Routes>

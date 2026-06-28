@@ -68,6 +68,7 @@ html[data-theme="dark"] {
   display: flex;
   flex-direction: row;
   height: 100vh;
+  background-color: var(--background-primary);
 }
 
 .main-content {
