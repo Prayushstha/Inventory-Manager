@@ -1,0 +1,17 @@
+dialog{
+    width: 180vh;
+    height: 100vh;
+    z-index: 1;
+    border: none;
+    align-self: center;
+    justify-self: center;
+    border-radius: 10px;
+    background-color: var(--background-secondary);
+    color: var(--color-primary);
+    flex-direction: column;
+}
+.left-side{
+    border: 1px solid white;
+    height: 100%;
+    width: 30%;
+}

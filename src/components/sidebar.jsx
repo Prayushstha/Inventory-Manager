@@ -10,6 +10,7 @@ const navLinks = [
     path: "/",
   },
   { id: "inventory", label: "Inventory", icon: "ti-box", path: "/inventory" },
+  { id: "billing", label: "Billing", icon: "ti-box", path: "/billing" },
   { id: "finances", label: "Finances", icon: "ti-receipt", path: "/finances" },
   {
     id: "analytics",

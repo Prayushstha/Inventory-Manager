@@ -1,30 +1,5 @@
-import "../styles/dashboard.css";
-import { NavBar } from "../components/navbar";
-import { products } from "../Backend/products.js";
 import { useState } from "react";
-
-export function DashboardPage({ isDark, setIsDark }) {
-  return (
-    <>
-      <NavBar isDark={isDark} setIsDark={setIsDark} />
-      <ProductContainer />
-    </>
-  );
-}
-
-function ProductContainer() {
-  return (
-    <div className="products-container">
-      <div className="product-grid">
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ProductCard({ product }) {
+export function ProductCard({ product }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const variant = product.variants[selectedIndex];
 
