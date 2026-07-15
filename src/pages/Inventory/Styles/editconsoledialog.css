@@ -1,17 +1,106 @@
-dialog{
-    width: 180vh;
-    height: 100vh;
-    z-index: 1;
-    border: none;
-    align-self: center;
-    justify-self: center;
-    border-radius: 10px;
-    background-color: var(--background-secondary);
-    color: var(--color-primary);
-    flex-direction: column;
+dialog.edit-console {
+  width: 940px;
+  border: none;
+  border-radius: 12px;
+  padding: 0;
+  background: var(--background-primary);
+  color: var(--color-primary);
+  justify-self: center;
+  align-self: center;
 }
-.left-side{
-    border: 1px solid white;
-    height: 100%;
-    width: 30%;
+
+dialog.edit-console::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.edit-console-body {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+}
+
+.left-side {
+  padding: 1.25rem;
+  border-right: 1px solid var(--border-color);
+}
+
+.product-image-placeholder {
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--background-secondary);
+  border: 1px dashed var(--color-muted);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-muted);
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.variant-table {
+  width: 100%;
+  font-size: 12px;
+  border-collapse: collapse;
+  color: var(--color-primary);
+}
+
+.variant-table th {
+  font-weight: 400;
+  text-align: left;
+  color: var(--color-muted);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.variant-table td {
+  padding: 4px 0;
+}
+
+.right-side {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.right-side input,
+.right-side select {
+  width: 100%;
+  height: 36px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0 10px;
+  font-size: 13px;
+  box-sizing: border-box;
+  background: var(--background-primary);
+  color: var(--color-primary);
+}
+
+.base-size-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.field-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 6px 0;
+}
+
+.btn-update,
+.btn-add {
+  height: 38px;
+  background: var(--button-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-update:hover,
+.btn-add:hover {
+  background: var(--button-primary-hover);
 }

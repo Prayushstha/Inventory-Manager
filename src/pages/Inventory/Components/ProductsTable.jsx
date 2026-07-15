@@ -14,14 +14,13 @@ export function ProductsTable() {
   const [editingItem, setEditingItem] = useState(null);
 
   function toggleDialog() {
-    console.log("Open dialog");
-    console.log(dialogRef.current);
+
     if (!dialogRef.current) {
       return;
     }
     dialogRef.current.hasAttribute("open")
       ? dialogRef.current.close()
-      : dialogRef.current.showModal();
+      : dialogRef.current.showModal(dialogRef.current);
   }
 
   return (
