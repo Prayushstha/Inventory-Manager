@@ -106,3 +106,22 @@
   background-color: rgb(255, 119, 0);
   box-shadow: none;
 }
+.add-item-btn {
+    margin: auto;
+    margin-left: 20px;
+    width: 100px;
+    border: none;
+    cursor: pointer;
+    background: var(--button-primary);
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-size: 13.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background-color 0.15s ease;
+}
