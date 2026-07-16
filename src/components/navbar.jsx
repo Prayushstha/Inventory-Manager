@@ -1,6 +1,21 @@
 import "../styles/navbar.css";
 import { ConsoleDialog } from "../pages/Inventory/Components/ConsoleDialog";
+import { useRef } from "react";
+
 export function NavBar({ isDark, setIsDark,isInventoryPage }) {
+
+  const addItemToInventory = useRef();
+
+  function toggleAddItemDialog() {
+  if (!addItemToInventory.current) {
+    return;
+  }
+  addItemToInventory.current.hasAttribute("open")
+    ? addItemToInventory.current.close()
+    : addItemToInventory.current.showModal();
+}
+
+
   return (
     <div className="header">
       <div className="searchbar">
@@ -29,9 +44,11 @@ export function NavBar({ isDark, setIsDark,isInventoryPage }) {
       </div>
       { 
         isInventoryPage ? 
-          <button className="add-item-btn" onClick={()=> console.log('Add Dialog open')}>Add Item</button>
+          <button className="add-item-btn" onClick={()=> toggleAddItemDialog()}>Add Item</button>
         : ""  
       }
+      <ConsoleDialog ref={addItemToInventory} />
     </div>
+
   );
 }
