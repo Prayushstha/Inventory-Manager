@@ -1,19 +1,5 @@
-import { useState } from "react";
-import { products } from "../../../Backend/products";
-import { AddConsole } from "./AddConsole";
-export function ConsoleDialog({ ref, Product }) {
-
-  const [inputProducts,setInputProducts] = useState(Product);
-  const updateProducts = ()=>{
-    console.log(Product)
-    console.log(inputProducts);
-
-  }
-
-  return (
-    <dialog ref={ref} className="edit-console">
-      {Product ? (
-        <div className="edit-console-body">
+export function UpdateConsole({Product}){
+  return   <div className="edit-console-body">
           <div className="left-side">
             <div className="product-image-placeholder">
               {Product.images ? (
@@ -88,13 +74,8 @@ export function ConsoleDialog({ ref, Product }) {
             <input type="number" placeholder="Market price" />
             <input type="number" placeholder="Sales price" />
             <input type="number" placeholder="Stock" />
-            <button className="btn-update" onClick={updateProducts}>Update</button>
+            <button className="btn-update">Update</button>
             <button className="btn-add">Add as new</button>
           </div>
         </div>
-      ) : (
-        <AddConsole Product={Product} />
-      )}
-    </dialog>
-  );
 }

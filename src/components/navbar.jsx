@@ -1,5 +1,5 @@
 import "../styles/navbar.css";
-import { ConsoleDialog } from "../pages/Inventory/Components/ConsoleDialog";
+import { EditConsole } from "../pages/Inventory/Components/EditConsole";
 import { useRef } from "react";
 
 export function NavBar({ isDark, setIsDark,isInventoryPage }) {
@@ -47,7 +47,7 @@ export function NavBar({ isDark, setIsDark,isInventoryPage }) {
           <button className="add-item-btn" onClick={()=> toggleAddItemDialog()}>Add Item</button>
         : ""  
       }
-      <ConsoleDialog ref={addItemToInventory} />
+      <EditConsole ref={addItemToInventory} />
     </div>
 
   );
