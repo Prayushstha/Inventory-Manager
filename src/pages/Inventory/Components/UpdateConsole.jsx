@@ -1,7 +1,10 @@
-export function UpdateConsole({ Product,inputProducts }) {
-    const updateProducts = () => {
-    console.log(Product);
-    console.log(inputProducts);
+export function UpdateConsole({ Product, inputProducts, setInputProducts }) {
+  const handleChange = (e) => {
+    setInputProducts({ ...inputProducts, name: e.target.value });
+  };
+
+  const updateProducts = () => {
+    
   };
 
   return (
@@ -60,6 +63,7 @@ export function UpdateConsole({ Product,inputProducts }) {
           type="text"
           placeholder="Product name"
           defaultValue={Product.name}
+          onChange={handleChange}
         />
         <div className="base-size-grid">
           <select>
@@ -80,7 +84,9 @@ export function UpdateConsole({ Product,inputProducts }) {
         <input type="number" placeholder="Market price" />
         <input type="number" placeholder="Sales price" />
         <input type="number" placeholder="Stock" />
-        <button className="btn-update" onClick={updateProducts}>Update</button>
+        <button className="btn-update" onClick={updateProducts}>
+          Update
+        </button>
       </div>
     </div>
   );
