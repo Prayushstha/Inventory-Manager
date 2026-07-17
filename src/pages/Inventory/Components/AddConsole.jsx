@@ -36,7 +36,7 @@ export function AddConsole(){
               </thead>
               <tbody>
                 {Product.variants.map((v) => (
-                  <tr key={v.id}>
+                  <tr key={v.with_vat}>
                     <td>{v.bucket_size}</td>
                     <td>{Product.base ?? "—"}</td>
                     <td>0</td>

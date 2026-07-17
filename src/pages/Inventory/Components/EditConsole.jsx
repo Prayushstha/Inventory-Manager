@@ -8,15 +8,20 @@ export function EditConsole({ ref, editingItem }) {
     return item.id === editingItem;
   });
 
-  // const [inputProducts, setInputProducts] = useState(Product);
-  // const updateProducts = () => {
-  //   console.log(Product);
-  //   console.log(inputProducts);
-  // };
+  const [inputProducts, setInputProducts] = useState(Product);
+
 
   return (
     <dialog ref={ref} className="edit-console">
-      {Product ? <UpdateConsole Product={Product} /> : <AddConsole Product={Product} />}
+      {Product ? (
+        <UpdateConsole
+          Product={Product}
+          inputProducts={inputProducts}
+          setInputProducts={setInputProducts}
+        />
+      ) : (
+        <AddConsole Product={Product} />
+      )}
     </dialog>
   );
 }
