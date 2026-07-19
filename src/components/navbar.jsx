@@ -44,7 +44,7 @@ export function NavBar({ isDark, setIsDark,isInventoryPage }) {
       </div>
       { 
         isInventoryPage ? 
-          <button className="add-item-btn" onClick={()=> toggleAddItemDialog()}>Add Item</button>
+          <button className="nav-add-item-btn" onClick={()=> toggleAddItemDialog()}>Add Item</button>
         : ""  
       }
       <EditConsole ref={addItemToInventory} />
