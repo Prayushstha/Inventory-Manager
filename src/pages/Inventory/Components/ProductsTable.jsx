@@ -46,7 +46,7 @@ export function ProductsTable() {
             {products.map((product) => (
               <Fragment key={product.id}>
                 {product.variants.map((p, index) => (
-                  <tr key={p.id}>
+                  <tr key={p.with_vat}>
                     {index === 0 && (
                       <td rowSpan={product.variants.length}>{product.name}</td>
                     )}
