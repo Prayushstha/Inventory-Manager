@@ -1,4 +1,4 @@
-import "../../styles/inventory.css";
+import "./Styles/inventory.css";
 import { NavBar } from "../../components/navbar";
 import { ProductsTable } from "./Components/ProductsTable";
 

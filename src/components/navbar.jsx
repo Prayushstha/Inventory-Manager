@@ -1,4 +1,4 @@
-import "../styles/navbar.css";
+import "./Styles/navbar.css";
 import { EditConsole } from "../pages/Inventory/Components/EditConsole";
 import { useRef } from "react";
 

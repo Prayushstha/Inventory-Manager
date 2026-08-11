@@ -1,4 +1,4 @@
-import "../../styles/dashboard.css";
+import "./Styles/dashboard.css";
 import { NavBar } from "../../components/navbar.jsx";
 import { products } from "../../Backend/products.js";
 import { ProductCard } from "./Components/ProductCard.jsx";

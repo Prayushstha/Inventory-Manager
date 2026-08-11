@@ -1,9 +1,7 @@
 import { useState } from "react";
 import './styles/billing.css'
 import { customerDatas , emptyBill , statusMeta } from "../../Backend/customers";
-import { BillDialog } from "./Components/BillDialog";
-import { BillTable } from "./Components/BillTable";
-import { BillHeader } from "./Components/BillHeader";
+import {BillDialog , BillHeader, BillTable} from './Components/index.js'
 
 export  function Billing() {
   const [search, setSearch] = useState("");

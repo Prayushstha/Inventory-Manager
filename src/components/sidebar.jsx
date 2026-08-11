@@ -1,4 +1,4 @@
-import "../styles/sidebar.css";
+import "./Styles/sidebar.css";
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
 
