@@ -1,9 +1,9 @@
 import { useState } from "react";
-import './styles/billing.css'
-import { customerDatas , emptyBill , statusMeta } from "../../Backend/customers";
-import {BillDialog , BillHeader, BillTable} from './Components/index.js'
+import "./styles/billing.css";
+import { customerDatas, emptyBill, statusMeta } from "../../Backend/customers";
+import { BillDialog, BillHeader, BillTable } from "./Components/index.js";
 
-export  function Billing() {
+export function Billing() {
   const [search, setSearch] = useState("");
   const [selectedBill, setSelectedBill] = useState(null);
   const [isNewBill, setIsNewBill] = useState(false);
@@ -32,12 +32,14 @@ export  function Billing() {
   return (
     <>
       <div className="billing-page">
-
-       <BillHeader search = {search} setSearch={setSearch} openNew={openNew}/>
-        <BillTable filtered = {filtered} statusMeta = {statusMeta} openExisting={openExisting}/>
+        <BillHeader search={search} setSearch={setSearch} openNew={openNew} />
+        <BillTable
+          filtered={filtered}
+          statusMeta={statusMeta}
+          openExisting={openExisting}
+        />
       </div>
 
-      {/* ── Dialog ── */}
       {selectedBill && (
         <BillDialog
           bill={selectedBill}

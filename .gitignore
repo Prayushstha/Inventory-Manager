@@ -12,7 +12,7 @@ dist
 dist-electron
 dist-ssr
 *.local
-
+src\Database\inventory.db
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
