@@ -1,7 +1,8 @@
 import "./Styles/dashboard.css";
 import { NavBar } from "../../components/navbar.jsx";
-import { products } from "../../Backend/products.js";
 import { ProductCard } from "./Components/ProductCard.jsx";
+import { useState, useEffect } from "react";
+
 export function DashboardPage({ isDark, setIsDark }) {
   return (
     <>
@@ -12,6 +13,16 @@ export function DashboardPage({ isDark, setIsDark }) {
 }
 
 function ProductContainer() {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      const data = await window.db.getProducts();
+      setProducts(data);
+    }
+    fetchProducts();
+  }, []);
+
   return (
     <div className="products-container">
       <div className="product-grid">
@@ -22,4 +33,3 @@ function ProductContainer() {
     </div>
   );
 }
-
