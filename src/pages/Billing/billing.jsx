@@ -1,17 +1,46 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./styles/billing.css";
-import { customerDatas, emptyBill, statusMeta } from "../../Backend/customers";
+import { emptyBill, statusMeta } from "../../Backend/customers";
 import { BillDialog, BillHeader, BillTable } from "./Components/index.js";
 
 export function Billing() {
   const [search, setSearch] = useState("");
   const [selectedBill, setSelectedBill] = useState(null);
   const [isNewBill, setIsNewBill] = useState(false);
+  const [customers, setCustomers] = useState([]);
 
-  const filtered = customerDatas.filter(
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  async function fetchCustomers() {
+    const data = await window.db.getCustomers();
+    setCustomers(data);
+  }
+
+  // Flatten customers + their bills into one row-per-bill list for the table
+  const rows = customers.flatMap((customer) =>
+    customer.bills.map((bill) => ({
+      id: bill.id,
+      customerId: customer.id,
+      name: customer.name,
+      phone: customer.phone,
+      address: customer.address,
+      totalPurchased: bill.total_purchased,
+      totalDue: customer.totalDue,
+      amountDue: bill.amount_due,
+      amountPaid: bill.amount_paid,
+      date: bill.date,
+      paymentMethod: bill.payment_method,
+      status: bill.status,
+      products: bill.products,
+    }))
+  );
+
+  const filtered = rows.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.phone.includes(search),
+      c.phone.includes(search)
   );
 
   const openNew = () => {
@@ -27,6 +56,11 @@ export function Billing() {
   const closeDialog = () => {
     setSelectedBill(null);
     setIsNewBill(false);
+  };
+
+  const handleSaved = () => {
+    closeDialog();
+    fetchCustomers();
   };
 
   return (
@@ -45,6 +79,7 @@ export function Billing() {
           bill={selectedBill}
           isNew={isNewBill}
           onClose={closeDialog}
+          onSaved={handleSaved}
         />
       )}
     </>

@@ -32,7 +32,7 @@
     border: 1px solid var(--color-secondary);
     border-top: none;
     border-right: none;
-    padding: 10px 15px;
+    padding: 5px 15px;
 }
 .edit-btn {
   background: none;

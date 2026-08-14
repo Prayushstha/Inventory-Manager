@@ -1,5 +1,5 @@
 /* global process */
-import { app, BrowserWindow, ipcMain, dialog,protocol,net } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, protocol, net } from "electron";
 import { fileURLToPath } from "url";
 import path from "path";
 import {
@@ -7,14 +7,21 @@ import {
   getProducts,
   deleteProduct,
   editProduct,
-  getBaseByName,
   getProductByName,
   getVariantBySize,
   addVariant,
   addBase,
   addBaseStock,
   copyImageToDatabase,
-  resolveImagePath
+  editCustomer,
+  editBill,
+  resolveImagePath,
+  addCustomer,
+  addBill,
+  getCustomers,
+  deleteCustomer,
+  getBaseByName,
+  deleteBill,
 } from "../src/Backend/server.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -35,7 +42,7 @@ function createWindow() {
 }
 protocol.registerSchemesAsPrivileged([
   {
-    scheme: 'app-image',
+    scheme: "app-image",
     privileges: {
       standard: true,
       secure: true,
@@ -45,11 +52,11 @@ protocol.registerSchemesAsPrivileged([
   },
 ]);
 app.whenReady().then(() => {
-  protocol.handle('app-image', (request) => {
-  const url = new URL(request.url);
-  const filePath = url.searchParams.get('path');
-  return net.fetch(`file:///${filePath}`);
-});
+  protocol.handle("app-image", (request) => {
+    const url = new URL(request.url);
+    const filePath = url.searchParams.get("path");
+    return net.fetch(`file:///${filePath}`);
+  });
   ipcMain.handle("db:addProduct", (_, product) => addProduct(product));
   ipcMain.handle("db:getProducts", () => getProducts());
   ipcMain.handle("db:deleteProduct", (_, id) => deleteProduct(id));
@@ -70,10 +77,25 @@ app.whenReady().then(() => {
     addBaseStock(baseId, variantId, stock),
   );
   ipcMain.handle("db:getBaseByName", (_, productId, baseName) =>
-  getBaseByName(productId, baseName),
-);
-  ipcMain.handle("db:resolveImagePath", (_, relativePath) => resolveImagePath(relativePath));
-  ipcMain.handle('db:copyImage', (_, sourcePath) => copyImageToDatabase(sourcePath));
+    getBaseByName(productId, baseName),
+  );
+  ipcMain.handle("db:addCustomer", (_, customer) => addCustomer(customer));
+  ipcMain.handle("db:addBill", (_, customerId, bill) =>
+    addBill(customerId, bill),
+  );
+  ipcMain.handle("db:editCustomer", (_, id, customer) =>
+    editCustomer(id, customer),
+  );
+  ipcMain.handle("db:editBill", (_, billId, bill) => editBill(billId, bill));
+  ipcMain.handle("db:getCustomers", () => getCustomers());
+  ipcMain.handle("db:deleteCustomer", (_, id) => deleteCustomer(id));
+  ipcMain.handle("db:deleteBill", (_, billId) => deleteBill(billId));
+  ipcMain.handle("db:resolveImagePath", (_, relativePath) =>
+    resolveImagePath(relativePath),
+  );
+  ipcMain.handle("db:copyImage", (_, sourcePath) =>
+    copyImageToDatabase(sourcePath),
+  );
   ipcMain.handle("dialog:pickImage", async () => {
     const result = await dialog.showOpenDialog({
       properties: ["openFile"],

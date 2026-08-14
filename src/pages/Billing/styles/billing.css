@@ -434,3 +434,77 @@
   }
 }
 
+/* ── Bill products table ── */
+.bill-products-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+.bill-products-table th {
+  text-align: left;
+  padding: 6px 8px;
+  color: var(--color-primary, #888);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.bill-products-table td {
+  color: var(--color-secondary, #888);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border-color, #2a2a2a);
+}
+
+.btn-remove-row {
+  background: none;
+  border: none;
+  color: var(--danger-color, #e5484d);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 2px 6px;
+}
+
+.btn-remove-row:hover {
+  background: rgba(229, 72, 77, 0.1);
+  border-radius: 4px;
+}
+
+/* ── Product add popup ── */
+.product-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.product-popup {
+  background: var(--surface-color, #1c1c1c);
+  border-radius: 10px;
+  padding: 16px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.product-popup input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color, #333);
+  background: var(--input-bg, #111);
+  color: var(--color-primary);
+}
+
+.product-popup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}

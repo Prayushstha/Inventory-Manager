@@ -1,17 +1,109 @@
 import { useState } from "react";
 
-export function BillDialog({ bill, isNew, onClose }) {
-  const [form, setForm] = useState(bill);
+function normalizeProduct(p) {
+  return {
+    productName: p.productName ?? p.product_name ?? "",
+    base: p.base ?? "",
+    bucketSize: p.bucketSize ?? p.bucket_size ?? "",
+    quantity: p.quantity ?? 0,
+    priceAtSale: p.priceAtSale ?? p.price_at_sale ?? 0,
+  };
+}
+
+function computeStatus(totalPurchased, amountPaid) {
+  if (amountPaid >= totalPurchased && totalPurchased > 0) return "Paid";
+  if (amountPaid > 0) return "Partial";
+  return "Due";
+}
+
+const emptyProductForm = {
+  productName: "",
+  base: "",
+  bucketSize: "",
+  quantity: "",
+  priceAtSale: "",
+};
+
+export function BillDialog({ bill, isNew, onClose, onSaved }) {
+  const [form, setForm] = useState({
+    ...bill,
+    products: (bill.products || []).map(normalizeProduct),
+  });
   const [isEditing, setIsEditing] = useState(isNew);
+  const [showProductPopup, setShowProductPopup] = useState(false);
+  const [productForm, setProductForm] = useState(emptyProductForm);
 
   const locked = !isEditing;
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  const handleSave = () => {
-    // Persist logic goes here
+  const totalPurchased = form.products.reduce(
+    (sum, p) => sum + (parseFloat(p.quantity) || 0) * (parseFloat(p.priceAtSale) || 0),
+    0
+  );
+  const amountPaidNum = parseFloat(form.amountPaid) || 0;
+  const amountDue = totalPurchased - amountPaidNum;
+  const status = computeStatus(totalPurchased, amountPaidNum);
+
+  function handleAddProduct() {
+    if (!productForm.productName || !productForm.quantity || !productForm.priceAtSale) {
+      alert("Please fill in product name, quantity, and price.");
+      return;
+    }
+    setForm((f) => ({
+      ...f,
+      products: [...f.products, { ...productForm }],
+    }));
+    setProductForm(emptyProductForm);
+    setShowProductPopup(false);
+  }
+
+  function handleRemoveProduct(index) {
+    setForm((f) => ({
+      ...f,
+      products: f.products.filter((_, i) => i !== index),
+    }));
+  }
+
+  async function handleSave() {
+    if (!form.name || !form.phone) {
+      alert("Please enter customer name and phone.");
+      return;
+    }
+    if (form.products.length === 0) {
+      alert("Please add at least one product.");
+      return;
+    }
+
+    const billPayload = {
+      date: form.date,
+      paymentMethod: form.paymentMethod,
+      totalPurchased,
+      amountPaid: amountPaidNum,
+      amountDue,
+      status,
+      products: form.products,
+    };
+
+    if (isNew) {
+      const customerId = await window.db.addCustomer({
+        name: form.name,
+        phone: form.phone,
+        address: form.address,
+      });
+      await window.db.addBill(customerId, billPayload);
+    } else {
+      await window.db.editCustomer(form.customerId, {
+        name: form.name,
+        phone: form.phone,
+        address: form.address,
+      });
+      await window.db.editBill(form.id, billPayload);
+    }
+
     setIsEditing(false);
-  };
+    onSaved?.();
+  }
 
   const handlePrint = () => {
     window.print();
@@ -20,7 +112,6 @@ export function BillDialog({ bill, isNew, onClose }) {
   return (
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog" onClick={(e) => e.stopPropagation()}>
-        {/* ── Dialog Header ── */}
         <div className="dialog-header">
           <h2 className="dialog-title">
             {isNew ? "New Bill" : `Bill — ${bill.name}`}
@@ -31,56 +122,28 @@ export function BillDialog({ bill, isNew, onClose }) {
         </div>
 
         <div className="dialog-body">
-          {/* ── Customer Info ── */}
           <section className="dialog-section">
             <p className="section-label">Customer Information</p>
             <div className="field-grid">
               <div className="field">
                 <label>Customer Name</label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={set("name")}
-                  disabled={locked}
-                  placeholder="Full name"
-                />
+                <input type="text" value={form.name} onChange={set("name")} disabled={locked} placeholder="Full name" />
               </div>
               <div className="field">
                 <label>Phone Number</label>
-                <input
-                  type="text"
-                  value={form.phone}
-                  onChange={set("phone")}
-                  disabled={locked}
-                  placeholder="98XXXXXXXX"
-                />
+                <input type="text" value={form.phone} onChange={set("phone")} disabled={locked} placeholder="98XXXXXXXX" />
               </div>
               <div className="field field-full">
                 <label>Address</label>
-                <input
-                  type="text"
-                  value={form.address}
-                  onChange={set("address")}
-                  disabled={locked}
-                  placeholder="Street, City"
-                />
+                <input type="text" value={form.address} onChange={set("address")} disabled={locked} placeholder="Street, City" />
               </div>
               <div className="field">
                 <label>Date</label>
-                <input
-                  type="date"
-                  value={form.date}
-                  onChange={set("date")}
-                  disabled={locked}
-                />
+                <input type="date" value={form.date} onChange={set("date")} disabled={locked} />
               </div>
               <div className="field">
                 <label>Payment Method</label>
-                <select
-                  value={form.paymentMethod}
-                  onChange={set("paymentMethod")}
-                  disabled={locked}
-                >
+                <select value={form.paymentMethod} onChange={set("paymentMethod")} disabled={locked}>
                   <option>Cash</option>
                   <option>UPI</option>
                   <option>Card</option>
@@ -90,96 +153,91 @@ export function BillDialog({ bill, isNew, onClose }) {
             </div>
           </section>
 
-          {/* ── Products Zone ── */}
           <section className="dialog-section">
             <p className="section-label">Products</p>
-            <button
-              className="product-dropzone"
-              disabled={locked}
-              type="button"
-            >
+            <button className="product-dropzone" disabled={locked} type="button" onClick={() => setShowProductPopup(true)}>
               <span className="dropzone-icon">+</span>
               <span>Add Product</span>
             </button>
-            {form.products.length === 0 && (
+
+            {form.products.length === 0 ? (
               <p className="empty-products">No products added yet.</p>
+            ) : (
+              <table className="bill-products-table">
+                <thead>
+                  <tr>
+                    <th>Product</th><th>Base</th><th>Size</th><th>Qty</th><th>Price</th><th>Subtotal</th>
+                    {isEditing && <th></th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {form.products.map((p, i) => (
+                    <tr key={i}>
+                      <td>{p.productName}</td>
+                      <td>{p.base || "—"}</td>
+                      <td>{p.bucketSize || "—"}</td>
+                      <td>{p.quantity}</td>
+                      <td>Rs {p.priceAtSale}</td>
+                      <td>Rs {(parseFloat(p.quantity) || 0) * (parseFloat(p.priceAtSale) || 0)}</td>
+                      {isEditing && (
+                        <td>
+                          <button type="button" className="btn-remove-row" onClick={() => handleRemoveProduct(i)}>×</button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            {showProductPopup && (
+              <div className="product-popup-overlay" onClick={() => setShowProductPopup(false)}>
+                <div className="product-popup" onClick={(e) => e.stopPropagation()}>
+                  <p className="section-label">Add Product</p>
+                  <input type="text" placeholder="Product name" value={productForm.productName} onChange={(e) => setProductForm((f) => ({ ...f, productName: e.target.value }))} />
+                  <input type="text" placeholder="Base (e.g. AC1)" value={productForm.base} onChange={(e) => setProductForm((f) => ({ ...f, base: e.target.value }))} />
+                  <input type="number" placeholder="Bucket size" value={productForm.bucketSize} onChange={(e) => setProductForm((f) => ({ ...f, bucketSize: e.target.value }))} />
+                  <input type="number" placeholder="Quantity" value={productForm.quantity} onChange={(e) => setProductForm((f) => ({ ...f, quantity: e.target.value }))} />
+                  <input type="number" placeholder="Price of sale" value={productForm.priceAtSale} onChange={(e) => setProductForm((f) => ({ ...f, priceAtSale: e.target.value }))} />
+                  <div className="product-popup-actions">
+                    <button type="button" className="btn-secondary" onClick={() => setShowProductPopup(false)}>Cancel</button>
+                    <button type="button" className="btn-primary" onClick={handleAddProduct}>Add</button>
+                  </div>
+                </div>
+              </div>
             )}
           </section>
 
-          {/* ── Payment Details ── */}
           <section className="dialog-section">
             <p className="section-label">Payment Details</p>
             <div className="field-grid">
               <div className="field">
-                <label>Selling Price (Rs)</label>
-                <input
-                  type="number"
-                  value={form.sellingPrice}
-                  onChange={set("sellingPrice")}
-                  disabled={locked}
-                  placeholder="0"
-                />
-              </div>
-              <div className="field">
                 <label>Total Purchased (Rs)</label>
-                <input
-                  type="number"
-                  value={form.totalPurchased}
-                  onChange={set("totalPurchased")}
-                  disabled={locked}
-                  placeholder="0"
-                />
+                <input type="number" value={totalPurchased} disabled />
               </div>
               <div className="field">
                 <label>Amount Paid (Rs)</label>
-                <input
-                  type="number"
-                  value={form.amountPaid}
-                  onChange={set("amountPaid")}
-                  disabled={locked}
-                  placeholder="0"
-                />
+                <input type="number" value={form.amountPaid} onChange={set("amountPaid")} disabled={locked} placeholder="0" />
               </div>
               <div className="field">
                 <label>Amount Due (Rs)</label>
-                <input
-                  type="number"
-                  value={form.amountDue}
-                  onChange={set("amountDue")}
-                  disabled={locked}
-                  placeholder="0"
-                />
+                <input type="number" value={amountDue} disabled />
               </div>
-              <div className="field field-full">
-                <label>Total Due for Customer (Rs)</label>
-                <input
-                  type="number"
-                  value={form.totalDue}
-                  onChange={set("totalDue")}
-                  disabled={locked}
-                  placeholder="0"
-                />
+              <div className="field">
+                <label>Status</label>
+                <input type="text" value={status} disabled />
               </div>
             </div>
           </section>
         </div>
 
-        {/* ── Dialog Footer ── */}
         <div className="dialog-footer">
-          <button className="btn-secondary" onClick={onClose}>
-            Cancel
-          </button>
-          <button className="btn-secondary" onClick={handlePrint}>
-            Print Bill
-          </button>
+          <button className="btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn-secondary" onClick={handlePrint}>Print Bill</button>
           {isEditing ? (
-            <button className="btn-primary" onClick={handleSave}>
-              Save Bill
-            </button>
+            <button className="btn-primary" onClick={handleSave}>Save Bill</button>
           ) : (
-            <button className="btn-primary" onClick={() => setIsEditing(true)}>
-              Edit Bill
-            </button>
+            <button className="btn-primary" onClick={() => setIsEditing(true)}>Edit Bill</button>
           )}
         </div>
       </div>
