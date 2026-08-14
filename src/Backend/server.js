@@ -229,7 +229,11 @@ export function addBase(productId, baseName) {
     .prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`)
     .run(productId, baseName).lastInsertRowid;
 }
-
+export function getBaseByName(productId, baseName) {
+  return db
+    .prepare(`SELECT * FROM bases WHERE product_id = ? AND name = ?`)
+    .get(productId, baseName);
+}
 export function addBaseStock(baseId, variantId, stock) {
   db.prepare(
     `INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`,
@@ -251,5 +255,14 @@ export function copyImageToDatabase(sourcePath) {
   }
 
   return `images/product-images/${fileName}`;
+}
+export function resolveImagePath(relativePath) {
+  if (!relativePath) return null;
+
+  const baseDir = app.isPackaged
+    ? app.getPath("userData")
+    : path.join(__dirname, "../", "Database");
+
+  return path.join(baseDir, relativePath);
 }
 export default db;

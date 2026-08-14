@@ -12,4 +12,6 @@ contextBridge.exposeInMainWorld('db', {
   addBaseStock: (baseId, variantId, stock) => ipcRenderer.invoke('db:addBaseStock', baseId, variantId, stock),
   pickImage: () => ipcRenderer.invoke('dialog:pickImage'),
   copyImage: (sourcePath) => ipcRenderer.invoke('db:copyImage', sourcePath),
+  resolveImagePath: (relativePath) => ipcRenderer.invoke('db:resolveImagePath', relativePath),
+  getBaseByName: (productId, baseName) => ipcRenderer.invoke('db:getBaseByName', productId, baseName),
 });

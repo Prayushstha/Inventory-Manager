@@ -1,5 +1,5 @@
 /* global process */
-import { app, BrowserWindow, ipcMain, dialog } from "electron";
+import { app, BrowserWindow, ipcMain, dialog,protocol,net } from "electron";
 import { fileURLToPath } from "url";
 import path from "path";
 import {
@@ -7,12 +7,14 @@ import {
   getProducts,
   deleteProduct,
   editProduct,
+  getBaseByName,
   getProductByName,
   getVariantBySize,
   addVariant,
   addBase,
   addBaseStock,
   copyImageToDatabase,
+  resolveImagePath
 } from "../src/Backend/server.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -31,8 +33,23 @@ function createWindow() {
     win.loadFile(path.join(__dirname, "../dist/index.html"));
   }
 }
-
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'app-image',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      stream: true,
+    },
+  },
+]);
 app.whenReady().then(() => {
+  protocol.handle('app-image', (request) => {
+  const url = new URL(request.url);
+  const filePath = url.searchParams.get('path');
+  return net.fetch(`file:///${filePath}`);
+});
   ipcMain.handle("db:addProduct", (_, product) => addProduct(product));
   ipcMain.handle("db:getProducts", () => getProducts());
   ipcMain.handle("db:deleteProduct", (_, id) => deleteProduct(id));
@@ -52,6 +69,10 @@ app.whenReady().then(() => {
   ipcMain.handle("db:addBaseStock", (_, baseId, variantId, stock) =>
     addBaseStock(baseId, variantId, stock),
   );
+  ipcMain.handle("db:getBaseByName", (_, productId, baseName) =>
+  getBaseByName(productId, baseName),
+);
+  ipcMain.handle("db:resolveImagePath", (_, relativePath) => resolveImagePath(relativePath));
   ipcMain.handle('db:copyImage', (_, sourcePath) => copyImageToDatabase(sourcePath));
   ipcMain.handle("dialog:pickImage", async () => {
     const result = await dialog.showOpenDialog({

@@ -1,13 +1,16 @@
 import { useState } from "react";
+import { useResolvedImage } from "../../../hooks/ResolvedImage.js";
+
 export function ProductCard({ product }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const variant = product.variants[selectedIndex];
+  const resolvedImage = useResolvedImage(product.images);
 
   return (
     <article className="product-card">
       <div className="image-wrapper">
         <img
-          src={product.images ? product.images : '/images/product-images/NoImage.jpg'}
+          src={resolvedImage}
           className="product-img"
           alt={product.name}
         />

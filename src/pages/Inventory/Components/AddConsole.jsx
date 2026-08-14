@@ -1,14 +1,43 @@
 import { useState } from "react";
+import { useResolvedImage } from "../../../hooks/ResolvedImage.js";
+
+const BUCKET_SIZES = [1, 4, 10, 20];
 
 export function AddConsole() {
   const [name, setName] = useState("");
-  const [base, setBase] = useState("");
-  const [bucketSize, setBucketSize] = useState(1);
-  const [landing, setLanding] = useState("");
-  const [sales, setSales] = useState("");
-  const [mp, setMp] = useState("");
-  const [stock, setStock] = useState(0);
+  const [baseInput, setBaseInput] = useState("");
+  const [basesList, setBasesList] = useState([]);
   const [image, setImage] = useState("");
+  const resolvedImage = useResolvedImage(image);
+
+  const [rows, setRows] = useState(
+    BUCKET_SIZES.reduce((acc, size) => {
+      acc[size] = { landing: "", mp: "", sales: "", stock: "" };
+      return acc;
+    }, {}),
+  );
+
+  function updateRow(size, field, value) {
+    setRows((prev) => ({
+      ...prev,
+      [size]: { ...prev[size], [field]: value },
+    }));
+  }
+
+  function handleAddBase() {
+    const trimmed = baseInput.trim();
+    if (!trimmed) return;
+    if (basesList.includes(trimmed)) {
+      alert("This base is already in the list.");
+      return;
+    }
+    setBasesList((prev) => [...prev, trimmed]);
+    setBaseInput("");
+  }
+
+  function handleRemoveBase(base) {
+    setBasesList((prev) => prev.filter((b) => b !== base));
+  }
 
   async function handlePickImage() {
     const filePath = await window.db.pickImage();
@@ -18,8 +47,15 @@ export function AddConsole() {
   }
 
   async function handleAdd() {
-    if (!name || !base || !bucketSize || !landing || !sales || !mp) {
-      alert("Please fill in all fields.");
+    const filledRows = BUCKET_SIZES.filter((size) => {
+      const r = rows[size];
+      return r.landing !== "" && r.mp !== "" && r.sales !== "";
+    });
+
+    if (!name || basesList.length === 0 || filledRows.length === 0) {
+      alert(
+        "Please enter a product name, add at least one base, and fill in at least one size row.",
+      );
       return;
     }
 
@@ -37,40 +73,61 @@ export function AddConsole() {
       product = await window.db.getProductByName(name);
     }
 
-    let variant = await window.db.getVariantBySize(product.id, bucketSize);
+    for (const size of filledRows) {
+      const r = rows[size];
 
-    if (!variant) {
-      const variantId = await window.db.addVariant(product.id, {
-        bucket_size: bucketSize,
-        landing: parseFloat(landing),
-        sales: parseFloat(sales),
-        mp: parseFloat(mp),
-      });
-      variant = { id: variantId };
+      let variant = await window.db.getVariantBySize(product.id, size);
+      if (!variant) {
+        const variantId = await window.db.addVariant(product.id, {
+          bucket_size: size,
+          landing: parseFloat(r.landing),
+          sales: parseFloat(r.sales),
+          mp: parseFloat(r.mp),
+        });
+        variant = { id: variantId };
+      }
+
+      for (const baseName of basesList) {
+        let base = await window.db.getBaseByName(product.id, baseName);
+        const baseId = base
+          ? base.id
+          : await window.db.addBase(product.id, baseName);
+        await window.db.addBaseStock(
+          baseId,
+          variant.id,
+          parseFloat(r.stock || 0),
+        );
+      }
     }
 
-    const baseId = await window.db.addBase(product.id, base);
-    await window.db.addBaseStock(baseId, variant.id, parseFloat(stock));
-
     alert("Added successfully!");
+    setBasesList([]);
+    setRows(
+      BUCKET_SIZES.reduce((acc, size) => {
+        acc[size] = { landing: "", mp: "", sales: "", stock: "" };
+        return acc;
+      }, {}),
+    );
   }
 
   return (
     <div className="edit-console-body">
       <div className="left-side">
+        <h4 style={{ fontWeight: 500, margin: "0 0 4px" }}>Add an Item</h4>
         <div
           className="product-image-placeholder"
           onClick={handlePickImage}
           style={{ cursor: "pointer" }}
         >
-          {image ? (
-            <img
-              src={image}
-              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }}
-            />
-          ) : (
-            "Click to pick image"
-          )}
+          <img
+            src={resolvedImage}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              borderRadius: 8,
+            }}
+          />
         </div>
       </div>
 
@@ -81,46 +138,86 @@ export function AddConsole() {
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-        <input
-          type="text"
-          placeholder="Base name (e.g. AC1)"
-          value={base}
-          onChange={(e) => setBase(e.target.value)}
-        />
-        <select
-          value={bucketSize}
-          onChange={(e) => setBucketSize(Number(e.target.value))}
-        >
-          <option value={1}>1</option>
-          <option value={4}>4</option>
-          <option value={10}>10</option>
-          <option value={20}>20</option>
-        </select>
+
+        <div className="base-input-row">
+          <input
+            type="text"
+            placeholder="Base (e.g. AC1)"
+            value={baseInput}
+            onChange={(e) => setBaseInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAddBase()}
+          />
+          <button
+            type="button"
+            className="btn-add-base"
+            onClick={handleAddBase}
+          >
+            Add base
+          </button>
+        </div>
+
+        {basesList.length > 0 && (
+          <div className="base-chip-list">
+            {basesList.map((b) => (
+              <span key={b} className="base-chip">
+                {b}
+                <button type="button" onClick={() => handleRemoveBase(b)}>
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+
         <div className="field-divider"></div>
-        <input
-          type="number"
-          placeholder="Landing price"
-          value={landing}
-          onChange={(e) => setLanding(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="Market price"
-          value={mp}
-          onChange={(e) => setMp(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="Sales price"
-          value={sales}
-          onChange={(e) => setSales(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="Stock"
-          value={stock}
-          onChange={(e) => setStock(e.target.value)}
-        />
+
+        <table className="variant-input-table">
+          <thead>
+            <tr>
+              <th>Size</th>
+              <th>Landing</th>
+              <th>MP</th>
+              <th>Sales</th>
+              <th>Stock</th>
+            </tr>
+          </thead>
+          <tbody>
+            {BUCKET_SIZES.map((size) => (
+              <tr key={size}>
+                <td>{size}</td>
+                <td>
+                  <input
+                    type="number"
+                    value={rows[size].landing}
+                    onChange={(e) => updateRow(size, "landing", e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    value={rows[size].mp}
+                    onChange={(e) => updateRow(size, "mp", e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    value={rows[size].sales}
+                    onChange={(e) => updateRow(size, "sales", e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    value={rows[size].stock}
+                    onChange={(e) => updateRow(size, "stock", e.target.value)}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
         <button className="btn-add" onClick={handleAdd}>
           Add as new
         </button>

@@ -104,3 +104,75 @@ dialog.edit-console::backdrop {
 .btn-add:hover {
   background: var(--button-primary-hover);
 }
+.base-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.base-input-row input {
+  width: 25%;
+  flex-shrink: 0;
+}
+
+.btn-add-base {
+  flex: 1;
+  padding: 8px 12px;
+  background-color: var(--button-primary);
+  color: var(--color-primary);
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  max-width: 100px;
+}
+.btn-add-base:hover{
+    background-color: var(--button-primary-hover);
+}
+
+.base-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0;
+}
+
+.base-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: var(--color-secondary, #333);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.base-chip button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+
+}
+.variant-input-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0;
+}
+
+.variant-input-table th {
+  font-size: 12px;
+  color: var(--color-secondary);
+  text-align: left;
+  padding: 4px;
+}
+
+.variant-input-table td {
+  padding: 4px;
+}
+
+.variant-input-table input {
+  width: 100%;
+  box-sizing: border-box;
+}
