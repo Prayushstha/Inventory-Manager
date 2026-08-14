@@ -23,3 +23,5 @@ src\Database\inventory.db
 *.njsproj
 *.sln
 *.sw?
+src/Database/images/
+src/Database/*.db
