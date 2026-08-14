@@ -1,7 +1,8 @@
 import { createRequire } from "node:module";
-import { BrowserWindow, app, ipcMain } from "electron";
+import { BrowserWindow, app, dialog, ipcMain } from "electron";
 import { fileURLToPath } from "url";
 import path from "path";
+import fs from "fs";
 //#region \0rolldown/runtime.js
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -97,14 +98,14 @@ var require_bindings = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	/**
 	* Module dependencies.
 	*/
-	var fs$2 = __require("fs"), path$3 = __require("path"), fileURLToPath$1 = require_file_uri_to_path(), join = path$3.join, dirname = path$3.dirname, exists = fs$2.accessSync && function(path) {
+	var fs$3 = __require("fs"), path$3 = __require("path"), fileURLToPath$1 = require_file_uri_to_path(), join = path$3.join, dirname = path$3.dirname, exists = fs$3.accessSync && function(path) {
 		try {
-			fs$2.accessSync(path);
+			fs$3.accessSync(path);
 		} catch (e) {
 			return false;
 		}
 		return true;
-	} || fs$2.existsSync || path$3.existsSync, defaults = {
+	} || fs$3.existsSync || path$3.existsSync, defaults = {
 		arrow: process.env.NODE_BINDINGS_ARROW || " → ",
 		compiled: process.env.NODE_BINDINGS_COMPILED_DIR || "compiled",
 		platform: process.platform,
@@ -420,11 +421,11 @@ var require_pragma = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 //#endregion
 //#region node_modules/better-sqlite3/lib/methods/backup.js
 var require_backup = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-	var fs$1 = __require("fs");
+	var fs$2 = __require("fs");
 	var path$2 = __require("path");
 	var { promisify } = __require("util");
 	var { cppdb } = require_util();
-	var fsAccess = promisify(fs$1.access);
+	var fsAccess = promisify(fs$2.access);
 	module.exports = async function backup(filename, options) {
 		if (options == null) options = {};
 		if (typeof filename !== "string") throw new TypeError("Expected first argument to be a string");
@@ -668,7 +669,7 @@ var require_inspect = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 //#endregion
 //#region node_modules/better-sqlite3/lib/database.js
 var require_database = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-	var fs = __require("fs");
+	var fs$1 = __require("fs");
 	var path$1 = __require("path");
 	var util = require_util();
 	var SqliteError = require_sqlite_error();
@@ -706,7 +707,7 @@ var require_database = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			addon.setErrorConstructor(SqliteError);
 			addon.isInitialized = true;
 		}
-		if (!anonymous && !filename.startsWith("file:") && !fs.existsSync(path$1.dirname(filename))) throw new TypeError("Cannot open database because the directory does not exist");
+		if (!anonymous && !filename.startsWith("file:") && !fs$1.existsSync(path$1.dirname(filename))) throw new TypeError("Cannot open database because the directory does not exist");
 		Object.defineProperties(this, {
 			[util.cppdb]: { value: new addon.Database(filename, filenameGiven, anonymous, readonly, fileMustExist, timeout, verbose || null, buffer || null) },
 			...wrappers.getters
@@ -748,14 +749,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     product_id TEXT NOT NULL,
     bucket_size REAL NOT NULL,
-    rate REAL,
-    tax_bucket REAL,
-    scheme REAL,
-    after_scheme REAL,
-    after_trade REAL,
-    net_value REAL,
-    vat REAL,
-    with_vat REAL,
+    landing REAL,
     sales REAL,
     mp REAL,
     FOREIGN KEY (product_id) REFERENCES products(id)
@@ -830,6 +824,32 @@ function editProduct(id, product) {
 		}
 	}
 }
+function getProductByName(name) {
+	return db.prepare(`SELECT * FROM products WHERE name = ?`).get(name);
+}
+function getVariantBySize(productId, bucketSize) {
+	return db.prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`).get(productId, bucketSize);
+}
+function addVariant(productId, variant) {
+	return db.prepare(`
+    INSERT INTO variants (product_id, bucket_size, landing, sales, mp)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(productId, variant.bucket_size, variant.landing, variant.sales, variant.mp).lastInsertRowid;
+}
+function addBase(productId, baseName) {
+	return db.prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`).run(productId, baseName).lastInsertRowid;
+}
+function addBaseStock(baseId, variantId, stock) {
+	db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`).run(baseId, variantId, stock);
+}
+function copyImageToDatabase(sourcePath) {
+	const fileName = path.basename(sourcePath);
+	const destDir = path.join(__dirname$1, "../", "Database", "images", "product-images");
+	const destPath = path.join(destDir, fileName);
+	if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+	if (!fs.existsSync(destPath)) fs.copyFileSync(sourcePath, destPath);
+	return `images/product-images/${fileName}`;
+}
 //#endregion
 //#region electron/main.js
 var __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -837,7 +857,7 @@ function createWindow() {
 	const win = new BrowserWindow({
 		width: 1200,
 		height: 800,
-		webPreferences: { preload: path.join(__dirname, "preload.js") }
+		webPreferences: { preload: path.join(__dirname, "preload.cjs") }
 	});
 	if (process.env.VITE_DEV_SERVER_URL) win.loadURL(process.env.VITE_DEV_SERVER_URL);
 	else win.loadFile(path.join(__dirname, "../dist/index.html"));
@@ -847,6 +867,28 @@ app.whenReady().then(() => {
 	ipcMain.handle("db:getProducts", () => getProducts());
 	ipcMain.handle("db:deleteProduct", (_, id) => deleteProduct(id));
 	ipcMain.handle("db:editProduct", (_, id, product) => editProduct(id, product));
+	ipcMain.handle("db:getProductByName", (_, name) => getProductByName(name));
+	ipcMain.handle("db:getVariantBySize", (_, productId, bucketSize) => getVariantBySize(productId, bucketSize));
+	ipcMain.handle("db:addVariant", (_, productId, variant) => addVariant(productId, variant));
+	ipcMain.handle("db:addBase", (_, productId, baseName) => addBase(productId, baseName));
+	ipcMain.handle("db:addBaseStock", (_, baseId, variantId, stock) => addBaseStock(baseId, variantId, stock));
+	ipcMain.handle("db:copyImage", (_, sourcePath) => copyImageToDatabase(sourcePath));
+	ipcMain.handle("dialog:pickImage", async () => {
+		const result = await dialog.showOpenDialog({
+			properties: ["openFile"],
+			filters: [{
+				name: "Images",
+				extensions: [
+					"jpg",
+					"jpeg",
+					"png",
+					"webp"
+				]
+			}]
+		});
+		if (result.canceled || result.filePaths.length === 0) return null;
+		return result.filePaths[0];
+	});
 	createWindow();
 });
 app.on("window-all-closed", () => {

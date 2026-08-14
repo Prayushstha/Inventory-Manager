@@ -1,12 +1,80 @@
-export function UpdateConsole({ Product }) {
+import { useState } from "react";
+
+export function UpdateConsole({ product, setProduct }) {
+  const [name, setName] = useState(product.name);
+  const [selectedBase, setSelectedBase] = useState(
+    product.bases[0]?.id ?? null,
+  );
+  const [selectedVariant, setSelectedVariant] = useState(
+    product.variants[0]?.id ?? null,
+  );
+  const [landing, setLanding] = useState("");
+  const [mp, setMp] = useState("");
+  const [sales, setSales] = useState("");
+  const [stock, setStock] = useState("");
+
+  const totalStock = product.bases.reduce((sum, base) => {
+    return sum + base.stocks.reduce((s, st) => s + st, 0);
+  }, 0);
+
+  async function handleUpdate() {
+    if (!selectedBase || !selectedVariant) {
+      alert("Please select a base and variant.");
+      return;
+    }
+
+    await window.db.editProduct(product.id, {
+      name,
+      images: product.images,
+      variants: product.variants.map((v) =>
+        v.id === selectedVariant
+          ? {
+              ...v,
+              landing: landing !== "" ? parseFloat(landing) : v.landing,
+              mp: mp !== "" ? parseFloat(mp) : v.mp,
+              sales: sales !== "" ? parseFloat(sales) : v.sales,
+            }
+          : v,
+      ),
+      bases: product.bases.map((b) =>
+        b.id === selectedBase
+          ? {
+              ...b,
+              stocks: b.stocks.map((s, i) =>
+                product.variants[i]?.id === selectedVariant
+                  ? stock !== ""
+                    ? parseFloat(stock)
+                    : s
+                  : s,
+              ),
+            }
+          : b,
+      ),
+    });
+
+    const all = await window.db.getProducts();
+    const updated = all.find((p) => p.id === product.id);
+    setProduct(updated);
+  }
+  async function handlePickImage() {
+    const filePath = await window.db.pickImage();
+    if (!filePath) return;
+    const relativePath = await window.db.copyImage(filePath);
+    setProduct((prev) => ({ ...prev, images: relativePath }));
+  }
+
   return (
     <div className="edit-console-body">
       <div className="left-side">
-        <div className="product-image-placeholder">
-          {Product.images ? (
+        <div
+          className="product-image-placeholder"
+          onClick={handlePickImage}
+          style={{ cursor: "pointer" }}
+        >
+          {product.images ? (
             <img
-              src={Product.images}
-              alt={Product.name}
+              src={product.images}
+              alt={product.name}
               style={{
                 width: "100%",
                 height: "100%",
@@ -15,10 +83,10 @@ export function UpdateConsole({ Product }) {
               }}
             />
           ) : (
-            "Image"
+            "Click to pick image"
           )}
         </div>
-        <p style={{ fontWeight: 500, margin: "0 0 4px" }}>{Product.name}</p>
+        <p style={{ fontWeight: 500, margin: "0 0 4px" }}>{product.name}</p>
         <p
           style={{
             fontSize: 13,
@@ -26,7 +94,7 @@ export function UpdateConsole({ Product }) {
             margin: "0 0 10px",
           }}
         >
-          Total stock: {/* sum of variant stocks */}
+          Total stock: {totalStock}
         </p>
         <table className="variant-table">
           <thead>
@@ -38,10 +106,15 @@ export function UpdateConsole({ Product }) {
             </tr>
           </thead>
           <tbody>
-            {Product.variants.map((v) => (
+            {product.variants.map((v, vIndex) => (
               <tr key={v.id}>
                 <td>{v.bucket_size}</td>
-                <td>0</td>
+                <td>
+                  {product.bases.reduce(
+                    (sum, b) => sum + (b.stocks[vIndex] ?? 0),
+                    0,
+                  )}
+                </td>
                 <td>{v.mp}</td>
                 <td>{v.sales}</td>
               </tr>
@@ -54,30 +127,61 @@ export function UpdateConsole({ Product }) {
         <input
           type="text"
           placeholder="Product name"
-          defaultValue={Product.name}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
         />
         <div className="base-size-grid">
-          <select>
-            <option>Select base</option>
-            {Product.bases.map((b) => {
-           return <option>{b}</option>
-            })}
+          <select
+            value={selectedBase}
+            onChange={(e) => setSelectedBase(Number(e.target.value))}
+          >
+            <option value="">Select base</option>
+            {product.bases.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
           </select>
-          <input type="text" placeholder="Add new base" />
-          <select>
-            <option>Select size</option>
-             {Product.variants.map((v) => {
-           return <option>{v.bucket_size}</option>
-            })}
+          <select
+            value={selectedVariant}
+            onChange={(e) => setSelectedVariant(Number(e.target.value))}
+          >
+            <option value="">Select size</option>
+            {product.variants.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.bucket_size}
+              </option>
+            ))}
           </select>
-
         </div>
         <div className="field-divider"></div>
-        <input type="number" placeholder="Market price" />
-        <input type="number" placeholder="Sales price" />
-        <input type="number" placeholder="Stock" />
-        <button className="btn-update">Update</button>
-        <button className="btn-add">Add as new</button>
+        <input
+          type="number"
+          placeholder="Landing price"
+          value={landing}
+          onChange={(e) => setLanding(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Market price"
+          value={mp}
+          onChange={(e) => setMp(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Sales price"
+          value={sales}
+          onChange={(e) => setSales(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Stock"
+          value={stock}
+          onChange={(e) => setStock(e.target.value)}
+        />
+        <button className="btn-update" onClick={handleUpdate}>
+          Update Product
+        </button>
       </div>
     </div>
   );

@@ -1,8 +1,6 @@
-import { products } from "../../../Backend/products";
-import { Fragment } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { forwardRef, useRef } from "react";
 import { EditConsole } from "./EditConsole";
-import { useState } from "react";
 
 const EditConsoleDialog = forwardRef((props, ref) => {
   return <EditConsole ref={ref} {...props} />;
@@ -10,17 +8,22 @@ const EditConsoleDialog = forwardRef((props, ref) => {
 
 export function ProductsTable() {
   const dialogRef = useRef(null);
-
   const [editingItem, setEditingItem] = useState(null);
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      const data = await window.db.getProducts();
+      setProducts(data);
+    }
+    fetchProducts();
+  }, []);
 
   function toggleDialog() {
-
-    if (!dialogRef.current) {
-      return;
-    }
+    if (!dialogRef.current) return;
     dialogRef.current.hasAttribute("open")
       ? dialogRef.current.close()
-      : dialogRef.current.showModal(dialogRef.current);
+      : dialogRef.current.showModal();
   }
 
   return (
@@ -35,42 +38,62 @@ export function ProductsTable() {
           <thead>
             <tr>
               <th>Product Name</th>
+              <th>Base</th>
               <th>Bucket Size</th>
+              <th>Landing Price</th>
               <th>Market Price</th>
               <th>Sales Price</th>
-              <th>Items in Stock</th>
+              <th>Stock</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
-              <Fragment key={product.id}>
-                {product.variants.map((p, index) => (
-                  <tr key={p.with_vat}>
-                    {index === 0 && (
-                      <td rowSpan={product.variants.length}>{product.name}</td>
-                    )}
-                    <td>{p.bucket_size}</td>
-                    <td>NPR {p.mp}</td>
-                    <td>NPR {p.sales}</td>
-                    <td>0</td>
-                    {index === 0 && (
-                      <td rowSpan={product.variants.length}>
-                        <button
-                          className="edit-btn"
-                          onClick={() => {
-                            setEditingItem(product.id);
-                            toggleDialog();
-                          }}
-                        >
-                          <i className="fa-solid fa-pen"></i>
-                        </button>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </Fragment>
-            ))}
+            {products.map((product) => {
+              const totalRows = product.bases.length * product.variants.length;
+              return (
+                <Fragment key={product.id}>
+                  {product.bases.map((base, baseIndex) => (
+                    <Fragment key={base.id}>
+                      {product.variants.map((v, variantIndex) => {
+                        const stockEntry = base.stocks[variantIndex] ?? 0;
+                        const globalIndex =
+                          baseIndex * product.variants.length + variantIndex;
+                        return (
+                          <tr key={`${base.id}-${v.id}`}>
+                            {globalIndex === 0 && (
+                              <td rowSpan={totalRows}>{product.name}</td>
+                            )}
+                            {variantIndex === 0 && (
+                              <td rowSpan={product.variants.length}>
+                                {base.name}
+                              </td>
+                            )}
+                            <td>{v.bucket_size}</td>
+                            <td>NPR {v.landing}</td>
+                            <td>NPR {v.mp}</td>
+                            <td>NPR {v.sales}</td>
+                            <td>{stockEntry}</td>
+                            {globalIndex === 0 && (
+                              <td rowSpan={totalRows}>
+                                <button
+                                  className="edit-btn"
+                                  onClick={() => {
+                                    setEditingItem(product.id);
+                                    toggleDialog();
+                                  }}
+                                >
+                                  <i className="fa-solid fa-pen"></i>
+                                </button>
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      })}
+                    </Fragment>
+                  ))}
+                </Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>

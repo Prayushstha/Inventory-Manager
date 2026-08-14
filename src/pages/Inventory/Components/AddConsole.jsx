@@ -1,79 +1,130 @@
-import { products } from "../../../Backend/products";
-export function AddConsole(){
-     const Product = products[1];
-      return (
-        <div className="edit-console-body">
-          <div className="left-side">
-            <h4 style={{ fontWeight: 5000, margin: "0 0 4px" }}>Add an Item</h4>
-            <div className="product-image-placeholder">
-              <img
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  borderRadius: 8,
-                }}
-              />
-            </div>
-            
-            <p
-              style={{
-                fontSize: 13,
-                color: "var(--color-secondary)",
-                margin: "0 0 10px",
-              }}
-            >
-              Total stock: {/* sum of variant stocks */}
-            </p>
-            <table className="variant-table">
-              <thead>
-                <tr>
-                  <th>Size</th>
-                  <th>Base</th>
-                  <th>Stock</th>
-                  <th>MP</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Product.variants.map((v) => (
-                  <tr key={v.with_vat}>
-                    <td>{v.bucket_size}</td>
-                    <td>{Product.base ?? "—"}</td>
-                    <td>0</td>
-                    <td>{v.mp}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-    
-          <div className="right-side">
-            <input
-              type="text"
-              placeholder="Product name"
-              defaultValue=""
+import { useState } from "react";
+
+export function AddConsole() {
+  const [name, setName] = useState("");
+  const [base, setBase] = useState("");
+  const [bucketSize, setBucketSize] = useState(1);
+  const [landing, setLanding] = useState("");
+  const [sales, setSales] = useState("");
+  const [mp, setMp] = useState("");
+  const [stock, setStock] = useState(0);
+  const [image, setImage] = useState("");
+
+  async function handlePickImage() {
+    const filePath = await window.db.pickImage();
+    if (!filePath) return;
+    const relativePath = await window.db.copyImage(filePath);
+    setImage(relativePath);
+  }
+
+  async function handleAdd() {
+    if (!name || !base || !bucketSize || !landing || !sales || !mp) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    let product = await window.db.getProductByName(name);
+
+    if (!product) {
+      const id = crypto.randomUUID();
+      await window.db.addProduct({
+        id,
+        name,
+        images: image,
+        variants: [],
+        bases: [],
+      });
+      product = await window.db.getProductByName(name);
+    }
+
+    let variant = await window.db.getVariantBySize(product.id, bucketSize);
+
+    if (!variant) {
+      const variantId = await window.db.addVariant(product.id, {
+        bucket_size: bucketSize,
+        landing: parseFloat(landing),
+        sales: parseFloat(sales),
+        mp: parseFloat(mp),
+      });
+      variant = { id: variantId };
+    }
+
+    const baseId = await window.db.addBase(product.id, base);
+    await window.db.addBaseStock(baseId, variant.id, parseFloat(stock));
+
+    alert("Added successfully!");
+  }
+
+  return (
+    <div className="edit-console-body">
+      <div className="left-side">
+        <div
+          className="product-image-placeholder"
+          onClick={handlePickImage}
+          style={{ cursor: "pointer" }}
+        >
+          {image ? (
+            <img
+              src={image}
+              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }}
             />
-            <div className="base-size-grid">
-              <select>
-                <option>Select base</option>
-              </select>
-              <input type="text" placeholder="Add new base" />
-              <select>
-                <option>Select size</option>
-              </select>
-              <select>
-                <option>1</option>
-                <option>4</option>
-                <option>10</option>
-                <option>20</option>
-              </select>
-            </div>
-            <div className="field-divider"></div>
-            <input type="number" placeholder="Market price" />
-            <input type="number" placeholder="Sales price" />
-            <input type="number" placeholder="Stock" />
-            <button className="btn-add">Add as new</button>
-          </div>
+          ) : (
+            "Click to pick image"
+          )}
         </div>
-      );
+      </div>
+
+      <div className="right-side">
+        <input
+          type="text"
+          placeholder="Product name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Base name (e.g. AC1)"
+          value={base}
+          onChange={(e) => setBase(e.target.value)}
+        />
+        <select
+          value={bucketSize}
+          onChange={(e) => setBucketSize(Number(e.target.value))}
+        >
+          <option value={1}>1</option>
+          <option value={4}>4</option>
+          <option value={10}>10</option>
+          <option value={20}>20</option>
+        </select>
+        <div className="field-divider"></div>
+        <input
+          type="number"
+          placeholder="Landing price"
+          value={landing}
+          onChange={(e) => setLanding(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Market price"
+          value={mp}
+          onChange={(e) => setMp(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Sales price"
+          value={sales}
+          onChange={(e) => setSales(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Stock"
+          value={stock}
+          onChange={(e) => setStock(e.target.value)}
+        />
+        <button className="btn-add" onClick={handleAdd}>
+          Add as new
+        </button>
+      </div>
+    </div>
+  );
 }

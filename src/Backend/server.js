@@ -1,6 +1,8 @@
 import Database from "better-sqlite3";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from 'fs';
+
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -18,14 +20,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     product_id TEXT NOT NULL,
     bucket_size REAL NOT NULL,
-    rate REAL,
-    tax_bucket REAL,
-    scheme REAL,
-    after_scheme REAL,
-    after_trade REAL,
-    net_value REAL,
-    vat REAL,
-    with_vat REAL,
+    landing REAL,
     sales REAL,
     mp REAL,
     FOREIGN KEY (product_id) REFERENCES products(id)
@@ -134,5 +129,41 @@ export function editProduct(id, product) {
     }
   }
 }
+export function getProductByName(name) {
+  return db.prepare(`SELECT * FROM products WHERE name = ?`).get(name);
+}
 
+export function getVariantBySize(productId, bucketSize) {
+  return db.prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`).get(productId, bucketSize);
+}
+
+export function addVariant(productId, variant) {
+  return db.prepare(`
+    INSERT INTO variants (product_id, bucket_size, landing, sales, mp)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(productId, variant.bucket_size, variant.landing, variant.sales, variant.mp).lastInsertRowid;
+}
+
+export function addBase(productId, baseName) {
+  return db.prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`).run(productId, baseName).lastInsertRowid;
+}
+
+export function addBaseStock(baseId, variantId, stock) {
+  db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`).run(baseId, variantId, stock);
+}
+export function copyImageToDatabase(sourcePath) {
+  const fileName = path.basename(sourcePath);
+  const destDir = path.join(__dirname, '../', 'Database', 'images', 'product-images');
+  const destPath = path.join(destDir, fileName);
+
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
+  }
+
+  if (!fs.existsSync(destPath)) {
+    fs.copyFileSync(sourcePath, destPath);
+  }
+
+  return `images/product-images/${fileName}`;
+}
 export default db;

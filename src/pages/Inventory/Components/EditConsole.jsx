@@ -1,26 +1,30 @@
 import "../Styles/editconsoledialog.css";
-import { products } from "../../../Backend/products";
 import { UpdateConsole } from "./UpdateConsole";
 import { AddConsole } from "./AddConsole";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
 export function EditConsole({ ref, editingItem }) {
-  const Product = products.find((item) => {
-    return item.id === editingItem;
-  });
+  const [product, setProduct] = useState(null);
 
-  const [inputProducts, setInputProducts] = useState(Product);
-
+  useEffect(() => {
+    async function fetchProduct() {
+      if (!editingItem) {
+        setProduct(null);
+        return;
+      }
+      const all = await window.db.getProducts();
+      const found = all.find((p) => p.id === editingItem);
+      setProduct(found ?? null);
+    }
+    fetchProduct();
+  }, [editingItem]);
 
   return (
     <dialog ref={ref} className="edit-console">
-      {Product ? (
-        <UpdateConsole
-          Product={Product}
-          inputProducts={inputProducts}
-          setInputProducts={setInputProducts}
-        />
+      {product ? (
+        <UpdateConsole product={product} setProduct={setProduct} />
       ) : (
-        <AddConsole Product={Product} />
+        <AddConsole />
       )}
     </dialog>
   );

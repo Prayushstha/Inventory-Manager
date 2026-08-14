@@ -1,7 +1,6 @@
 import "./Styles/inventory.css";
 import { NavBar } from "../../components/navbar";
 import { ProductsTable } from "./Components/ProductsTable";
-
 export function InventoryPage({ isDark, setIsDark }) {
   const isInventoryPage = true;
   return (

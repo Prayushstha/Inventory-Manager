@@ -1,15 +1,8 @@
 type Variant = {
     bucket_size: number;
-    rate: number;
-    tax_bucket: number;
-    scheme: number;
-    after_scheme: number;
-    after_trade: number;
-    net_value: number;
-    vat: number;
-    with_vat: number;
     sales: number;
     mp: number;
+    landing: number;
 }
 
 type Base = {

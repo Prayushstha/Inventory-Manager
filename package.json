@@ -1,12 +1,13 @@
 {
   "name": "inventory-manager",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:exe": "vite build && electron-builder",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -32,5 +33,22 @@
     "vite": "^8.0.12",
     "vite-plugin-electron": "^1.0.4",
     "vite-plugin-electron-renderer": "^1.0.0"
+  },
+  "build": {
+    "appId": "com.yourname.inventorymanager",
+    "productName": "StockWise",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "electron/**/*",
+      "src/Backend/**/*",
+      "src/Database/.gitkeep"
+    ],
+    "win": {
+      "target": "nsis"
+    }
   }
 }
