@@ -2,6 +2,7 @@
 import { app, BrowserWindow, ipcMain, dialog, protocol, net } from "electron";
 import { fileURLToPath } from "url";
 import path from "path";
+import { pathToFileURL } from "url";
 import {
   addProduct,
   getProducts,
@@ -54,9 +55,18 @@ protocol.registerSchemesAsPrivileged([
 ]);
 app.whenReady().then(() => {
   protocol.handle("app-image", (request) => {
-    const url = new URL(request.url);
-    const filePath = url.searchParams.get("path");
-    return net.fetch(`file:///${filePath}`);
+    try {
+      const url = new URL(request.url);
+      const filePath = url.searchParams.get("path");
+      if (!filePath) {
+        throw new Error("No path provided");
+      }
+      const fileUrl = pathToFileURL(filePath).href;
+      return net.fetch(fileUrl);
+    } catch (err) {
+      console.error("app-image protocol error:", err.message, request.url);
+      return new Response("Not found", { status: 404 });
+    }
   });
   ipcMain.handle("db:addProduct", (_, product) => addProduct(product));
   ipcMain.handle("db:getProducts", () => getProducts());
