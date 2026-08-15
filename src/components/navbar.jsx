@@ -2,7 +2,7 @@ import "./Styles/navbar.css";
 import { EditConsole } from "../pages/Inventory/Components/EditConsole";
 import { useRef } from "react";
 
-export function NavBar({ isDark, setIsDark,isInventoryPage }) {
+export function NavBar({ isDark, setIsDark, isInventoryPage, fetchProducts, search, setSearch }) {
 
   const addItemToInventory = useRef();
 
@@ -14,7 +14,15 @@ export function NavBar({ isDark, setIsDark,isInventoryPage }) {
     ? addItemToInventory.current.close()
     : addItemToInventory.current.showModal();
 }
-
+   async function handleImportExcel() {
+    const filePath = await window.db.pickExcelFile();
+    if (!filePath) return;
+    const result = await window.db.importExcel(filePath);
+    alert(
+      `Imported ${result.imported} products. Skipped ${result.skipped} (no usable price data).`,
+    );
+    fetchProducts();
+  }
 
   return (
     <div className="header">
@@ -25,6 +33,8 @@ export function NavBar({ isDark, setIsDark,isInventoryPage }) {
             placeholder="Search a product"
             type="text"
             className="search-input"
+            value={search ?? ""}
+            onChange={(e) => setSearch?.(e.target.value)}
           />
         </div>
 
@@ -44,7 +54,10 @@ export function NavBar({ isDark, setIsDark,isInventoryPage }) {
       </div>
       { 
         isInventoryPage ? 
-          <button className="nav-add-item-btn" onClick={()=> toggleAddItemDialog()}>Add Item</button>
+        <>
+        <button className="nav-add-item-btn" onClick={()=> toggleAddItemDialog()}>Add Item</button>
+        <button className="nav-add-item-btn"onClick={handleImportExcel}>Import</button>
+        </>
         : ""  
       }
       <EditConsole ref={addItemToInventory} />

@@ -3,7 +3,10 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
 import { app } from "electron";
-
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const XLSX = require("xlsx");
+import { randomUUID } from "crypto";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const dbPath = app.isPackaged
@@ -450,5 +453,201 @@ function adjustStock(productName, baseName, bucketSize, deltaQty) {
     `UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?`,
   ).run(deltaQty, base.id, variant.id);
 }
-
+export function importProductsFromExcel(filePath) {
+const workbook = XLSX.readFile(filePath);
+  const sheet = workbook.Sheets["JESTH- 2083"];
+  if (!sheet) {
+    throw new Error('Sheet "JESTH- 2083" not found in this file.');
+  }
+ 
+const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, range: 1 });
+  const BASE_DIGIT_RE = /^([A-Za-z]+)((?:\d+)(?:\/\d+)*)$/;
+  const ROMAN_RE = /^([A-Za-z]+?)(I{1,3}|IV)$/;
+  const ALLOWED_SIZES = new Set([1, 4, 10, 20]);
+ 
+  function titleCase(s) {
+    return s
+      .split(" ")
+      .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w))
+      .join(" ");
+  }
+ 
+  function toNum(v) {
+    const n = parseFloat(v);
+    return isNaN(n) ? null : n;
+  }
+ 
+  function parseColA(raw) {
+    if (!raw) return [null, []];
+    const s = String(raw).trim();
+ 
+    if (s.toUpperCase().startsWith("PGE")) {
+      const rest = s.slice(3).trim();
+      const mDigit = BASE_DIGIT_RE.exec(rest);
+      const mRoman = ROMAN_RE.exec(rest);
+      if (mDigit) {
+        const prefix = mDigit[1];
+        const nums = mDigit[2].split("/");
+        return ["Enamel", nums.map((n) => prefix + n)];
+      } else if (mRoman) {
+        return ["Enamel", [rest]];
+      } else {
+        return [`Enamel ${titleCase(rest)}`.trim(), []];
+      }
+    }
+ 
+    const parts = s.split(" ");
+    let head, last;
+    if (parts.length >= 2) {
+      last = parts[parts.length - 1];
+      head = parts.slice(0, -1).join(" ");
+    } else {
+      head = s;
+      last = "";
+    }
+    const m = BASE_DIGIT_RE.exec(last);
+    if (m) {
+      const prefix = m[1];
+      const nums = m[2].split("/");
+      return [titleCase(head.trim()), nums.map((n) => prefix + n)];
+    }
+    return [titleCase(s), []];
+  }
+ 
+  // Group consecutive rows by identical col A value
+  const groups = [];
+  let currentKey;
+  let currentRows = [];
+  let started = false;
+  for (const r of rows) {
+    const key = r[0];
+    if (!started || key !== currentKey) {
+      if (started) groups.push([currentKey, currentRows]);
+      currentKey = key;
+      currentRows = [r];
+      started = true;
+    } else {
+      currentRows.push(r);
+    }
+  }
+  if (started) groups.push([currentKey, currentRows]);
+ 
+  // Resolve products
+  const products = {};
+ 
+  for (const [colA, groupRows] of groups) {
+    const [name, bases] = parseColA(colA);
+    if (!name) continue;
+ 
+    if (!products[name]) {
+      products[name] = { bases: [], variants: {}, canonicalSet: false };
+    }
+    const product = products[name];
+ 
+    for (const b of bases) {
+      if (!product.bases.includes(b)) product.bases.push(b);
+    }
+ 
+    if (!product.canonicalSet) {
+      const hasValid = groupRows.some(
+        (r) => toNum(r[17]) !== null && toNum(r[14]) !== null
+      );
+      if (hasValid) {
+        for (const r of groupRows) {
+          const size = r[1];
+          if (ALLOWED_SIZES.has(size)) {
+            const landing = toNum(r[17]);
+            const mp = toNum(r[14]);
+            let sales = toNum(r[13]);
+            if (landing === null || mp === null) continue;
+            if (sales === null) sales = 0;
+            product.variants[size] = { landing, mp, sales };
+          }
+        }
+        if (Object.keys(product.variants).length > 0) {
+          product.canonicalSet = true;
+        }
+      }
+    }
+  }
+ 
+  // Insert into the database
+  let importedCount = 0;
+  let skippedCount = 0;
+ 
+  const insertAll = db.transaction(() => {
+    for (const [name, data] of Object.entries(products)) {
+      const sizes = Object.keys(data.variants);
+      if (sizes.length === 0) {
+        skippedCount++;
+        continue;
+      }
+ 
+      let productRow = db.prepare(`SELECT * FROM products WHERE name = ?`).get(name);
+      let productId;
+      if (!productRow) {
+        productId = randomUUID();
+        db.prepare(`INSERT INTO products (id, name, images) VALUES (?, ?, ?)`).run(
+          productId,
+          name,
+          ""
+        );
+      } else {
+        productId = productRow.id;
+      }
+ 
+      const variantIds = {};
+      for (const size of sizes) {
+        const v = data.variants[size];
+        let variant = db
+          .prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`)
+          .get(productId, Number(size));
+        if (!variant) {
+          const result = db
+            .prepare(
+              `INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`
+            )
+            .run(productId, Number(size), v.landing, v.sales, v.mp);
+          variantIds[size] = result.lastInsertRowid;
+        } else {
+          variantIds[size] = variant.id;
+        }
+      }
+ 
+      for (const baseName of data.bases) {
+        let base = db
+          .prepare(`SELECT * FROM bases WHERE product_id = ? AND name = ?`)
+          .get(productId, baseName);
+        let baseId;
+        if (!base) {
+          const result = db
+            .prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`)
+            .run(productId, baseName);
+          baseId = result.lastInsertRowid;
+        } else {
+          baseId = base.id;
+        }
+ 
+        for (const size of sizes) {
+          const variantId = variantIds[size];
+          const existing = db
+            .prepare(`SELECT * FROM base_stock WHERE base_id = ? AND variant_id = ?`)
+            .get(baseId, variantId);
+          if (!existing) {
+            db.prepare(
+              `INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, 0)`
+            ).run(baseId, variantId);
+          }
+        }
+      }
+ 
+      importedCount++;
+    }
+  });
+ 
+  insertAll();
+ 
+  return { imported: importedCount, skipped: skippedCount };
+}
+ 
 export default db;

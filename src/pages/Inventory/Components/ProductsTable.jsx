@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState } from "react";
 import { forwardRef, useRef } from "react";
 import { EditConsole } from "./EditConsole";
 
@@ -6,18 +6,10 @@ const EditConsoleDialog = forwardRef((props, ref) => {
   return <EditConsole ref={ref} {...props} />;
 });
 
-export function ProductsTable() {
-  const dialogRef = useRef(null);
+// eslint-disable-next-line no-unused-vars
+export function ProductsTable({ products, fetchProducts }) {
+   const dialogRef = useRef(null);
   const [editingItem, setEditingItem] = useState(null);
-  const [products, setProducts] = useState([]);
-
-  useEffect(() => {
-    async function fetchProducts() {
-      const data = await window.db.getProducts();
-      setProducts(data);
-    }
-    fetchProducts();
-  }, []);
 
   function toggleDialog() {
     if (!dialogRef.current) return;
@@ -49,48 +41,80 @@ export function ProductsTable() {
           </thead>
           <tbody>
             {products.map((product) => {
-              const totalRows = product.bases.length * product.variants.length;
+              const hasBases = product.bases.length > 0;
+              const totalRows = hasBases
+                ? product.bases.length * product.variants.length
+                : product.variants.length;
+
               return (
                 <Fragment key={product.id}>
-                  {product.bases.map((base, baseIndex) => (
-                    <Fragment key={base.id}>
-                      {product.variants.map((v, variantIndex) => {
-                        const stockEntry = base.stocks[variantIndex] ?? 0;
-                        const globalIndex =
-                          baseIndex * product.variants.length + variantIndex;
-                        return (
-                          <tr key={`${base.id}-${v.id}`}>
-                            {globalIndex === 0 && (
-                              <td rowSpan={totalRows}>{product.name}</td>
-                            )}
-                            {variantIndex === 0 && (
-                              <td rowSpan={product.variants.length}>
-                                {base.name}
-                              </td>
-                            )}
-                            <td>{v.bucket_size}</td>
-                            <td>NPR {v.landing}</td>
-                            <td>NPR {v.mp}</td>
-                            <td>NPR {v.sales}</td>
-                            <td>{stockEntry}</td>
-                            {globalIndex === 0 && (
-                              <td rowSpan={totalRows}>
-                                <button
-                                  className="edit-btn"
-                                  onClick={() => {
-                                    setEditingItem(product.id);
-                                    toggleDialog();
-                                  }}
-                                >
-                                  <i className="fa-solid fa-pen"></i>
-                                </button>
-                              </td>
-                            )}
-                          </tr>
-                        );
-                      })}
-                    </Fragment>
-                  ))}
+                  {hasBases
+                    ? product.bases.map((base, baseIndex) => (
+                        <Fragment key={base.id}>
+                          {product.variants.map((v, variantIndex) => {
+                            const stockEntry = base.stocks[variantIndex] ?? 0;
+                            const globalIndex =
+                              baseIndex * product.variants.length +
+                              variantIndex;
+                            return (
+                              <tr key={`${base.id}-${v.id}`}>
+                                {globalIndex === 0 && (
+                                  <td rowSpan={totalRows}>{product.name}</td>
+                                )}
+                                {variantIndex === 0 && (
+                                  <td rowSpan={product.variants.length}>
+                                    {base.name}
+                                  </td>
+                                )}
+                                <td>{v.bucket_size}</td>
+                                <td>NPR {Math.round(v.landing)}</td>
+                                <td>NPR {v.mp}</td>
+                                <td>NPR {v.sales}</td>
+                                <td>{stockEntry}</td>
+                                {globalIndex === 0 && (
+                                  <td rowSpan={totalRows}>
+                                    <button
+                                      className="edit-btn"
+                                      onClick={() => {
+                                        setEditingItem(product.id);
+                                        toggleDialog();
+                                      }}
+                                    >
+                                      <i className="fa-solid fa-pen"></i>
+                                    </button>
+                                  </td>
+                                )}
+                              </tr>
+                            );
+                          })}
+                        </Fragment>
+                      ))
+                    : product.variants.map((v, variantIndex) => (
+                        <tr key={v.id}>
+                          {variantIndex === 0 && (
+                            <td rowSpan={totalRows}>{product.name}</td>
+                          )}
+                          <td>NULL</td>
+                          <td>{v.bucket_size}</td>
+                          <td>NPR {Math.round(v.landing)}</td>
+                          <td>NPR {v.mp}</td>
+                          <td>NPR {v.sales}</td>
+                          <td>0</td>
+                          {variantIndex === 0 && (
+                            <td rowSpan={totalRows}>
+                              <button
+                                className="edit-btn"
+                                onClick={() => {
+                                  setEditingItem(product.id);
+                                  toggleDialog();
+                                }}
+                              >
+                                <i className="fa-solid fa-pen"></i>
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
                 </Fragment>
               );
             })}

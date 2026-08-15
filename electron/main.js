@@ -10,6 +10,7 @@ import {
   getProductByName,
   getVariantBySize,
   addVariant,
+  importProductsFromExcel,
   addBase,
   addBaseStock,
   copyImageToDatabase,
@@ -92,6 +93,18 @@ app.whenReady().then(() => {
   ipcMain.handle("db:deleteBill", (_, billId) => deleteBill(billId));
   ipcMain.handle("db:resolveImagePath", (_, relativePath) =>
     resolveImagePath(relativePath),
+  );
+  ipcMain.handle("dialog:pickExcelFile", async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ["openFile"],
+      filters: [{ name: "Excel Files", extensions: ["xlsx", "xls"] }],
+    });
+    if (result.canceled || result.filePaths.length === 0) return null;
+    return result.filePaths[0];
+  });
+
+  ipcMain.handle("db:importExcel", (_, filePath) =>
+    importProductsFromExcel(filePath),
   );
   ipcMain.handle("db:copyImage", (_, sourcePath) =>
     copyImageToDatabase(sourcePath),

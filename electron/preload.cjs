@@ -27,6 +27,9 @@ contextBridge.exposeInMainWorld("db", {
   getCustomers: () => ipcRenderer.invoke("db:getCustomers"),
   deleteCustomer: (id) => ipcRenderer.invoke("db:deleteCustomer", id),
   deleteBill: (billId) => ipcRenderer.invoke("db:deleteBill", billId),
-  editCustomer: (id, customer) => ipcRenderer.invoke('db:editCustomer', id, customer),
-editBill: (billId, bill) => ipcRenderer.invoke('db:editBill', billId, bill),
+  editCustomer: (id, customer) =>
+    ipcRenderer.invoke("db:editCustomer", id, customer),
+  editBill: (billId, bill) => ipcRenderer.invoke("db:editBill", billId, bill),
+  pickExcelFile: () => ipcRenderer.invoke("dialog:pickExcelFile"),
+  importExcel: (filePath) => ipcRenderer.invoke("db:importExcel", filePath),
 });

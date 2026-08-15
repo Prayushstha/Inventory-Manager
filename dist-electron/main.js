@@ -3,6 +3,8 @@ import { BrowserWindow, app, dialog, ipcMain, net, protocol } from "electron";
 import { fileURLToPath } from "url";
 import path from "path";
 import fs from "fs";
+import { createRequire as createRequire$1 } from "module";
+import { randomUUID } from "crypto";
 //#region \0rolldown/runtime.js
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -736,6 +738,7 @@ var import_lib = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((export
 	module.exports = require_database();
 	module.exports.SqliteError = require_sqlite_error();
 })))(), 1);
+var XLSX = createRequire$1(import.meta.url)("xlsx");
 var __dirname$1 = path.dirname(fileURLToPath(import.meta.url));
 var db = new import_lib.default(app.isPackaged ? path.join(app.getPath("userData"), "inventory.db") : path.join(__dirname$1, "../", "Database", "inventory.db"));
 db.exec(`
@@ -953,6 +956,144 @@ function adjustStock(productName, baseName, bucketSize, deltaQty) {
 	if (!base) return;
 	db.prepare(`UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?`).run(deltaQty, base.id, variant.id);
 }
+function importProductsFromExcel(filePath) {
+	const sheet = XLSX.readFile(filePath).Sheets["JESTH- 2083"];
+	if (!sheet) throw new Error("Sheet \"JESTH- 2083\" not found in this file.");
+	const rows = XLSX.utils.sheet_to_json(sheet, {
+		header: 1,
+		range: 1
+	});
+	const BASE_DIGIT_RE = /^([A-Za-z]+)((?:\d+)(?:\/\d+)*)$/;
+	const ROMAN_RE = /^([A-Za-z]+?)(I{1,3}|IV)$/;
+	const ALLOWED_SIZES = new Set([
+		1,
+		4,
+		10,
+		20
+	]);
+	function titleCase(s) {
+		return s.split(" ").map((w) => w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w).join(" ");
+	}
+	function toNum(v) {
+		const n = parseFloat(v);
+		return isNaN(n) ? null : n;
+	}
+	function parseColA(raw) {
+		if (!raw) return [null, []];
+		const s = String(raw).trim();
+		if (s.toUpperCase().startsWith("PGE")) {
+			const rest = s.slice(3).trim();
+			const mDigit = BASE_DIGIT_RE.exec(rest);
+			const mRoman = ROMAN_RE.exec(rest);
+			if (mDigit) {
+				const prefix = mDigit[1];
+				return ["Enamel", mDigit[2].split("/").map((n) => prefix + n)];
+			} else if (mRoman) return ["Enamel", [rest]];
+			else return [`Enamel ${titleCase(rest)}`.trim(), []];
+		}
+		const parts = s.split(" ");
+		let head, last;
+		if (parts.length >= 2) {
+			last = parts[parts.length - 1];
+			head = parts.slice(0, -1).join(" ");
+		} else {
+			head = s;
+			last = "";
+		}
+		const m = BASE_DIGIT_RE.exec(last);
+		if (m) {
+			const prefix = m[1];
+			const nums = m[2].split("/");
+			return [titleCase(head.trim()), nums.map((n) => prefix + n)];
+		}
+		return [titleCase(s), []];
+	}
+	const groups = [];
+	let currentKey;
+	let currentRows = [];
+	let started = false;
+	for (const r of rows) {
+		const key = r[0];
+		if (!started || key !== currentKey) {
+			if (started) groups.push([currentKey, currentRows]);
+			currentKey = key;
+			currentRows = [r];
+			started = true;
+		} else currentRows.push(r);
+	}
+	if (started) groups.push([currentKey, currentRows]);
+	const products = {};
+	for (const [colA, groupRows] of groups) {
+		const [name, bases] = parseColA(colA);
+		if (!name) continue;
+		if (!products[name]) products[name] = {
+			bases: [],
+			variants: {},
+			canonicalSet: false
+		};
+		const product = products[name];
+		for (const b of bases) if (!product.bases.includes(b)) product.bases.push(b);
+		if (!product.canonicalSet) {
+			if (groupRows.some((r) => toNum(r[17]) !== null && toNum(r[14]) !== null)) {
+				for (const r of groupRows) {
+					const size = r[1];
+					if (ALLOWED_SIZES.has(size)) {
+						const landing = toNum(r[17]);
+						const mp = toNum(r[14]);
+						let sales = toNum(r[13]);
+						if (landing === null || mp === null) continue;
+						if (sales === null) sales = 0;
+						product.variants[size] = {
+							landing,
+							mp,
+							sales
+						};
+					}
+				}
+				if (Object.keys(product.variants).length > 0) product.canonicalSet = true;
+			}
+		}
+	}
+	let importedCount = 0;
+	let skippedCount = 0;
+	db.transaction(() => {
+		for (const [name, data] of Object.entries(products)) {
+			const sizes = Object.keys(data.variants);
+			if (sizes.length === 0) {
+				skippedCount++;
+				continue;
+			}
+			let productRow = db.prepare(`SELECT * FROM products WHERE name = ?`).get(name);
+			let productId;
+			if (!productRow) {
+				productId = randomUUID();
+				db.prepare(`INSERT INTO products (id, name, images) VALUES (?, ?, ?)`).run(productId, name, "");
+			} else productId = productRow.id;
+			const variantIds = {};
+			for (const size of sizes) {
+				const v = data.variants[size];
+				let variant = db.prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`).get(productId, Number(size));
+				if (!variant) variantIds[size] = db.prepare(`INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`).run(productId, Number(size), v.landing, v.sales, v.mp).lastInsertRowid;
+				else variantIds[size] = variant.id;
+			}
+			for (const baseName of data.bases) {
+				let base = db.prepare(`SELECT * FROM bases WHERE product_id = ? AND name = ?`).get(productId, baseName);
+				let baseId;
+				if (!base) baseId = db.prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`).run(productId, baseName).lastInsertRowid;
+				else baseId = base.id;
+				for (const size of sizes) {
+					const variantId = variantIds[size];
+					if (!db.prepare(`SELECT * FROM base_stock WHERE base_id = ? AND variant_id = ?`).get(baseId, variantId)) db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, 0)`).run(baseId, variantId);
+				}
+			}
+			importedCount++;
+		}
+	})();
+	return {
+		imported: importedCount,
+		skipped: skippedCount
+	};
+}
 //#endregion
 //#region electron/main.js
 var __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -997,6 +1138,18 @@ app.whenReady().then(() => {
 	ipcMain.handle("db:deleteCustomer", (_, id) => deleteCustomer(id));
 	ipcMain.handle("db:deleteBill", (_, billId) => deleteBill(billId));
 	ipcMain.handle("db:resolveImagePath", (_, relativePath) => resolveImagePath(relativePath));
+	ipcMain.handle("dialog:pickExcelFile", async () => {
+		const result = await dialog.showOpenDialog({
+			properties: ["openFile"],
+			filters: [{
+				name: "Excel Files",
+				extensions: ["xlsx", "xls"]
+			}]
+		});
+		if (result.canceled || result.filePaths.length === 0) return null;
+		return result.filePaths[0];
+	});
+	ipcMain.handle("db:importExcel", (_, filePath) => importProductsFromExcel(filePath));
 	ipcMain.handle("db:copyImage", (_, sourcePath) => copyImageToDatabase(sourcePath));
 	ipcMain.handle("dialog:pickImage", async () => {
 		const result = await dialog.showOpenDialog({

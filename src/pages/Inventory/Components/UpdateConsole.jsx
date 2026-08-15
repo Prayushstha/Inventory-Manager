@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useResolvedImage } from "../../../hooks/ResolvedImage.js";
 
 export function UpdateConsole({ product, setProduct }) {
+  const resolvedImage = useResolvedImage(product.images);
   const [name, setName] = useState(product.name);
   const [selectedBase, setSelectedBase] = useState(
     product.bases[0]?.id ?? null,
@@ -71,20 +73,16 @@ export function UpdateConsole({ product, setProduct }) {
           onClick={handlePickImage}
           style={{ cursor: "pointer" }}
         >
-          {product.images ? (
-            <img
-              src={product.images}
-              alt={product.name}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                borderRadius: 8,
-              }}
-            />
-          ) : (
-            "Click to pick image"
-          )}
+          <img
+            src={resolvedImage}
+            alt={product.name}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              borderRadius: 8,
+            }}
+          />
         </div>
         <p style={{ fontWeight: 500, margin: "0 0 4px" }}>{product.name}</p>
         <p
