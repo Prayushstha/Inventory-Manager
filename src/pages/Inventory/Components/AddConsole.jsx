@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useResolvedImage } from "../../../hooks/ResolvedImage.js";
-
+import { useResolvedImage } from "../../../hooks/resolvedImage.js";
 const BUCKET_SIZES = [1, 4, 10, 20];
 
 export function AddConsole() {

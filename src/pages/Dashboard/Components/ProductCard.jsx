@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useResolvedImage } from "../../../hooks/ResolvedImage.js";
-
+import { useResolvedImage } from "../../../hooks/resolvedImage.js";
 export function ProductCard({ product }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const variant = product.variants[selectedIndex];

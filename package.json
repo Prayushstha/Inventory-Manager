@@ -36,20 +36,24 @@
     "vite-plugin-electron-renderer": "^1.0.0"
   },
   "build": {
-    "appId": "com.yourname.inventorymanager",
-    "productName": "StockWise",
-    "directories": {
-      "output": "release"
-    },
-    "files": [
-      "dist/**/*",
-      "dist-electron/**/*",
-      "electron/**/*",
-      "src/Backend/**/*",
-      "src/Database/.gitkeep"
-    ],
-    "win": {
-      "target": "nsis"
-    }
+  "appId": "com.yourname.inventorymanager",
+  "productName": "StockWise",
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "dist/**/*",
+    "dist-electron/**/*",
+    "electron/**/*",
+    "src/Backend/**/*",
+    "src/Database/.gitkeep"
+  ],
+  "win": {
+    "target": "nsis"
+  },
+  "linux": {
+    "target": ["AppImage"],
+    "category": "Office"
   }
+}
 }

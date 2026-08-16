@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useResolvedImage } from "../../../hooks/ResolvedImage.js";
-
+import { useResolvedImage } from "../../../hooks/resolvedImage.js";
 export function UpdateConsole({ product, setProduct }) {
   const resolvedImage = useResolvedImage(product.images);
   const [name, setName] = useState(product.name);
