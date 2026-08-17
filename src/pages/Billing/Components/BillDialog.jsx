@@ -53,7 +53,7 @@ export function BillDialog({ bill, isNew, onClose, onSaved }) {
       !productForm.quantity ||
       !productForm.priceAtSale
     ) {
-      alert("Please fill in product name, quantity, and price.");
+      showToast("Please fill in product name, quantity, and price.");
       return;
     }
     setForm((f) => ({
