@@ -1,4 +1,4 @@
-export function BillTable({ filtered, statusMeta, openExisting }) {
+export function BillTable({ filtered, statusMeta, openExisting, onDelete }) {
   return (
     <div className="table-wrapper">
       <table className="billing-table">
@@ -51,6 +51,7 @@ export function BillTable({ filtered, statusMeta, openExisting }) {
                     <button
                       className="action-btn action-btn-danger"
                       title="Delete"
+                      onClick={() => onDelete(c.id)}
                     >
                       Delete
                     </button>

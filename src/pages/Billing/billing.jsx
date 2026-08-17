@@ -34,13 +34,13 @@ export function Billing() {
       paymentMethod: bill.payment_method,
       status: bill.status,
       products: bill.products,
-    }))
+    })),
   );
 
   const filtered = rows.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.phone.includes(search)
+      c.phone.includes(search),
   );
 
   const openNew = () => {
@@ -62,6 +62,14 @@ export function Billing() {
     closeDialog();
     fetchCustomers();
   };
+  async function handleDelete(billId) {
+    const confirmed = window.confirm(
+      "Delete this bill? This will restore the stock it used.",
+    );
+    if (!confirmed) return;
+    await window.db.deleteBill(billId);
+    fetchCustomers();
+  }
 
   return (
     <>
@@ -71,6 +79,7 @@ export function Billing() {
           filtered={filtered}
           statusMeta={statusMeta}
           openExisting={openExisting}
+          onDelete={handleDelete}
         />
       </div>
 

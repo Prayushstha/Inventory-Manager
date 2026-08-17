@@ -1,56 +1,113 @@
-import { createRequire as e } from "node:module";
-import { BrowserWindow as t, app as n, dialog as r, ipcMain as i, net as a, protocol as o } from "electron";
-import { fileURLToPath as s, pathToFileURL as c } from "url";
-import l from "path";
-import u from "fs";
-import { createRequire as d } from "module";
-import { randomUUID as f } from "crypto";
+import { createRequire } from "node:module";
+import { BrowserWindow, app, dialog, ipcMain, net, protocol } from "electron";
+import { fileURLToPath, pathToFileURL } from "url";
+import path from "path";
+import fs from "fs";
+import { createRequire as createRequire$1 } from "module";
+import { randomUUID } from "crypto";
 //#region \0rolldown/runtime.js
-var p = Object.create, m = Object.defineProperty, h = Object.getOwnPropertyDescriptor, g = Object.getOwnPropertyNames, _ = Object.getPrototypeOf, v = Object.prototype.hasOwnProperty, y = (e, t) => () => (t || (e((t = { exports: {} }).exports, t), e = null), t.exports), ee = (e, t, n, r) => {
-	if (t && typeof t == "object" || typeof t == "function") for (var i = g(t), a = 0, o = i.length, s; a < o; a++) s = i[a], !v.call(e, s) && s !== n && m(e, s, {
-		get: ((e) => t[e]).bind(null, s),
-		enumerable: !(r = h(t, s)) || r.enumerable
-	});
-	return e;
-}, b = (e, t, n) => (n = e == null ? {} : p(_(e)), ee(t || !e || !e.__esModule ? m(n, "default", {
-	value: e,
-	enumerable: !0
-}) : n, e)), x = /* @__PURE__ */ e(import.meta.url), S = /* @__PURE__ */ y(((e) => {
-	e.getBooleanOption = (e, t) => {
-		let n = !1;
-		if (t in e && typeof (n = e[t]) != "boolean") throw TypeError(`Expected the "${t}" option to be a boolean`);
-		return n;
-	}, e.cppdb = Symbol(), e.inspect = Symbol.for("nodejs.util.inspect.custom");
-})), C = /* @__PURE__ */ y(((e, t) => {
-	var n = {
-		value: "SqliteError",
-		writable: !0,
-		enumerable: !1,
-		configurable: !0
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).exports, mod), cb = null), mod.exports);
+var __copyProps = (to, from, except, desc) => {
+	if (from && typeof from === "object" || typeof from === "function") for (var keys = __getOwnPropNames(from), i = 0, n = keys.length, key; i < n; i++) {
+		key = keys[i];
+		if (!__hasOwnProp.call(to, key) && key !== except) __defProp(to, key, {
+			get: ((k) => from[k]).bind(null, key),
+			enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+		});
+	}
+	return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", {
+	value: mod,
+	enumerable: true
+}) : target, mod));
+var __require = /* @__PURE__ */ createRequire(import.meta.url);
+//#endregion
+//#region node_modules/better-sqlite3/lib/util.js
+var require_util = /* @__PURE__ */ __commonJSMin(((exports) => {
+	exports.getBooleanOption = (options, key) => {
+		let value = false;
+		if (key in options && typeof (value = options[key]) !== "boolean") throw new TypeError(`Expected the "${key}" option to be a boolean`);
+		return value;
 	};
-	function r(e, t) {
-		if (new.target !== r) return new r(e, t);
-		if (typeof t != "string") throw TypeError("Expected second argument to be a string");
-		Error.call(this, e), n.value = "" + e, Object.defineProperty(this, "message", n), Error.captureStackTrace(this, r), this.code = t;
+	exports.cppdb = Symbol();
+	exports.inspect = Symbol.for("nodejs.util.inspect.custom");
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/sqlite-error.js
+var require_sqlite_error = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var descriptor = {
+		value: "SqliteError",
+		writable: true,
+		enumerable: false,
+		configurable: true
+	};
+	function SqliteError(message, code) {
+		if (new.target !== SqliteError) return new SqliteError(message, code);
+		if (typeof code !== "string") throw new TypeError("Expected second argument to be a string");
+		Error.call(this, message);
+		descriptor.value = "" + message;
+		Object.defineProperty(this, "message", descriptor);
+		Error.captureStackTrace(this, SqliteError);
+		this.code = code;
 	}
-	Object.setPrototypeOf(r, Error), Object.setPrototypeOf(r.prototype, Error.prototype), Object.defineProperty(r.prototype, "name", n), t.exports = r;
-})), w = /* @__PURE__ */ y(((e, t) => {
-	var n = x("path").sep || "/";
-	t.exports = r;
-	function r(e) {
-		if (typeof e != "string" || e.length <= 7 || e.substring(0, 7) != "file://") throw TypeError("must pass in a file:// URI to convert to a file path");
-		var t = decodeURI(e.substring(7)), r = t.indexOf("/"), i = t.substring(0, r), a = t.substring(r + 1);
-		return i == "localhost" && (i = ""), i &&= n + n + i, a = a.replace(/^(.+)\|/, "$1:"), n == "\\" && (a = a.replace(/\//g, "\\")), /^.+\:/.test(a) || (a = n + a), i + a;
+	Object.setPrototypeOf(SqliteError, Error);
+	Object.setPrototypeOf(SqliteError.prototype, Error.prototype);
+	Object.defineProperty(SqliteError.prototype, "name", descriptor);
+	module.exports = SqliteError;
+}));
+//#endregion
+//#region node_modules/file-uri-to-path/index.js
+var require_file_uri_to_path = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	/**
+	* Module dependencies.
+	*/
+	var sep = __require("path").sep || "/";
+	/**
+	* Module exports.
+	*/
+	module.exports = fileUriToPath;
+	/**
+	* File URI to Path function.
+	*
+	* @param {String} uri
+	* @return {String} path
+	* @api public
+	*/
+	function fileUriToPath(uri) {
+		if ("string" != typeof uri || uri.length <= 7 || "file://" != uri.substring(0, 7)) throw new TypeError("must pass in a file:// URI to convert to a file path");
+		var rest = decodeURI(uri.substring(7));
+		var firstSlash = rest.indexOf("/");
+		var host = rest.substring(0, firstSlash);
+		var path = rest.substring(firstSlash + 1);
+		if ("localhost" == host) host = "";
+		if (host) host = sep + sep + host;
+		path = path.replace(/^(.+)\|/, "$1:");
+		if (sep == "\\") path = path.replace(/\//g, "\\");
+		if (/^.+\:/.test(path)) {} else path = sep + path;
+		return host + path;
 	}
-})), T = /* @__PURE__ */ y(((e, t) => {
-	var n = x("fs"), r = x("path"), i = w(), a = r.join, o = r.dirname, s = n.accessSync && function(e) {
+}));
+//#endregion
+//#region node_modules/bindings/bindings.js
+var require_bindings = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	/**
+	* Module dependencies.
+	*/
+	var fs$3 = __require("fs"), path$3 = __require("path"), fileURLToPath$1 = require_file_uri_to_path(), join = path$3.join, dirname = path$3.dirname, exists = fs$3.accessSync && function(path) {
 		try {
-			n.accessSync(e);
-		} catch {
-			return !1;
+			fs$3.accessSync(path);
+		} catch (e) {
+			return false;
 		}
-		return !0;
-	} || n.existsSync || r.existsSync, c = {
+		return true;
+	} || fs$3.existsSync || path$3.existsSync, defaults = {
 		arrow: process.env.NODE_BINDINGS_ARROW || " → ",
 		compiled: process.env.NODE_BINDINGS_COMPILED_DIR || "compiled",
 		platform: process.platform,
@@ -142,593 +199,967 @@ var p = Object.create, m = Object.defineProperty, h = Object.getOwnPropertyDescr
 			]
 		]
 	};
-	function l(t) {
-		typeof t == "string" ? t = { bindings: t } : t ||= {}, Object.keys(c).map(function(e) {
-			e in t || (t[e] = c[e]);
-		}), t.module_root ||= e.getRoot(e.getFileName()), r.extname(t.bindings) != ".node" && (t.bindings += ".node");
-		for (var n = typeof __webpack_require__ == "function" ? __non_webpack_require__ : x, i = [], o = 0, s = t.try.length, l, u, d; o < s; o++) {
-			l = a.apply(null, t.try[o].map(function(e) {
-				return t[e] || e;
-			})), i.push(l);
+	/**
+	* The main `bindings()` function loads the compiled bindings for a given module.
+	* It uses V8's Error API to determine the parent filename that this function is
+	* being invoked from, which is then used to find the root directory.
+	*/
+	function bindings(opts) {
+		if (typeof opts == "string") opts = { bindings: opts };
+		else if (!opts) opts = {};
+		Object.keys(defaults).map(function(i) {
+			if (!(i in opts)) opts[i] = defaults[i];
+		});
+		if (!opts.module_root) opts.module_root = exports.getRoot(exports.getFileName());
+		if (path$3.extname(opts.bindings) != ".node") opts.bindings += ".node";
+		var requireFunc = typeof __webpack_require__ === "function" ? __non_webpack_require__ : __require;
+		var tries = [], i = 0, l = opts.try.length, n, b, err;
+		for (; i < l; i++) {
+			n = join.apply(null, opts.try[i].map(function(p) {
+				return opts[p] || p;
+			}));
+			tries.push(n);
 			try {
-				return u = t.path ? n.resolve(l) : n(l), t.path || (u.path = l), u;
+				b = opts.path ? requireFunc.resolve(n) : requireFunc(n);
+				if (!opts.path) b.path = n;
+				return b;
 			} catch (e) {
 				if (e.code !== "MODULE_NOT_FOUND" && e.code !== "QUALIFIED_PATH_RESOLUTION_FAILED" && !/not find/i.test(e.message)) throw e;
 			}
 		}
-		throw d = /* @__PURE__ */ Error("Could not locate the bindings file. Tried:\n" + i.map(function(e) {
-			return t.arrow + e;
-		}).join("\n")), d.tries = i, d;
+		err = /* @__PURE__ */ new Error("Could not locate the bindings file. Tried:\n" + tries.map(function(a) {
+			return opts.arrow + a;
+		}).join("\n"));
+		err.tries = tries;
+		throw err;
 	}
-	t.exports = e = l, e.getFileName = function(e) {
-		var t = Error.prepareStackTrace, n = Error.stackTraceLimit, r = {}, a;
-		return Error.stackTraceLimit = 10, Error.prepareStackTrace = function(t, n) {
-			for (var r = 0, i = n.length; r < i; r++) if (a = n[r].getFileName(), a !== __filename) if (e) {
-				if (a !== e) return;
-			} else return;
-		}, Error.captureStackTrace(r), r.stack, Error.prepareStackTrace = t, Error.stackTraceLimit = n, a.indexOf("file://") === 0 && (a = i(a)), a;
-	}, e.getRoot = function(e) {
-		for (var t = o(e), n;;) {
-			if (t === "." && (t = process.cwd()), s(a(t, "package.json")) || s(a(t, "node_modules"))) return t;
-			if (n === t) throw Error("Could not find module root given file: \"" + e + "\". Do you have a `package.json` file? ");
-			n = t, t = a(t, "..");
-		}
-	};
-})), te = /* @__PURE__ */ y(((e) => {
-	var { cppdb: t } = S();
-	e.prepare = function(e) {
-		return this[t].prepare(e, this, !1);
-	}, e.exec = function(e) {
-		return this[t].exec(e), this;
-	}, e.close = function() {
-		return this[t].close(), this;
-	}, e.loadExtension = function(...e) {
-		return this[t].loadExtension(...e), this;
-	}, e.defaultSafeIntegers = function(...e) {
-		return this[t].defaultSafeIntegers(...e), this;
-	}, e.unsafeMode = function(...e) {
-		return this[t].unsafeMode(...e), this;
-	}, e.getters = {
-		name: {
-			get: function() {
-				return this[t].name;
-			},
-			enumerable: !0
-		},
-		open: {
-			get: function() {
-				return this[t].open;
-			},
-			enumerable: !0
-		},
-		inTransaction: {
-			get: function() {
-				return this[t].inTransaction;
-			},
-			enumerable: !0
-		},
-		readonly: {
-			get: function() {
-				return this[t].readonly;
-			},
-			enumerable: !0
-		},
-		memory: {
-			get: function() {
-				return this[t].memory;
-			},
-			enumerable: !0
-		}
-	};
-})), ne = /* @__PURE__ */ y(((e, t) => {
-	var { cppdb: n } = S(), r = /* @__PURE__ */ new WeakMap();
-	t.exports = function(e) {
-		if (typeof e != "function") throw TypeError("Expected first argument to be a function");
-		let t = this[n], r = i(t, this), { apply: o } = Function.prototype, s = {
-			default: { value: a(o, e, t, r.default) },
-			deferred: { value: a(o, e, t, r.deferred) },
-			immediate: { value: a(o, e, t, r.immediate) },
-			exclusive: { value: a(o, e, t, r.exclusive) },
-			database: {
-				value: this,
-				enumerable: !0
+	module.exports = exports = bindings;
+	/**
+	* Gets the filename of the JavaScript file that invokes this function.
+	* Used to help find the root directory of a module.
+	* Optionally accepts an filename argument to skip when searching for the invoking filename
+	*/
+	exports.getFileName = function getFileName(calling_file) {
+		var origPST = Error.prepareStackTrace, origSTL = Error.stackTraceLimit, dummy = {}, fileName;
+		Error.stackTraceLimit = 10;
+		Error.prepareStackTrace = function(e, st) {
+			for (var i = 0, l = st.length; i < l; i++) {
+				fileName = st[i].getFileName();
+				if (fileName !== __filename) if (calling_file) {
+					if (fileName !== calling_file) return;
+				} else return;
 			}
 		};
-		return Object.defineProperties(s.default.value, s), Object.defineProperties(s.deferred.value, s), Object.defineProperties(s.immediate.value, s), Object.defineProperties(s.exclusive.value, s), s.default.value;
+		Error.captureStackTrace(dummy);
+		dummy.stack;
+		Error.prepareStackTrace = origPST;
+		Error.stackTraceLimit = origSTL;
+		if (fileName.indexOf("file://") === 0) fileName = fileURLToPath$1(fileName);
+		return fileName;
 	};
-	var i = (e, t) => {
-		let n = r.get(e);
-		if (!n) {
-			let i = {
-				commit: e.prepare("COMMIT", t, !1),
-				rollback: e.prepare("ROLLBACK", t, !1),
-				savepoint: e.prepare("SAVEPOINT `	_bs3.	`", t, !1),
-				release: e.prepare("RELEASE `	_bs3.	`", t, !1),
-				rollbackTo: e.prepare("ROLLBACK TO `	_bs3.	`", t, !1)
+	/**
+	* Gets the root directory of a module, given an arbitrary filename
+	* somewhere in the module tree. The "root directory" is the directory
+	* containing the `package.json` file.
+	*
+	*   In:  /home/nate/node-native-module/lib/index.js
+	*   Out: /home/nate/node-native-module
+	*/
+	exports.getRoot = function getRoot(file) {
+		var dir = dirname(file), prev;
+		while (true) {
+			if (dir === ".") dir = process.cwd();
+			if (exists(join(dir, "package.json")) || exists(join(dir, "node_modules"))) return dir;
+			if (prev === dir) throw new Error("Could not find module root given file: \"" + file + "\". Do you have a `package.json` file? ");
+			prev = dir;
+			dir = join(dir, "..");
+		}
+	};
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/methods/wrappers.js
+var require_wrappers = /* @__PURE__ */ __commonJSMin(((exports) => {
+	var { cppdb } = require_util();
+	exports.prepare = function prepare(sql) {
+		return this[cppdb].prepare(sql, this, false);
+	};
+	exports.exec = function exec(sql) {
+		this[cppdb].exec(sql);
+		return this;
+	};
+	exports.close = function close() {
+		this[cppdb].close();
+		return this;
+	};
+	exports.loadExtension = function loadExtension(...args) {
+		this[cppdb].loadExtension(...args);
+		return this;
+	};
+	exports.defaultSafeIntegers = function defaultSafeIntegers(...args) {
+		this[cppdb].defaultSafeIntegers(...args);
+		return this;
+	};
+	exports.unsafeMode = function unsafeMode(...args) {
+		this[cppdb].unsafeMode(...args);
+		return this;
+	};
+	exports.getters = {
+		name: {
+			get: function name() {
+				return this[cppdb].name;
+			},
+			enumerable: true
+		},
+		open: {
+			get: function open() {
+				return this[cppdb].open;
+			},
+			enumerable: true
+		},
+		inTransaction: {
+			get: function inTransaction() {
+				return this[cppdb].inTransaction;
+			},
+			enumerable: true
+		},
+		readonly: {
+			get: function readonly() {
+				return this[cppdb].readonly;
+			},
+			enumerable: true
+		},
+		memory: {
+			get: function memory() {
+				return this[cppdb].memory;
+			},
+			enumerable: true
+		}
+	};
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/methods/transaction.js
+var require_transaction = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var { cppdb } = require_util();
+	var controllers = /* @__PURE__ */ new WeakMap();
+	module.exports = function transaction(fn) {
+		if (typeof fn !== "function") throw new TypeError("Expected first argument to be a function");
+		const db = this[cppdb];
+		const controller = getController(db, this);
+		const { apply } = Function.prototype;
+		const properties = {
+			default: { value: wrapTransaction(apply, fn, db, controller.default) },
+			deferred: { value: wrapTransaction(apply, fn, db, controller.deferred) },
+			immediate: { value: wrapTransaction(apply, fn, db, controller.immediate) },
+			exclusive: { value: wrapTransaction(apply, fn, db, controller.exclusive) },
+			database: {
+				value: this,
+				enumerable: true
+			}
+		};
+		Object.defineProperties(properties.default.value, properties);
+		Object.defineProperties(properties.deferred.value, properties);
+		Object.defineProperties(properties.immediate.value, properties);
+		Object.defineProperties(properties.exclusive.value, properties);
+		return properties.default.value;
+	};
+	var getController = (db, self) => {
+		let controller = controllers.get(db);
+		if (!controller) {
+			const shared = {
+				commit: db.prepare("COMMIT", self, false),
+				rollback: db.prepare("ROLLBACK", self, false),
+				savepoint: db.prepare("SAVEPOINT `	_bs3.	`", self, false),
+				release: db.prepare("RELEASE `	_bs3.	`", self, false),
+				rollbackTo: db.prepare("ROLLBACK TO `	_bs3.	`", self, false)
 			};
-			r.set(e, n = {
-				default: Object.assign({ begin: e.prepare("BEGIN", t, !1) }, i),
-				deferred: Object.assign({ begin: e.prepare("BEGIN DEFERRED", t, !1) }, i),
-				immediate: Object.assign({ begin: e.prepare("BEGIN IMMEDIATE", t, !1) }, i),
-				exclusive: Object.assign({ begin: e.prepare("BEGIN EXCLUSIVE", t, !1) }, i)
+			controllers.set(db, controller = {
+				default: Object.assign({ begin: db.prepare("BEGIN", self, false) }, shared),
+				deferred: Object.assign({ begin: db.prepare("BEGIN DEFERRED", self, false) }, shared),
+				immediate: Object.assign({ begin: db.prepare("BEGIN IMMEDIATE", self, false) }, shared),
+				exclusive: Object.assign({ begin: db.prepare("BEGIN EXCLUSIVE", self, false) }, shared)
 			});
 		}
-		return n;
-	}, a = (e, t, n, { begin: r, commit: i, rollback: a, savepoint: o, release: s, rollbackTo: c }) => function() {
-		let l, u, d;
-		n.inTransaction ? (l = o, u = s, d = c) : (l = r, u = i, d = a), l.run();
+		return controller;
+	};
+	var wrapTransaction = (apply, fn, db, { begin, commit, rollback, savepoint, release, rollbackTo }) => function sqliteTransaction() {
+		let before, after, undo;
+		if (db.inTransaction) {
+			before = savepoint;
+			after = release;
+			undo = rollbackTo;
+		} else {
+			before = begin;
+			after = commit;
+			undo = rollback;
+		}
+		before.run();
 		try {
-			let n = e.call(t, this, arguments);
-			if (n && typeof n.then == "function") throw TypeError("Transaction function cannot return a promise");
-			return u.run(), n;
-		} catch (e) {
-			throw n.inTransaction && (d.run(), d !== a && u.run()), e;
+			const result = apply.call(fn, this, arguments);
+			if (result && typeof result.then === "function") throw new TypeError("Transaction function cannot return a promise");
+			after.run();
+			return result;
+		} catch (ex) {
+			if (db.inTransaction) {
+				undo.run();
+				if (undo !== rollback) after.run();
+			}
+			throw ex;
 		}
 	};
-})), re = /* @__PURE__ */ y(((e, t) => {
-	var { getBooleanOption: n, cppdb: r } = S();
-	t.exports = function(e, t) {
-		if (t ??= {}, typeof e != "string") throw TypeError("Expected first argument to be a string");
-		if (typeof t != "object") throw TypeError("Expected second argument to be an options object");
-		let i = n(t, "simple"), a = this[r].prepare(`PRAGMA ${e}`, this, !0);
-		return i ? a.pluck().get() : a.all();
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/methods/pragma.js
+var require_pragma = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var { getBooleanOption, cppdb } = require_util();
+	module.exports = function pragma(source, options) {
+		if (options == null) options = {};
+		if (typeof source !== "string") throw new TypeError("Expected first argument to be a string");
+		if (typeof options !== "object") throw new TypeError("Expected second argument to be an options object");
+		const simple = getBooleanOption(options, "simple");
+		const stmt = this[cppdb].prepare(`PRAGMA ${source}`, this, true);
+		return simple ? stmt.pluck().get() : stmt.all();
 	};
-})), E = /* @__PURE__ */ y(((e, t) => {
-	var n = x("fs"), r = x("path"), { promisify: i } = x("util"), { cppdb: a } = S(), o = i(n.access);
-	t.exports = async function(e, t) {
-		if (t ??= {}, typeof e != "string") throw TypeError("Expected first argument to be a string");
-		if (typeof t != "object") throw TypeError("Expected second argument to be an options object");
-		e = e.trim();
-		let n = "attached" in t ? t.attached : "main", i = "progress" in t ? t.progress : null;
-		if (!e) throw TypeError("Backup filename cannot be an empty string");
-		if (e === ":memory:") throw TypeError("Invalid backup filename \":memory:\"");
-		if (typeof n != "string") throw TypeError("Expected the \"attached\" option to be a string");
-		if (!n) throw TypeError("The \"attached\" option cannot be an empty string");
-		if (i != null && typeof i != "function") throw TypeError("Expected the \"progress\" option to be a function");
-		await o(r.dirname(e)).catch(() => {
-			throw TypeError("Cannot save backup because the directory does not exist");
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/methods/backup.js
+var require_backup = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var fs$2 = __require("fs");
+	var path$2 = __require("path");
+	var { promisify } = __require("util");
+	var { cppdb } = require_util();
+	var fsAccess = promisify(fs$2.access);
+	module.exports = async function backup(filename, options) {
+		if (options == null) options = {};
+		if (typeof filename !== "string") throw new TypeError("Expected first argument to be a string");
+		if (typeof options !== "object") throw new TypeError("Expected second argument to be an options object");
+		filename = filename.trim();
+		const attachedName = "attached" in options ? options.attached : "main";
+		const handler = "progress" in options ? options.progress : null;
+		if (!filename) throw new TypeError("Backup filename cannot be an empty string");
+		if (filename === ":memory:") throw new TypeError("Invalid backup filename \":memory:\"");
+		if (typeof attachedName !== "string") throw new TypeError("Expected the \"attached\" option to be a string");
+		if (!attachedName) throw new TypeError("The \"attached\" option cannot be an empty string");
+		if (handler != null && typeof handler !== "function") throw new TypeError("Expected the \"progress\" option to be a function");
+		await fsAccess(path$2.dirname(filename)).catch(() => {
+			throw new TypeError("Cannot save backup because the directory does not exist");
 		});
-		let c = await o(e).then(() => !1, () => !0);
-		return s(this[a].backup(this, n, e, c), i || null);
+		const isNewFile = await fsAccess(filename).then(() => false, () => true);
+		return runBackup(this[cppdb].backup(this, attachedName, filename, isNewFile), handler || null);
 	};
-	var s = (e, t) => {
-		let n = 0, r = !0;
-		return new Promise((i, a) => {
-			setImmediate(function o() {
+	var runBackup = (backup, handler) => {
+		let rate = 0;
+		let useDefault = true;
+		return new Promise((resolve, reject) => {
+			setImmediate(function step() {
 				try {
-					let a = e.transfer(n);
-					if (!a.remainingPages) {
-						e.close(), i(a);
+					const progress = backup.transfer(rate);
+					if (!progress.remainingPages) {
+						backup.close();
+						resolve(progress);
 						return;
 					}
-					if (r && (r = !1, n = 100), t) {
-						let e = t(a);
-						if (e !== void 0) if (typeof e == "number" && e === e) n = Math.max(0, Math.min(2147483647, Math.round(e)));
-						else throw TypeError("Expected progress callback to return a number or undefined");
+					if (useDefault) {
+						useDefault = false;
+						rate = 100;
 					}
-					setImmediate(o);
-				} catch (t) {
-					e.close(), a(t);
+					if (handler) {
+						const ret = handler(progress);
+						if (ret !== void 0) if (typeof ret === "number" && ret === ret) rate = Math.max(0, Math.min(2147483647, Math.round(ret)));
+						else throw new TypeError("Expected progress callback to return a number or undefined");
+					}
+					setImmediate(step);
+				} catch (err) {
+					backup.close();
+					reject(err);
 				}
 			});
 		});
 	};
-})), D = /* @__PURE__ */ y(((e, t) => {
-	var { cppdb: n } = S();
-	t.exports = function(e) {
-		if (e ??= {}, typeof e != "object") throw TypeError("Expected first argument to be an options object");
-		let t = "attached" in e ? e.attached : "main";
-		if (typeof t != "string") throw TypeError("Expected the \"attached\" option to be a string");
-		if (!t) throw TypeError("The \"attached\" option cannot be an empty string");
-		return this[n].serialize(t);
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/methods/serialize.js
+var require_serialize = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var { cppdb } = require_util();
+	module.exports = function serialize(options) {
+		if (options == null) options = {};
+		if (typeof options !== "object") throw new TypeError("Expected first argument to be an options object");
+		const attachedName = "attached" in options ? options.attached : "main";
+		if (typeof attachedName !== "string") throw new TypeError("Expected the \"attached\" option to be a string");
+		if (!attachedName) throw new TypeError("The \"attached\" option cannot be an empty string");
+		return this[cppdb].serialize(attachedName);
 	};
-})), O = /* @__PURE__ */ y(((e, t) => {
-	var { getBooleanOption: n, cppdb: r } = S();
-	t.exports = function(e, t, i) {
-		if (t ??= {}, typeof t == "function" && (i = t, t = {}), typeof e != "string") throw TypeError("Expected first argument to be a string");
-		if (typeof i != "function") throw TypeError("Expected last argument to be a function");
-		if (typeof t != "object") throw TypeError("Expected second argument to be an options object");
-		if (!e) throw TypeError("User-defined function name cannot be an empty string");
-		let a = "safeIntegers" in t ? +n(t, "safeIntegers") : 2, o = n(t, "deterministic"), s = n(t, "directOnly"), c = n(t, "varargs"), l = -1;
-		if (!c) {
-			if (l = i.length, !Number.isInteger(l) || l < 0) throw TypeError("Expected function.length to be a positive integer");
-			if (l > 100) throw RangeError("User-defined functions cannot have more than 100 arguments");
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/methods/function.js
+var require_function = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var { getBooleanOption, cppdb } = require_util();
+	module.exports = function defineFunction(name, options, fn) {
+		if (options == null) options = {};
+		if (typeof options === "function") {
+			fn = options;
+			options = {};
 		}
-		return this[r].function(i, e, l, a, o, s), this;
+		if (typeof name !== "string") throw new TypeError("Expected first argument to be a string");
+		if (typeof fn !== "function") throw new TypeError("Expected last argument to be a function");
+		if (typeof options !== "object") throw new TypeError("Expected second argument to be an options object");
+		if (!name) throw new TypeError("User-defined function name cannot be an empty string");
+		const safeIntegers = "safeIntegers" in options ? +getBooleanOption(options, "safeIntegers") : 2;
+		const deterministic = getBooleanOption(options, "deterministic");
+		const directOnly = getBooleanOption(options, "directOnly");
+		const varargs = getBooleanOption(options, "varargs");
+		let argCount = -1;
+		if (!varargs) {
+			argCount = fn.length;
+			if (!Number.isInteger(argCount) || argCount < 0) throw new TypeError("Expected function.length to be a positive integer");
+			if (argCount > 100) throw new RangeError("User-defined functions cannot have more than 100 arguments");
+		}
+		this[cppdb].function(fn, name, argCount, safeIntegers, deterministic, directOnly);
+		return this;
 	};
-})), k = /* @__PURE__ */ y(((e, t) => {
-	var { getBooleanOption: n, cppdb: r } = S();
-	t.exports = function(e, t) {
-		if (typeof e != "string") throw TypeError("Expected first argument to be a string");
-		if (typeof t != "object" || !t) throw TypeError("Expected second argument to be an options object");
-		if (!e) throw TypeError("User-defined function name cannot be an empty string");
-		let o = "start" in t ? t.start : null, s = i(t, "step", !0), c = i(t, "inverse", !1), l = i(t, "result", !1), u = "safeIntegers" in t ? +n(t, "safeIntegers") : 2, d = n(t, "deterministic"), f = n(t, "directOnly"), p = n(t, "varargs"), m = -1;
-		if (!p && (m = Math.max(a(s), c ? a(c) : 0), m > 0 && --m, m > 100)) throw RangeError("User-defined functions cannot have more than 100 arguments");
-		return this[r].aggregate(o, s, c, l, e, m, u, d, f), this;
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/methods/aggregate.js
+var require_aggregate = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var { getBooleanOption, cppdb } = require_util();
+	module.exports = function defineAggregate(name, options) {
+		if (typeof name !== "string") throw new TypeError("Expected first argument to be a string");
+		if (typeof options !== "object" || options === null) throw new TypeError("Expected second argument to be an options object");
+		if (!name) throw new TypeError("User-defined function name cannot be an empty string");
+		const start = "start" in options ? options.start : null;
+		const step = getFunctionOption(options, "step", true);
+		const inverse = getFunctionOption(options, "inverse", false);
+		const result = getFunctionOption(options, "result", false);
+		const safeIntegers = "safeIntegers" in options ? +getBooleanOption(options, "safeIntegers") : 2;
+		const deterministic = getBooleanOption(options, "deterministic");
+		const directOnly = getBooleanOption(options, "directOnly");
+		const varargs = getBooleanOption(options, "varargs");
+		let argCount = -1;
+		if (!varargs) {
+			argCount = Math.max(getLength(step), inverse ? getLength(inverse) : 0);
+			if (argCount > 0) argCount -= 1;
+			if (argCount > 100) throw new RangeError("User-defined functions cannot have more than 100 arguments");
+		}
+		this[cppdb].aggregate(start, step, inverse, result, name, argCount, safeIntegers, deterministic, directOnly);
+		return this;
 	};
-	var i = (e, t, n) => {
-		let r = t in e ? e[t] : null;
-		if (typeof r == "function") return r;
-		if (r != null) throw TypeError(`Expected the "${t}" option to be a function`);
-		if (n) throw TypeError(`Missing required option "${t}"`);
+	var getFunctionOption = (options, key, required) => {
+		const value = key in options ? options[key] : null;
+		if (typeof value === "function") return value;
+		if (value != null) throw new TypeError(`Expected the "${key}" option to be a function`);
+		if (required) throw new TypeError(`Missing required option "${key}"`);
 		return null;
-	}, a = ({ length: e }) => {
-		if (Number.isInteger(e) && e >= 0) return e;
-		throw TypeError("Expected function.length to be a positive integer");
 	};
-})), A = /* @__PURE__ */ y(((e, t) => {
-	var { cppdb: n } = S();
-	t.exports = function(e, t) {
-		if (typeof e != "string") throw TypeError("Expected first argument to be a string");
-		if (!e) throw TypeError("Virtual table module name cannot be an empty string");
-		let a = !1;
-		if (typeof t == "object" && t) a = !0, t = p(i(t, "used", e));
-		else {
-			if (typeof t != "function") throw TypeError("Expected second argument to be a function or a table definition object");
-			t = r(t);
+	var getLength = ({ length }) => {
+		if (Number.isInteger(length) && length >= 0) return length;
+		throw new TypeError("Expected function.length to be a positive integer");
+	};
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/methods/table.js
+var require_table = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var { cppdb } = require_util();
+	module.exports = function defineTable(name, factory) {
+		if (typeof name !== "string") throw new TypeError("Expected first argument to be a string");
+		if (!name) throw new TypeError("Virtual table module name cannot be an empty string");
+		let eponymous = false;
+		if (typeof factory === "object" && factory !== null) {
+			eponymous = true;
+			factory = defer(parseTableDefinition(factory, "used", name));
+		} else {
+			if (typeof factory !== "function") throw new TypeError("Expected second argument to be a function or a table definition object");
+			factory = wrapFactory(factory);
 		}
-		return this[n].table(t, e, a), this;
+		this[cppdb].table(factory, name, eponymous);
+		return this;
 	};
-	function r(e) {
-		return function(t, n, r, ...a) {
-			let o = {
-				module: t,
-				database: n,
-				table: r
-			}, s = u.call(e, o, a);
-			if (typeof s != "object" || !s) throw TypeError(`Virtual table module "${t}" did not return a table definition object`);
-			return i(s, "returned", t);
+	function wrapFactory(factory) {
+		return function virtualTableFactory(moduleName, databaseName, tableName, ...args) {
+			const thisObject = {
+				module: moduleName,
+				database: databaseName,
+				table: tableName
+			};
+			const def = apply.call(factory, thisObject, args);
+			if (typeof def !== "object" || def === null) throw new TypeError(`Virtual table module "${moduleName}" did not return a table definition object`);
+			return parseTableDefinition(def, "returned", moduleName);
 		};
 	}
-	function i(e, t, n) {
-		if (!l.call(e, "rows")) throw TypeError(`Virtual table module "${n}" ${t} a table definition without a "rows" property`);
-		if (!l.call(e, "columns")) throw TypeError(`Virtual table module "${n}" ${t} a table definition without a "columns" property`);
-		let r = e.rows;
-		if (typeof r != "function" || Object.getPrototypeOf(r) !== d) throw TypeError(`Virtual table module "${n}" ${t} a table definition with an invalid "rows" property (should be a generator function)`);
-		let i = e.columns;
-		if (!Array.isArray(i) || !(i = [...i]).every((e) => typeof e == "string")) throw TypeError(`Virtual table module "${n}" ${t} a table definition with an invalid "columns" property (should be an array of strings)`);
-		if (i.length !== new Set(i).size) throw TypeError(`Virtual table module "${n}" ${t} a table definition with duplicate column names`);
-		if (!i.length) throw RangeError(`Virtual table module "${n}" ${t} a table definition with zero columns`);
-		let o;
-		if (l.call(e, "parameters")) {
-			if (o = e.parameters, !Array.isArray(o) || !(o = [...o]).every((e) => typeof e == "string")) throw TypeError(`Virtual table module "${n}" ${t} a table definition with an invalid "parameters" property (should be an array of strings)`);
-		} else o = c(r);
-		if (o.length !== new Set(o).size) throw TypeError(`Virtual table module "${n}" ${t} a table definition with duplicate parameter names`);
-		if (o.length > 32) throw RangeError(`Virtual table module "${n}" ${t} a table definition with more than the maximum number of 32 parameters`);
-		for (let e of o) if (i.includes(e)) throw TypeError(`Virtual table module "${n}" ${t} a table definition with column "${e}" which was ambiguously defined as both a column and parameter`);
-		let s = 2;
-		if (l.call(e, "safeIntegers")) {
-			let r = e.safeIntegers;
-			if (typeof r != "boolean") throw TypeError(`Virtual table module "${n}" ${t} a table definition with an invalid "safeIntegers" property (should be a boolean)`);
-			s = +r;
+	function parseTableDefinition(def, verb, moduleName) {
+		if (!hasOwnProperty.call(def, "rows")) throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition without a "rows" property`);
+		if (!hasOwnProperty.call(def, "columns")) throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition without a "columns" property`);
+		const rows = def.rows;
+		if (typeof rows !== "function" || Object.getPrototypeOf(rows) !== GeneratorFunctionPrototype) throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition with an invalid "rows" property (should be a generator function)`);
+		let columns = def.columns;
+		if (!Array.isArray(columns) || !(columns = [...columns]).every((x) => typeof x === "string")) throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition with an invalid "columns" property (should be an array of strings)`);
+		if (columns.length !== new Set(columns).size) throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition with duplicate column names`);
+		if (!columns.length) throw new RangeError(`Virtual table module "${moduleName}" ${verb} a table definition with zero columns`);
+		let parameters;
+		if (hasOwnProperty.call(def, "parameters")) {
+			parameters = def.parameters;
+			if (!Array.isArray(parameters) || !(parameters = [...parameters]).every((x) => typeof x === "string")) throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition with an invalid "parameters" property (should be an array of strings)`);
+		} else parameters = inferParameters(rows);
+		if (parameters.length !== new Set(parameters).size) throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition with duplicate parameter names`);
+		if (parameters.length > 32) throw new RangeError(`Virtual table module "${moduleName}" ${verb} a table definition with more than the maximum number of 32 parameters`);
+		for (const parameter of parameters) if (columns.includes(parameter)) throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition with column "${parameter}" which was ambiguously defined as both a column and parameter`);
+		let safeIntegers = 2;
+		if (hasOwnProperty.call(def, "safeIntegers")) {
+			const bool = def.safeIntegers;
+			if (typeof bool !== "boolean") throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition with an invalid "safeIntegers" property (should be a boolean)`);
+			safeIntegers = +bool;
 		}
-		let u = !1;
-		if (l.call(e, "directOnly") && (u = e.directOnly, typeof u != "boolean")) throw TypeError(`Virtual table module "${n}" ${t} a table definition with an invalid "directOnly" property (should be a boolean)`);
+		let directOnly = false;
+		if (hasOwnProperty.call(def, "directOnly")) {
+			directOnly = def.directOnly;
+			if (typeof directOnly !== "boolean") throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition with an invalid "directOnly" property (should be a boolean)`);
+		}
 		return [
-			`CREATE TABLE x(${[...o.map(f).map((e) => `${e} HIDDEN`), ...i.map(f)].join(", ")});`,
-			a(r, new Map(i.map((e, t) => [e, o.length + t])), n),
-			o,
-			s,
-			u
+			`CREATE TABLE x(${[...parameters.map(identifier).map((str) => `${str} HIDDEN`), ...columns.map(identifier)].join(", ")});`,
+			wrapGenerator(rows, new Map(columns.map((x, i) => [x, parameters.length + i])), moduleName),
+			parameters,
+			safeIntegers,
+			directOnly
 		];
 	}
-	function a(e, t, n) {
-		return function* (...r) {
-			let i = r.map((e) => Buffer.isBuffer(e) ? Buffer.from(e) : e);
-			for (let e = 0; e < t.size; ++e) i.push(null);
-			for (let a of e(...r)) if (Array.isArray(a)) o(a, i, t.size, n), yield i;
-			else if (typeof a == "object" && a) s(a, i, t, n), yield i;
-			else throw TypeError(`Virtual table module "${n}" yielded something that isn't a valid row object`);
+	function wrapGenerator(generator, columnMap, moduleName) {
+		return function* virtualTable(...args) {
+			const output = args.map((x) => Buffer.isBuffer(x) ? Buffer.from(x) : x);
+			for (let i = 0; i < columnMap.size; ++i) output.push(null);
+			for (const row of generator(...args)) if (Array.isArray(row)) {
+				extractRowArray(row, output, columnMap.size, moduleName);
+				yield output;
+			} else if (typeof row === "object" && row !== null) {
+				extractRowObject(row, output, columnMap, moduleName);
+				yield output;
+			} else throw new TypeError(`Virtual table module "${moduleName}" yielded something that isn't a valid row object`);
 		};
 	}
-	function o(e, t, n, r) {
-		if (e.length !== n) throw TypeError(`Virtual table module "${r}" yielded a row with an incorrect number of columns`);
-		let i = t.length - n;
-		for (let r = 0; r < n; ++r) t[r + i] = e[r];
+	function extractRowArray(row, output, columnCount, moduleName) {
+		if (row.length !== columnCount) throw new TypeError(`Virtual table module "${moduleName}" yielded a row with an incorrect number of columns`);
+		const offset = output.length - columnCount;
+		for (let i = 0; i < columnCount; ++i) output[i + offset] = row[i];
 	}
-	function s(e, t, n, r) {
-		let i = 0;
-		for (let a of Object.keys(e)) {
-			let o = n.get(a);
-			if (o === void 0) throw TypeError(`Virtual table module "${r}" yielded a row with an undeclared column "${a}"`);
-			t[o] = e[a], i += 1;
+	function extractRowObject(row, output, columnMap, moduleName) {
+		let count = 0;
+		for (const key of Object.keys(row)) {
+			const index = columnMap.get(key);
+			if (index === void 0) throw new TypeError(`Virtual table module "${moduleName}" yielded a row with an undeclared column "${key}"`);
+			output[index] = row[key];
+			count += 1;
 		}
-		if (i !== n.size) throw TypeError(`Virtual table module "${r}" yielded a row with missing columns`);
+		if (count !== columnMap.size) throw new TypeError(`Virtual table module "${moduleName}" yielded a row with missing columns`);
 	}
-	function c({ length: e }) {
-		if (!Number.isInteger(e) || e < 0) throw TypeError("Expected function.length to be a positive integer");
-		let t = [];
-		for (let n = 0; n < e; ++n) t.push(`$${n + 1}`);
-		return t;
+	function inferParameters({ length }) {
+		if (!Number.isInteger(length) || length < 0) throw new TypeError("Expected function.length to be a positive integer");
+		const params = [];
+		for (let i = 0; i < length; ++i) params.push(`$${i + 1}`);
+		return params;
 	}
-	var { hasOwnProperty: l } = Object.prototype, { apply: u } = Function.prototype, d = Object.getPrototypeOf(function* () {}), f = (e) => `"${e.replace(/"/g, "\"\"")}"`, p = (e) => () => e;
-})), j = /* @__PURE__ */ y(((e, t) => {
-	var n = function() {};
-	t.exports = function(e, t) {
-		return Object.assign(new n(), this);
+	var { hasOwnProperty } = Object.prototype;
+	var { apply } = Function.prototype;
+	var GeneratorFunctionPrototype = Object.getPrototypeOf(function* () {});
+	var identifier = (str) => `"${str.replace(/"/g, "\"\"")}"`;
+	var defer = (x) => () => x;
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/methods/inspect.js
+var require_inspect = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var DatabaseInspection = function Database() {};
+	module.exports = function inspect(depth, opts) {
+		return Object.assign(new DatabaseInspection(), this);
 	};
-})), M = /* @__PURE__ */ y(((e, t) => {
-	var n = x("fs"), r = x("path"), i = S(), a = C(), o;
-	function s(e, t) {
-		if (new.target == null) return new s(e, t);
-		let l;
-		if (Buffer.isBuffer(e) && (l = e, e = ":memory:"), e ??= "", t ??= {}, typeof e != "string") throw TypeError("Expected first argument to be a string");
-		if (typeof t != "object") throw TypeError("Expected second argument to be an options object");
-		if ("readOnly" in t) throw TypeError("Misspelled option \"readOnly\" should be \"readonly\"");
-		if ("memory" in t) throw TypeError("Option \"memory\" was removed in v7.0.0 (use \":memory:\" filename instead)");
-		let u = e.trim(), d = u === "" || u === ":memory:", f = i.getBooleanOption(t, "readonly"), p = i.getBooleanOption(t, "fileMustExist"), m = "timeout" in t ? t.timeout : 5e3, h = "verbose" in t ? t.verbose : null, g = "nativeBinding" in t ? t.nativeBinding : null;
-		if (f && d && !l) throw TypeError("In-memory/temporary databases cannot be readonly");
-		if (!Number.isInteger(m) || m < 0) throw TypeError("Expected the \"timeout\" option to be a positive integer");
-		if (m > 2147483647) throw RangeError("Option \"timeout\" cannot be greater than 2147483647");
-		if (h != null && typeof h != "function") throw TypeError("Expected the \"verbose\" option to be a function");
-		if (g != null && typeof g != "string" && typeof g != "object") throw TypeError("Expected the \"nativeBinding\" option to be a string or addon object");
-		let _;
-		if (_ = g == null ? o ||= T()("better_sqlite3.node") : typeof g == "string" ? (typeof __non_webpack_require__ == "function" ? __non_webpack_require__ : x)(r.resolve(g).replace(/(\.node)?$/, ".node")) : g, _.isInitialized || (_.setErrorConstructor(a), _.isInitialized = !0), !d && !u.startsWith("file:") && !n.existsSync(r.dirname(u))) throw TypeError("Cannot open database because the directory does not exist");
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/database.js
+var require_database = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var fs$1 = __require("fs");
+	var path$1 = __require("path");
+	var util = require_util();
+	var SqliteError = require_sqlite_error();
+	var DEFAULT_ADDON;
+	function Database(filenameGiven, options) {
+		if (new.target == null) return new Database(filenameGiven, options);
+		let buffer;
+		if (Buffer.isBuffer(filenameGiven)) {
+			buffer = filenameGiven;
+			filenameGiven = ":memory:";
+		}
+		if (filenameGiven == null) filenameGiven = "";
+		if (options == null) options = {};
+		if (typeof filenameGiven !== "string") throw new TypeError("Expected first argument to be a string");
+		if (typeof options !== "object") throw new TypeError("Expected second argument to be an options object");
+		if ("readOnly" in options) throw new TypeError("Misspelled option \"readOnly\" should be \"readonly\"");
+		if ("memory" in options) throw new TypeError("Option \"memory\" was removed in v7.0.0 (use \":memory:\" filename instead)");
+		const filename = filenameGiven.trim();
+		const anonymous = filename === "" || filename === ":memory:";
+		const readonly = util.getBooleanOption(options, "readonly");
+		const fileMustExist = util.getBooleanOption(options, "fileMustExist");
+		const timeout = "timeout" in options ? options.timeout : 5e3;
+		const verbose = "verbose" in options ? options.verbose : null;
+		const nativeBinding = "nativeBinding" in options ? options.nativeBinding : null;
+		if (readonly && anonymous && !buffer) throw new TypeError("In-memory/temporary databases cannot be readonly");
+		if (!Number.isInteger(timeout) || timeout < 0) throw new TypeError("Expected the \"timeout\" option to be a positive integer");
+		if (timeout > 2147483647) throw new RangeError("Option \"timeout\" cannot be greater than 2147483647");
+		if (verbose != null && typeof verbose !== "function") throw new TypeError("Expected the \"verbose\" option to be a function");
+		if (nativeBinding != null && typeof nativeBinding !== "string" && typeof nativeBinding !== "object") throw new TypeError("Expected the \"nativeBinding\" option to be a string or addon object");
+		let addon;
+		if (nativeBinding == null) addon = DEFAULT_ADDON || (DEFAULT_ADDON = require_bindings()("better_sqlite3.node"));
+		else if (typeof nativeBinding === "string") addon = (typeof __non_webpack_require__ === "function" ? __non_webpack_require__ : __require)(path$1.resolve(nativeBinding).replace(/(\.node)?$/, ".node"));
+		else addon = nativeBinding;
+		if (!addon.isInitialized) {
+			addon.setErrorConstructor(SqliteError);
+			addon.isInitialized = true;
+		}
+		if (!anonymous && !filename.startsWith("file:") && !fs$1.existsSync(path$1.dirname(filename))) throw new TypeError("Cannot open database because the directory does not exist");
 		Object.defineProperties(this, {
-			[i.cppdb]: { value: new _.Database(u, e, d, f, p, m, h || null, l || null) },
-			...c.getters
+			[util.cppdb]: { value: new addon.Database(filename, filenameGiven, anonymous, readonly, fileMustExist, timeout, verbose || null, buffer || null) },
+			...wrappers.getters
 		});
 	}
-	var c = te();
-	s.prototype.prepare = c.prepare, s.prototype.transaction = ne(), s.prototype.pragma = re(), s.prototype.backup = E(), s.prototype.serialize = D(), s.prototype.function = O(), s.prototype.aggregate = k(), s.prototype.table = A(), s.prototype.loadExtension = c.loadExtension, s.prototype.exec = c.exec, s.prototype.close = c.close, s.prototype.defaultSafeIntegers = c.defaultSafeIntegers, s.prototype.unsafeMode = c.unsafeMode, s.prototype[i.inspect] = j(), t.exports = s;
-})), N = /* @__PURE__ */ b((/* @__PURE__ */ y(((e, t) => {
-	t.exports = M(), t.exports.SqliteError = C();
-})))(), 1), P = d(import.meta.url)("xlsx"), F = l.dirname(s(import.meta.url)), I = new N.default(n.isPackaged ? l.join(n.getPath("userData"), "inventory.db") : l.join(F, "../", "Database", "inventory.db"));
-I.exec("\n  CREATE TABLE IF NOT EXISTS products (\n    id TEXT PRIMARY KEY,\n    name TEXT NOT NULL, \n    images TEXT\n  );\n\n  CREATE TABLE IF NOT EXISTS variants (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    product_id TEXT NOT NULL,\n    bucket_size REAL NOT NULL,\n    landing REAL,\n    sales REAL,\n    mp REAL,\n    FOREIGN KEY (product_id) REFERENCES products(id)\n  );\n\n  CREATE TABLE IF NOT EXISTS bases (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    product_id TEXT NOT NULL,\n    name TEXT NOT NULL,\n    FOREIGN KEY (product_id) REFERENCES products(id)\n  );\n\n  CREATE TABLE IF NOT EXISTS base_stock (\n    base_id INTEGER NOT NULL,\n    variant_id INTEGER NOT NULL,\n    stock REAL NOT NULL DEFAULT 0,\n    PRIMARY KEY (base_id, variant_id),\n    FOREIGN KEY (base_id) REFERENCES bases(id),\n    FOREIGN KEY (variant_id) REFERENCES variants(id)\n  );\n  CREATE TABLE IF NOT EXISTS customers (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    name TEXT NOT NULL,\n    phone TEXT,\n    address TEXT\n  );\n\n  CREATE TABLE IF NOT EXISTS bills (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    customer_id INTEGER NOT NULL,\n    date TEXT NOT NULL,\n    payment_method TEXT,\n    total_purchased REAL NOT NULL,\n    amount_paid REAL NOT NULL,\n    amount_due REAL NOT NULL,\n    status TEXT NOT NULL,\n    FOREIGN KEY (customer_id) REFERENCES customers(id)\n  );\n\n  CREATE TABLE IF NOT EXISTS bill_items (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    bill_id INTEGER NOT NULL,\n    product_name TEXT NOT NULL,\n    base TEXT,\n    bucket_size REAL,\n    quantity REAL NOT NULL,\n    price_at_sale REAL NOT NULL,\n    FOREIGN KEY (bill_id) REFERENCES bills(id)\n  );\n");
-function L(e) {
-	let { id: t, name: n, images: r, variants: i, bases: a } = e;
-	I.prepare("INSERT INTO products (id, name, images) VALUES (?, ?, ?)").run(t, n, r);
-	for (let e of i) I.prepare("\n      INSERT INTO variants (product_id, bucket_size, rate, tax_bucket, scheme, after_scheme, after_trade, net_value, vat, with_vat, sales, mp)\n      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\n    ").run(t, e.bucket_size, e.rate, e.tax_bucket, e.scheme, e.after_scheme, e.after_trade, e.net_value, e.vat, e.with_vat, e.sales, e.mp);
-	for (let e of a) {
-		let n = I.prepare("INSERT INTO bases (product_id, name) VALUES (?, ?)").run(t, e.name).lastInsertRowid;
-		for (let r = 0; r < e.stocks.length; r++) {
-			let i = I.prepare("SELECT id FROM variants WHERE product_id = ? LIMIT 1 OFFSET ?").get(t, r);
-			I.prepare("INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)").run(n, i.id, e.stocks[r]);
+	var wrappers = require_wrappers();
+	Database.prototype.prepare = wrappers.prepare;
+	Database.prototype.transaction = require_transaction();
+	Database.prototype.pragma = require_pragma();
+	Database.prototype.backup = require_backup();
+	Database.prototype.serialize = require_serialize();
+	Database.prototype.function = require_function();
+	Database.prototype.aggregate = require_aggregate();
+	Database.prototype.table = require_table();
+	Database.prototype.loadExtension = wrappers.loadExtension;
+	Database.prototype.exec = wrappers.exec;
+	Database.prototype.close = wrappers.close;
+	Database.prototype.defaultSafeIntegers = wrappers.defaultSafeIntegers;
+	Database.prototype.unsafeMode = wrappers.unsafeMode;
+	Database.prototype[util.inspect] = require_inspect();
+	module.exports = Database;
+}));
+//#endregion
+//#region src/Backend/server.js
+var import_lib = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
+	module.exports = require_database();
+	module.exports.SqliteError = require_sqlite_error();
+})))(), 1);
+var XLSX = createRequire$1(import.meta.url)("xlsx");
+var __dirname$1 = path.dirname(fileURLToPath(import.meta.url));
+var db = new import_lib.default(app.isPackaged ? path.join(app.getPath("userData"), "inventory.db") : path.join(__dirname$1, "../", "Database", "inventory.db"));
+db.exec(`
+  CREATE TABLE IF NOT EXISTS products (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL, 
+    images TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS variants (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_id TEXT NOT NULL,
+    bucket_size REAL NOT NULL,
+    landing REAL,
+    sales REAL,
+    mp REAL,
+    FOREIGN KEY (product_id) REFERENCES products(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS bases (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    FOREIGN KEY (product_id) REFERENCES products(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS base_stock (
+    base_id INTEGER NOT NULL,
+    variant_id INTEGER NOT NULL,
+    stock REAL NOT NULL DEFAULT 0,
+    PRIMARY KEY (base_id, variant_id),
+    FOREIGN KEY (base_id) REFERENCES bases(id),
+    FOREIGN KEY (variant_id) REFERENCES variants(id)
+  );
+  CREATE TABLE IF NOT EXISTS customers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    phone TEXT,
+    address TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS bills (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer_id INTEGER NOT NULL,
+    date TEXT NOT NULL,
+    payment_method TEXT,
+    total_purchased REAL NOT NULL,
+    amount_paid REAL NOT NULL,
+    amount_due REAL NOT NULL,
+    status TEXT NOT NULL,
+    FOREIGN KEY (customer_id) REFERENCES customers(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS bill_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    bill_id INTEGER NOT NULL,
+    product_name TEXT NOT NULL,
+    base TEXT,
+    bucket_size REAL,
+    quantity REAL NOT NULL,
+    price_at_sale REAL NOT NULL,
+    FOREIGN KEY (bill_id) REFERENCES bills(id)
+  );
+`);
+function addProduct(product) {
+	const { id, name, images, variants, bases } = product;
+	db.prepare(`INSERT INTO products (id, name, images) VALUES (?, ?, ?)`).run(id, name, images);
+	for (const variant of variants) db.prepare(`
+      INSERT INTO variants (product_id, bucket_size, rate, tax_bucket, scheme, after_scheme, after_trade, net_value, vat, with_vat, sales, mp)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(id, variant.bucket_size, variant.rate, variant.tax_bucket, variant.scheme, variant.after_scheme, variant.after_trade, variant.net_value, variant.vat, variant.with_vat, variant.sales, variant.mp);
+	for (const base of bases) {
+		const baseId = db.prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`).run(id, base.name).lastInsertRowid;
+		for (let i = 0; i < base.stocks.length; i++) {
+			const variant = db.prepare(`SELECT id FROM variants WHERE product_id = ? LIMIT 1 OFFSET ?`).get(id, i);
+			db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`).run(baseId, variant.id, base.stocks[i]);
 		}
 	}
 }
-function R() {
-	let e = I.prepare("SELECT * FROM products").all();
-	for (let t of e) {
-		t.variants = I.prepare("SELECT * FROM variants WHERE product_id = ?").all(t.id);
-		let e = I.prepare("SELECT * FROM bases WHERE product_id = ?").all(t.id);
-		for (let t of e) t.stocks = I.prepare("SELECT stock FROM base_stock WHERE base_id = ? ORDER BY variant_id").all(t.id).map((e) => e.stock);
-		t.bases = e;
+function getProducts() {
+	const products = db.prepare(`SELECT * FROM products`).all();
+	for (const product of products) {
+		product.variants = db.prepare(`SELECT * FROM variants WHERE product_id = ?`).all(product.id);
+		const bases = db.prepare(`SELECT * FROM bases WHERE product_id = ?`).all(product.id);
+		for (const base of bases) base.stocks = db.prepare(`SELECT stock FROM base_stock WHERE base_id = ? ORDER BY variant_id`).all(base.id).map((s) => s.stock);
+		product.bases = bases;
 	}
-	return e;
+	return products;
 }
-function z(e) {
-	let t = I.prepare("SELECT id FROM variants WHERE product_id = ?").all(e), n = I.prepare("SELECT id FROM bases WHERE product_id = ?").all(e);
-	for (let e of t) I.prepare("DELETE FROM base_stock WHERE variant_id = ?").run(e.id);
-	for (let e of n) I.prepare("DELETE FROM base_stock WHERE base_id = ?").run(e.id);
-	I.prepare("DELETE FROM variants WHERE product_id = ?").run(e), I.prepare("DELETE FROM bases WHERE product_id = ?").run(e), I.prepare("DELETE FROM products WHERE id = ?").run(e);
+function deleteProduct(id) {
+	const variants = db.prepare(`SELECT id FROM variants WHERE product_id = ?`).all(id);
+	const bases = db.prepare(`SELECT id FROM bases WHERE product_id = ?`).all(id);
+	for (const variant of variants) db.prepare(`DELETE FROM base_stock WHERE variant_id = ?`).run(variant.id);
+	for (const base of bases) db.prepare(`DELETE FROM base_stock WHERE base_id = ?`).run(base.id);
+	db.prepare(`DELETE FROM variants WHERE product_id = ?`).run(id);
+	db.prepare(`DELETE FROM bases WHERE product_id = ?`).run(id);
+	db.prepare(`DELETE FROM products WHERE id = ?`).run(id);
 }
-function B(e, t) {
-	let { name: n, images: r, variants: i, bases: a } = t;
-	I.prepare("UPDATE products SET name = ?, images = ? WHERE id = ?").run(n, r, e), I.prepare("DELETE FROM variants WHERE product_id = ?").run(e);
-	for (let t of i) I.prepare("\n      INSERT INTO variants (product_id, bucket_size, rate, tax_bucket, scheme, after_scheme, after_trade, net_value, vat, with_vat, sales, mp)\n      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\n    ").run(e, t.bucket_size, t.rate, t.tax_bucket, t.scheme, t.after_scheme, t.after_trade, t.net_value, t.vat, t.with_vat, t.sales, t.mp);
-	let o = I.prepare("SELECT id FROM bases WHERE product_id = ?").all(e);
-	for (let e of o) I.prepare("DELETE FROM base_stock WHERE base_id = ?").run(e.id);
-	I.prepare("DELETE FROM bases WHERE product_id = ?").run(e);
-	for (let t of a) {
-		let n = I.prepare("INSERT INTO bases (product_id, name) VALUES (?, ?)").run(e, t.name).lastInsertRowid;
-		for (let r = 0; r < t.stocks.length; r++) {
-			let i = I.prepare("SELECT id FROM variants WHERE product_id = ? LIMIT 1 OFFSET ?").get(e, r);
-			I.prepare("INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)").run(n, i.id, t.stocks[r]);
+function editProduct(id, product) {
+	const { name, images, variants, bases } = product;
+	db.prepare(`UPDATE products SET name = ?, images = ? WHERE id = ?`).run(name, images, id);
+	db.prepare(`DELETE FROM variants WHERE product_id = ?`).run(id);
+	for (const variant of variants) db.prepare(`
+      INSERT INTO variants (product_id, bucket_size, rate, tax_bucket, scheme, after_scheme, after_trade, net_value, vat, with_vat, sales, mp)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(id, variant.bucket_size, variant.rate, variant.tax_bucket, variant.scheme, variant.after_scheme, variant.after_trade, variant.net_value, variant.vat, variant.with_vat, variant.sales, variant.mp);
+	const oldBases = db.prepare(`SELECT id FROM bases WHERE product_id = ?`).all(id);
+	for (const base of oldBases) db.prepare(`DELETE FROM base_stock WHERE base_id = ?`).run(base.id);
+	db.prepare(`DELETE FROM bases WHERE product_id = ?`).run(id);
+	for (const base of bases) {
+		const baseId = db.prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`).run(id, base.name).lastInsertRowid;
+		for (let i = 0; i < base.stocks.length; i++) {
+			const variant = db.prepare(`SELECT id FROM variants WHERE product_id = ? LIMIT 1 OFFSET ?`).get(id, i);
+			db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`).run(baseId, variant.id, base.stocks[i]);
 		}
 	}
 }
-function ie(e) {
-	return I.prepare("SELECT * FROM products WHERE name = ?").get(e);
+function getProductByName(name) {
+	return db.prepare(`SELECT * FROM products WHERE name = ?`).get(name);
 }
-function V(e, t) {
-	return I.prepare("SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?").get(e, t);
+function getVariantBySize(productId, bucketSize) {
+	return db.prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`).get(productId, bucketSize);
 }
-function H(e, t) {
-	return I.prepare("\n    INSERT INTO variants (product_id, bucket_size, landing, sales, mp)\n    VALUES (?, ?, ?, ?, ?)\n  ").run(e, t.bucket_size, t.landing, t.sales, t.mp).lastInsertRowid;
+function addVariant(productId, variant) {
+	return db.prepare(`
+    INSERT INTO variants (product_id, bucket_size, landing, sales, mp)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(productId, variant.bucket_size, variant.landing, variant.sales, variant.mp).lastInsertRowid;
 }
-function U(e, t) {
-	return I.prepare("INSERT INTO bases (product_id, name) VALUES (?, ?)").run(e, t).lastInsertRowid;
+function addBase(productId, baseName) {
+	return db.prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`).run(productId, baseName).lastInsertRowid;
 }
-function W(e, t) {
-	return I.prepare("SELECT * FROM bases WHERE product_id = ? AND name = ?").get(e, t);
+function getBaseByName(productId, baseName) {
+	return db.prepare(`SELECT * FROM bases WHERE product_id = ? AND name = ?`).get(productId, baseName);
 }
-function G(e, t, n) {
-	I.prepare("INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)").run(e, t, n);
+function addBaseStock(baseId, variantId, stock) {
+	db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`).run(baseId, variantId, stock);
 }
-function K(e) {
-	let t = l.basename(e), r = n.isPackaged ? l.join(n.getPath("userData"), "images", "product-images") : l.join(F, "../", "Database", "images", "product-images"), i = l.join(r, t);
-	return u.existsSync(r) || u.mkdirSync(r, { recursive: !0 }), u.existsSync(i) || u.copyFileSync(e, i), `images/product-images/${t}`;
+function copyImageToDatabase(sourcePath) {
+	const fileName = path.basename(sourcePath);
+	const destDir = app.isPackaged ? path.join(app.getPath("userData"), "images", "product-images") : path.join(__dirname$1, "../", "Database", "images", "product-images");
+	const destPath = path.join(destDir, fileName);
+	if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+	if (!fs.existsSync(destPath)) fs.copyFileSync(sourcePath, destPath);
+	return `images/product-images/${fileName}`;
 }
-function q(e) {
-	if (!e) return null;
-	let t = n.isPackaged ? n.getPath("userData") : l.join(F, "../", "Database");
-	return l.join(t, e);
+function resolveImagePath(relativePath) {
+	if (!relativePath) return null;
+	const baseDir = app.isPackaged ? app.getPath("userData") : path.join(__dirname$1, "../", "Database");
+	return path.join(baseDir, relativePath);
 }
-function J(e) {
-	return I.prepare("\n    INSERT INTO customers (name, phone, address) VALUES (?, ?, ?)\n  ").run(e.name, e.phone, e.address).lastInsertRowid;
+function addCustomer(customer) {
+	return db.prepare(`
+    INSERT INTO customers (name, phone, address) VALUES (?, ?, ?)
+  `).run(customer.name, customer.phone, customer.address).lastInsertRowid;
 }
-function Y(e, t) {
-	let n = I.prepare("\n    INSERT INTO bills (customer_id, date, payment_method, total_purchased, amount_paid, amount_due, status)\n    VALUES (?, ?, ?, ?, ?, ?, ?)\n  ").run(e, t.date, t.paymentMethod, t.totalPurchased, t.amountPaid, t.amountDue, t.status).lastInsertRowid;
-	for (let e of t.products) I.prepare("\n      INSERT INTO bill_items (bill_id, product_name, base, bucket_size, quantity, price_at_sale)\n      VALUES (?, ?, ?, ?, ?, ?)\n    ").run(n, e.productName, e.base, e.bucketSize, e.quantity, e.priceAtSale), Z(e.productName, e.base, e.bucketSize, -e.quantity);
-	return n;
-}
-function ae() {
-	let e = I.prepare("SELECT * FROM customers").all();
-	for (let t of e) {
-		let e = I.prepare("SELECT * FROM bills WHERE customer_id = ?").all(t.id);
-		for (let t of e) t.products = I.prepare("SELECT * FROM bill_items WHERE bill_id = ?").all(t.id);
-		t.bills = e, t.totalDue = e.reduce((e, t) => e + t.amount_due, 0);
+function addBill(customerId, bill) {
+	const billId = db.prepare(`
+    INSERT INTO bills (customer_id, date, payment_method, total_purchased, amount_paid, amount_due, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(customerId, bill.date, bill.paymentMethod, bill.totalPurchased, bill.amountPaid, bill.amountDue, bill.status).lastInsertRowid;
+	for (const item of bill.products) {
+		db.prepare(`
+      INSERT INTO bill_items (bill_id, product_name, base, bucket_size, quantity, price_at_sale)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(billId, item.productName, item.base, item.bucketSize, item.quantity, item.priceAtSale);
+		adjustStock(item.productName, item.base, item.bucketSize, -item.quantity);
 	}
-	return e;
+	return billId;
 }
-function oe(e) {
-	let t = I.prepare("SELECT id FROM bills WHERE customer_id = ?").all(e);
-	for (let e of t) I.prepare("DELETE FROM bill_items WHERE bill_id = ?").run(e.id);
-	I.prepare("DELETE FROM bills WHERE customer_id = ?").run(e), I.prepare("DELETE FROM customers WHERE id = ?").run(e);
+function getCustomers() {
+	const customers = db.prepare(`SELECT * FROM customers`).all();
+	for (const customer of customers) {
+		const bills = db.prepare(`SELECT * FROM bills WHERE customer_id = ?`).all(customer.id);
+		for (const bill of bills) bill.products = db.prepare(`SELECT * FROM bill_items WHERE bill_id = ?`).all(bill.id);
+		customer.bills = bills;
+		customer.totalDue = bills.reduce((sum, b) => sum + b.amount_due, 0);
+	}
+	return customers;
 }
-function se(e) {
-	let t = I.prepare("SELECT * FROM bill_items WHERE bill_id = ?").all(e);
-	for (let e of t) Z(e.product_name, e.base, e.bucket_size, e.quantity);
-	I.prepare("DELETE FROM bill_items WHERE bill_id = ?").run(e), I.prepare("DELETE FROM bills WHERE id = ?").run(e);
+function deleteCustomer(id) {
+	const bills = db.prepare(`SELECT id FROM bills WHERE customer_id = ?`).all(id);
+	for (const bill of bills) db.prepare(`DELETE FROM bill_items WHERE bill_id = ?`).run(bill.id);
+	db.prepare(`DELETE FROM bills WHERE customer_id = ?`).run(id);
+	db.prepare(`DELETE FROM customers WHERE id = ?`).run(id);
 }
-function ce(e, t) {
-	I.prepare("\n    UPDATE customers SET name = ?, phone = ?, address = ? WHERE id = ?\n  ").run(t.name, t.phone, t.address, e);
+function deleteBill(billId) {
+	const items = db.prepare(`SELECT * FROM bill_items WHERE bill_id = ?`).all(billId);
+	for (const item of items) adjustStock(item.product_name, item.base, item.bucket_size, item.quantity);
+	db.prepare(`DELETE FROM bill_items WHERE bill_id = ?`).run(billId);
+	db.prepare(`DELETE FROM bills WHERE id = ?`).run(billId);
 }
-function X(e, t) {
-	I.prepare("\n    UPDATE bills SET date = ?, payment_method = ?, total_purchased = ?, amount_paid = ?, amount_due = ?, status = ?\n    WHERE id = ?\n  ").run(t.date, t.paymentMethod, t.totalPurchased, t.amountPaid, t.amountDue, t.status, e), I.prepare("DELETE FROM bill_items WHERE bill_id = ?").run(e);
-	for (let n of t.products) I.prepare("\n      INSERT INTO bill_items (bill_id, product_name, base, bucket_size, quantity, price_at_sale)\n      VALUES (?, ?, ?, ?, ?, ?)\n    ").run(e, n.productName, n.base, n.bucketSize, n.quantity, n.priceAtSale);
+function editCustomer(id, customer) {
+	db.prepare(`
+    UPDATE customers SET name = ?, phone = ?, address = ? WHERE id = ?
+  `).run(customer.name, customer.phone, customer.address, id);
 }
-function Z(e, t, n, r) {
-	let i = I.prepare("SELECT * FROM products WHERE name = ?").get(e);
-	if (!i) return;
-	let a = I.prepare("SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?").get(i.id, n);
-	if (!a) return;
-	let o = I.prepare("SELECT * FROM bases WHERE product_id = ? AND name = ?").get(i.id, t);
-	o && I.prepare("UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?").run(r, o.id, a.id);
+function editBill(billId, bill) {
+	db.prepare(`
+    UPDATE bills SET date = ?, payment_method = ?, total_purchased = ?, amount_paid = ?, amount_due = ?, status = ?
+    WHERE id = ?
+  `).run(bill.date, bill.paymentMethod, bill.totalPurchased, bill.amountPaid, bill.amountDue, bill.status, billId);
+	db.prepare(`DELETE FROM bill_items WHERE bill_id = ?`).run(billId);
+	for (const item of bill.products) db.prepare(`
+      INSERT INTO bill_items (bill_id, product_name, base, bucket_size, quantity, price_at_sale)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(billId, item.productName, item.base, item.bucketSize, item.quantity, item.priceAtSale);
 }
-function le(e) {
-	let t = P.readFile(e).Sheets["JESTH- 2083"];
-	if (!t) throw Error("Sheet \"JESTH- 2083\" not found in this file.");
-	let n = P.utils.sheet_to_json(t, {
+function adjustStock(productName, baseName, bucketSize, deltaQty) {
+	const product = db.prepare(`SELECT * FROM products WHERE name = ?`).get(productName);
+	if (!product) return;
+	const variant = db.prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`).get(product.id, bucketSize);
+	if (!variant) return;
+	const base = db.prepare(`SELECT * FROM bases WHERE product_id = ? AND name = ?`).get(product.id, baseName);
+	if (!base) return;
+	db.prepare(`UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?`).run(deltaQty, base.id, variant.id);
+}
+function importProductsFromExcel(filePath) {
+	const sheet = XLSX.readFile(filePath).Sheets["JESTH- 2083"];
+	if (!sheet) throw new Error("Sheet \"JESTH- 2083\" not found in this file.");
+	const rows = XLSX.utils.sheet_to_json(sheet, {
 		header: 1,
 		range: 1
-	}), r = /^([A-Za-z]+)((?:\d+)(?:\/\d+)*)$/, i = /^([A-Za-z]+?)(I{1,3}|IV)$/, a = new Set([
+	});
+	const BASE_DIGIT_RE = /^([A-Za-z]+)((?:\d+)(?:\/\d+)*)$/;
+	const ROMAN_RE = /^([A-Za-z]+?)(I{1,3}|IV)$/;
+	const ALLOWED_SIZES = new Set([
 		1,
 		4,
 		10,
 		20
 	]);
-	function o(e) {
-		return e.split(" ").map((e) => e && e.charAt(0).toUpperCase() + e.slice(1).toLowerCase()).join(" ");
+	function titleCase(s) {
+		return s.split(" ").map((w) => w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w).join(" ");
 	}
-	function s(e) {
-		let t = parseFloat(e);
-		return isNaN(t) ? null : t;
+	function toNum(v) {
+		const n = parseFloat(v);
+		return isNaN(n) ? null : n;
 	}
-	function c(e) {
-		if (!e) return [null, []];
-		let t = String(e).trim();
-		if (t.toUpperCase().startsWith("PGE")) {
-			let e = t.slice(3).trim(), n = r.exec(e), a = i.exec(e);
-			if (n) {
-				let e = n[1];
-				return ["Enamel", n[2].split("/").map((t) => e + t)];
-			} else if (a) return ["Enamel", [e]];
-			else return [`Enamel ${o(e)}`.trim(), []];
+	function parseColA(raw) {
+		if (!raw) return [null, []];
+		const s = String(raw).trim();
+		if (s.toUpperCase().startsWith("PGE")) {
+			const rest = s.slice(3).trim();
+			const mDigit = BASE_DIGIT_RE.exec(rest);
+			const mRoman = ROMAN_RE.exec(rest);
+			if (mDigit) {
+				const prefix = mDigit[1];
+				return ["Enamel", mDigit[2].split("/").map((n) => prefix + n)];
+			} else if (mRoman) return ["Enamel", [rest]];
+			else return [`Enamel ${titleCase(rest)}`.trim(), []];
 		}
-		let n = t.split(" "), a, s;
-		n.length >= 2 ? (s = n[n.length - 1], a = n.slice(0, -1).join(" ")) : (a = t, s = "");
-		let c = r.exec(s);
-		if (c) {
-			let e = c[1], t = c[2].split("/");
-			return [o(a.trim()), t.map((t) => e + t)];
+		const parts = s.split(" ");
+		let head, last;
+		if (parts.length >= 2) {
+			last = parts[parts.length - 1];
+			head = parts.slice(0, -1).join(" ");
+		} else {
+			head = s;
+			last = "";
 		}
-		return [o(t), []];
+		const m = BASE_DIGIT_RE.exec(last);
+		if (m) {
+			const prefix = m[1];
+			const nums = m[2].split("/");
+			return [titleCase(head.trim()), nums.map((n) => prefix + n)];
+		}
+		return [titleCase(s), []];
 	}
-	let l = [], u, d = [], p = !1;
-	for (let e of n) {
-		let t = e[0];
-		!p || t !== u ? (p && l.push([u, d]), u = t, d = [e], p = !0) : d.push(e);
+	const groups = [];
+	let currentKey;
+	let currentRows = [];
+	let started = false;
+	for (const r of rows) {
+		const key = r[0];
+		if (!started || key !== currentKey) {
+			if (started) groups.push([currentKey, currentRows]);
+			currentKey = key;
+			currentRows = [r];
+			started = true;
+		} else currentRows.push(r);
 	}
-	p && l.push([u, d]);
-	let m = {};
-	for (let [e, t] of l) {
-		let [n, r] = c(e);
-		if (!n) continue;
-		m[n] || (m[n] = {
+	if (started) groups.push([currentKey, currentRows]);
+	const products = {};
+	for (const [colA, groupRows] of groups) {
+		const [name, bases] = parseColA(colA);
+		if (!name) continue;
+		if (!products[name]) products[name] = {
 			bases: [],
 			variants: {},
-			canonicalSet: !1
-		});
-		let i = m[n];
-		for (let e of r) i.bases.includes(e) || i.bases.push(e);
-		if (!i.canonicalSet && t.some((e) => s(e[17]) !== null && s(e[14]) !== null)) {
-			for (let e of t) {
-				let t = e[1];
-				if (a.has(t)) {
-					let n = s(e[17]), r = s(e[14]), a = s(e[13]);
-					if (n === null || r === null) continue;
-					a === null && (a = 0), i.variants[t] = {
-						landing: n,
-						mp: r,
-						sales: a
-					};
+			canonicalSet: false
+		};
+		const product = products[name];
+		for (const b of bases) if (!product.bases.includes(b)) product.bases.push(b);
+		if (!product.canonicalSet) {
+			if (groupRows.some((r) => toNum(r[17]) !== null && toNum(r[14]) !== null)) {
+				for (const r of groupRows) {
+					const size = r[1];
+					if (ALLOWED_SIZES.has(size)) {
+						const landing = toNum(r[17]);
+						const mp = toNum(r[14]);
+						let sales = toNum(r[13]);
+						if (landing === null || mp === null) continue;
+						if (sales === null) sales = 0;
+						product.variants[size] = {
+							landing,
+							mp,
+							sales
+						};
+					}
 				}
+				if (Object.keys(product.variants).length > 0) product.canonicalSet = true;
 			}
-			Object.keys(i.variants).length > 0 && (i.canonicalSet = !0);
 		}
 	}
-	let h = 0, g = 0;
-	return I.transaction(() => {
-		for (let [e, t] of Object.entries(m)) {
-			let n = Object.keys(t.variants);
-			if (n.length === 0) {
-				g++;
+	let importedCount = 0;
+	let skippedCount = 0;
+	db.transaction(() => {
+		for (const [name, data] of Object.entries(products)) {
+			const sizes = Object.keys(data.variants);
+			if (sizes.length === 0) {
+				skippedCount++;
 				continue;
 			}
-			let r = I.prepare("SELECT * FROM products WHERE name = ?").get(e), i;
-			r ? i = r.id : (i = f(), I.prepare("INSERT INTO products (id, name, images) VALUES (?, ?, ?)").run(i, e, ""));
-			let a = {};
-			for (let e of n) {
-				let n = t.variants[e], r = I.prepare("SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?").get(i, Number(e));
-				r ? a[e] = r.id : a[e] = I.prepare("INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)").run(i, Number(e), n.landing, n.sales, n.mp).lastInsertRowid;
+			let productRow = db.prepare(`SELECT * FROM products WHERE name = ?`).get(name);
+			let productId;
+			if (!productRow) {
+				productId = randomUUID();
+				db.prepare(`INSERT INTO products (id, name, images) VALUES (?, ?, ?)`).run(productId, name, "");
+			} else productId = productRow.id;
+			const variantIds = {};
+			for (const size of sizes) {
+				const v = data.variants[size];
+				let variant = db.prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`).get(productId, Number(size));
+				if (!variant) variantIds[size] = db.prepare(`INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`).run(productId, Number(size), v.landing, v.sales, v.mp).lastInsertRowid;
+				else variantIds[size] = variant.id;
 			}
-			for (let e of t.bases) {
-				let t = I.prepare("SELECT * FROM bases WHERE product_id = ? AND name = ?").get(i, e), r;
-				r = t ? t.id : I.prepare("INSERT INTO bases (product_id, name) VALUES (?, ?)").run(i, e).lastInsertRowid;
-				for (let e of n) {
-					let t = a[e];
-					I.prepare("SELECT * FROM base_stock WHERE base_id = ? AND variant_id = ?").get(r, t) || I.prepare("INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, 0)").run(r, t);
+			for (const baseName of data.bases) {
+				let base = db.prepare(`SELECT * FROM bases WHERE product_id = ? AND name = ?`).get(productId, baseName);
+				let baseId;
+				if (!base) baseId = db.prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`).run(productId, baseName).lastInsertRowid;
+				else baseId = base.id;
+				for (const size of sizes) {
+					const variantId = variantIds[size];
+					if (!db.prepare(`SELECT * FROM base_stock WHERE base_id = ? AND variant_id = ?`).get(baseId, variantId)) db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, 0)`).run(baseId, variantId);
 				}
 			}
-			h++;
+			importedCount++;
 		}
-	})(), {
-		imported: h,
-		skipped: g
+	})();
+	return {
+		imported: importedCount,
+		skipped: skippedCount
 	};
 }
 //#endregion
 //#region electron/main.js
-var Q = l.dirname(s(import.meta.url));
-function $() {
-	let e = new t({
+var __dirname = path.dirname(fileURLToPath(import.meta.url));
+function createWindow() {
+	const win = new BrowserWindow({
 		width: 1200,
 		height: 800,
-		webPreferences: { preload: l.join(Q, "preload.cjs") }
+		webPreferences: { preload: path.join(__dirname, "preload.cjs") }
 	});
-	process.env.VITE_DEV_SERVER_URL ? e.loadURL(process.env.VITE_DEV_SERVER_URL) : e.loadFile(l.join(Q, "../dist/index.html"));
+	if (process.env.VITE_DEV_SERVER_URL) win.loadURL(process.env.VITE_DEV_SERVER_URL);
+	else win.loadFile(path.join(__dirname, "../dist/index.html"));
 }
-o.registerSchemesAsPrivileged([{
+protocol.registerSchemesAsPrivileged([{
 	scheme: "app-image",
 	privileges: {
-		standard: !0,
-		secure: !0,
-		supportFetchAPI: !0,
-		stream: !0
+		standard: true,
+		secure: true,
+		supportFetchAPI: true,
+		stream: true
 	}
-}]), n.whenReady().then(() => {
-	o.handle("app-image", (e) => {
+}]);
+app.whenReady().then(() => {
+	protocol.handle("app-image", (request) => {
 		try {
-			let t = new URL(e.url).searchParams.get("path");
-			if (!t) throw Error("No path provided");
-			let n = c(t).href;
-			return a.fetch(n);
-		} catch (t) {
-			return console.error("app-image protocol error:", t.message, e.url), new Response("Not found", { status: 404 });
+			const filePath = new URL(request.url).searchParams.get("path");
+			if (!filePath) throw new Error("No path provided");
+			const fileUrl = pathToFileURL(filePath).href;
+			return net.fetch(fileUrl);
+		} catch (err) {
+			console.error("app-image protocol error:", err.message, request.url);
+			return new Response("Not found", { status: 404 });
 		}
-	}), i.handle("db:addProduct", (e, t) => L(t)), i.handle("db:getProducts", () => R()), i.handle("db:deleteProduct", (e, t) => z(t)), i.handle("db:editProduct", (e, t, n) => B(t, n)), i.handle("db:getProductByName", (e, t) => ie(t)), i.handle("db:getVariantBySize", (e, t, n) => V(t, n)), i.handle("db:addVariant", (e, t, n) => H(t, n)), i.handle("db:addBase", (e, t, n) => U(t, n)), i.handle("db:addBaseStock", (e, t, n, r) => G(t, n, r)), i.handle("db:getBaseByName", (e, t, n) => W(t, n)), i.handle("db:addCustomer", (e, t) => J(t)), i.handle("db:addBill", (e, t, n) => Y(t, n)), i.handle("db:editCustomer", (e, t, n) => ce(t, n)), i.handle("db:editBill", (e, t, n) => X(t, n)), i.handle("db:getCustomers", () => ae()), i.handle("db:deleteCustomer", (e, t) => oe(t)), i.handle("db:deleteBill", (e, t) => se(t)), i.handle("db:resolveImagePath", (e, t) => q(t)), i.handle("dialog:pickExcelFile", async () => {
-		let e = await r.showOpenDialog({
+	});
+	ipcMain.handle("db:addProduct", (_, product) => addProduct(product));
+	ipcMain.handle("db:getProducts", () => getProducts());
+	ipcMain.handle("db:deleteProduct", (_, id) => deleteProduct(id));
+	ipcMain.handle("db:editProduct", (_, id, product) => editProduct(id, product));
+	ipcMain.handle("db:getProductByName", (_, name) => getProductByName(name));
+	ipcMain.handle("db:getVariantBySize", (_, productId, bucketSize) => getVariantBySize(productId, bucketSize));
+	ipcMain.handle("db:addVariant", (_, productId, variant) => addVariant(productId, variant));
+	ipcMain.handle("db:addBase", (_, productId, baseName) => addBase(productId, baseName));
+	ipcMain.handle("db:addBaseStock", (_, baseId, variantId, stock) => addBaseStock(baseId, variantId, stock));
+	ipcMain.handle("db:getBaseByName", (_, productId, baseName) => getBaseByName(productId, baseName));
+	ipcMain.handle("db:addCustomer", (_, customer) => addCustomer(customer));
+	ipcMain.handle("db:addBill", (_, customerId, bill) => addBill(customerId, bill));
+	ipcMain.handle("db:editCustomer", (_, id, customer) => editCustomer(id, customer));
+	ipcMain.handle("db:editBill", (_, billId, bill) => editBill(billId, bill));
+	ipcMain.handle("db:getCustomers", () => getCustomers());
+	ipcMain.handle("db:deleteCustomer", (_, id) => deleteCustomer(id));
+	ipcMain.handle("db:deleteBill", (_, billId) => deleteBill(billId));
+	ipcMain.handle("db:resolveImagePath", (_, relativePath) => resolveImagePath(relativePath));
+	ipcMain.handle("dialog:pickExcelFile", async () => {
+		const result = await dialog.showOpenDialog({
 			properties: ["openFile"],
 			filters: [{
 				name: "Excel Files",
 				extensions: ["xlsx", "xls"]
 			}]
 		});
-		return e.canceled || e.filePaths.length === 0 ? null : e.filePaths[0];
-	}), i.handle("db:importExcel", (e, t) => le(t)), i.handle("db:copyImage", (e, t) => K(t)), i.handle("dialog:pickImage", async () => {
-		let e = await r.showOpenDialog({
+		if (result.canceled || result.filePaths.length === 0) return null;
+		return result.filePaths[0];
+	});
+	ipcMain.handle("db:importExcel", (_, filePath) => importProductsFromExcel(filePath));
+	ipcMain.handle("db:copyImage", (_, sourcePath) => copyImageToDatabase(sourcePath));
+	ipcMain.handle("dialog:pickImage", async () => {
+		const result = await dialog.showOpenDialog({
 			properties: ["openFile"],
 			filters: [{
 				name: "Images",
@@ -740,12 +1171,16 @@ o.registerSchemesAsPrivileged([{
 				]
 			}]
 		});
-		return e.canceled || e.filePaths.length === 0 ? null : e.filePaths[0];
-	}), $();
-}), n.on("window-all-closed", () => {
-	process.platform !== "darwin" && n.quit();
-}), n.on("activate", () => {
-	t.getAllWindows().length === 0 && $();
+		if (result.canceled || result.filePaths.length === 0) return null;
+		return result.filePaths[0];
+	});
+	createWindow();
+});
+app.on("window-all-closed", () => {
+	if (process.platform !== "darwin") app.quit();
+});
+app.on("activate", () => {
+	if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
 //#endregion
 export {};
