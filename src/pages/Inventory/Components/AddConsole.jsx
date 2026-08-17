@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useResolvedImage } from "../../../hooks/resolvedImage.js";
+import { useToast } from "../../../hooks/ToastContext.jsx";
 const BUCKET_SIZES = [1, 4, 10, 20];
 
 export function AddConsole() {
+    const showToast = useToast();
   const [name, setName] = useState("");
   const [baseInput, setBaseInput] = useState("");
   const [basesList, setBasesList] = useState([]);
@@ -27,7 +29,7 @@ export function AddConsole() {
     const trimmed = baseInput.trim();
     if (!trimmed) return;
     if (basesList.includes(trimmed)) {
-      alert("This base is already in the list.");
+      showToast("This base is already in the list.");
       return;
     }
     setBasesList((prev) => [...prev, trimmed]);
@@ -52,7 +54,7 @@ export function AddConsole() {
     });
 
     if (!name || basesList.length === 0 || filledRows.length === 0) {
-      alert(
+      showToast(
         "Please enter a product name, add at least one base, and fill in at least one size row.",
       );
       return;
@@ -99,7 +101,7 @@ export function AddConsole() {
       }
     }
 
-    alert("Added successfully!");
+    showToast("Added successfully!");
     setBasesList([]);
     setRows(
       BUCKET_SIZES.reduce((acc, size) => {
