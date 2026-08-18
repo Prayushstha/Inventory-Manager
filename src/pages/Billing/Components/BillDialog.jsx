@@ -35,9 +35,7 @@ export function BillDialog({ bill, isNew, onClose, onSaved }) {
   const [productForm, setProductForm] = useState(emptyProductForm);
 
   const locked = !isEditing;
-
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
-
   const totalPurchased = form.products.reduce(
     (sum, p) =>
       sum + (parseFloat(p.quantity) || 0) * (parseFloat(p.priceAtSale) || 0),
