@@ -1,3 +1,4 @@
+// For to map out database scheme only
 type Variant = {
     bucket_size: number;
     sales: number;

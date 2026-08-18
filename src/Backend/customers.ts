@@ -1,3 +1,4 @@
+// For to map out database scheme only
 type CustomerDatas = {
   id: number;
   name: string;
