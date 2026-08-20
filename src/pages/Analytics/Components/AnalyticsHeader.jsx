@@ -10,7 +10,24 @@ export function AnalyticsHeader() {
   );
 }
 function SubHeader() {
-    return <div className="sub-header">
-        
+  return (
+    <div className="sub-header">
+      <div className="switch-time">
+        <h4>Viewing Analytics of:</h4>
+        <div className="switch-container">
+          <p>Monthly</p>
+          <SwitchBtn />
+          <p>Yearly</p>
+        </div>
+      </div>
     </div>
+  );
+}
+function SwitchBtn() {
+  return (
+    <label className="switch">
+      <input type="checkbox" class="checkbox" />
+      <div className="slider"></div>
+    </label>
+  );
 }
