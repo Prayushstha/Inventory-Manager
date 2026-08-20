@@ -85,7 +85,7 @@
 }
 
 .checkbox:checked~.slider {
-  background-color: var(--light);
+  background-color: var(--background-primary);
 }
 
 .slider::before {

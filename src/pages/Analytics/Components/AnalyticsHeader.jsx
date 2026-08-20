@@ -1,32 +1,32 @@
 import "../styles/header.css";
-export function AnalyticsHeader() {
+export function AnalyticsHeader({overViewTime,setOverViewTime}) {
   return (
     <>
       <div className="header">
         <h2 className="analytics-h2">ANALYTICS</h2>
       </div>
-      <SubHeader />
+      <SubHeader overViewTime={overViewTime} setOverViewTime={setOverViewTime} />
     </>
   );
 }
-function SubHeader() {
+function SubHeader({overViewTime,setOverViewTime}) {
   return (
     <div className="sub-header">
       <div className="switch-time">
         <h4>Viewing Analytics of:</h4>
         <div className="switch-container">
           <p>Monthly</p>
-          <SwitchBtn />
+          <SwitchBtn overViewTime={overViewTime} setOverViewTime={setOverViewTime} />
           <p>Yearly</p>
         </div>
       </div>
     </div>
   );
 }
-function SwitchBtn() {
+function SwitchBtn({overViewTime,setOverViewTime}) {
   return (
     <label className="switch">
-      <input type="checkbox" class="checkbox" />
+      <input type="checkbox" className="checkbox" onClick={()=>setOverViewTime(!overViewTime)} />
       <div className="slider"></div>
     </label>
   );
