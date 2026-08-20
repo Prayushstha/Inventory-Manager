@@ -1,8 +1,8 @@
 // Pages:
 import { DashboardPage } from "./pages/Dashboard/dashboard";
-import { AnalyticsPage } from "./pages/analytics";
-import { FinancesPage } from "./pages/finances";
+import { AnalyticsPage } from "./pages/Analytics/analytics";
 import { InventoryPage } from "./pages/Inventory/inventory";
+import { FinancesPage } from "./pages/finances";
 import { ProductsPage } from "./pages/products";
 import { SettingsPage } from "./pages/settings";
 import { SideBar } from "./components/sidebar";
