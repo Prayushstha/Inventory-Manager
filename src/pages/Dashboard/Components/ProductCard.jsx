@@ -18,7 +18,7 @@ export function ProductCard({ product }) {
         <h3 className="product-name">{product.name}</h3>
 
         <div className="bucket-selector">
-         <p class="bucket-selector-p">Select bucket size:</p> 
+         <p className="bucket-selector-p">Select bucket size:</p> 
           {product.variants.map((v, i) => (
             <button
               key={v.bucket_size}
