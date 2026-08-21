@@ -1,106 +1,87 @@
 .header {
   display: flex;
-  height: 60px;
-  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 20px;
   background: var(--background-secondary);
-  align-items: center;
+  border-bottom: 1px solid var(--border-color);
   box-sizing: border-box;
-  border-bottom: 1px solid var(--border-color);
-  padding: 0 20px;
-  color: var(--color-primary);
-}
-.sub-header {
-  padding: 0 20px;
-  color: var(--color-primary);
-  border-bottom: 1px solid var(--border-color);
-
-  display: flex;
-  height: 30px;
   width: 100%;
-  background-color: var(--background-tertiary);
-  align-items: center;
 }
-.switch-time {
+
+.header-left {
   display: flex;
-  flex-direction: row;
-  justify-self: flex-start;
-  align-items: center;
+  flex-direction: column;
+  gap: 1px;
 }
-.switch-container {
+
+.header-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--button-primary);
+}
+
+.analytics-h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.sub-header {
   display: flex;
-  flex-direction: row;
-  font-size: 15px;
   align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 20px;
+  background: var(--background-tertiary);
+  border-bottom: 1px solid var(--border-color);
+  width: 100%;
+  box-sizing: border-box;
 }
-p {
-  margin: 10px;
-  padding: 10px;
-  font-size: 20px;
-  font-family: 'Courier New', Courier, monospace;
-  font-weight: bolder;
+
+.sub-header-label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.tab-switcher {
+  display: flex;
+  background: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.tab-btn {
+  border: none;
+  background: transparent;
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--color-muted);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tab-btn:hover {
   color: var(--color-secondary);
 }
-h4 {
-  height: max-content;
-} /* From Uiverse.io by TimTrayler */
-.switch {
-  --secondary-container: #28db1f;
-  --primary: #84da89;
-  font-size: 17px;
-  position: relative;
-  display: inline-block;
-  width: 3.1em;
-  height: 1.5em;
+
+.tab-btn.tab-active {
+  background: var(--button-primary);
+  color: #ffffff;
 }
 
-.switch input {
-  display: none;
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.analytics-h2{
-    margin: 5px;
-    display: block;
-    position: absolute;
-    top: 10px;
-}
-.slider {
-  position: absolute;
-  cursor: pointer;
-  left: 0;
-  right: 0;
-  background-color: #313033;
-  transition: 0.2s;
-  border-radius: 30px;
-}
-
-.slider:before {
-  align-self: center;
-  position: absolute;
-  content: "";
-  height: 1.2em;
-  width: 1.4em;
-  border-radius: 20px;
-  left: 0.2em;
-  background-color: #aeaaae;
-  transition: 0.4s;
-  top: 3px;
-  
-}
-
-input:checked + .slider::before {
-  background-color: var(--primary);
-}
-
-input:checked + .slider {
-  background-color: var(--background-tertiary);
-}
-
-input:focus + .slider {
-  box-shadow: 0 0 1px var(--secondary-container);
-}
-
-input:checked + .slider:before {
-  transform: translateX(1.9em);
+.tab-btn.tab-active:hover {
+  background: var(--button-primary-hover);
 }

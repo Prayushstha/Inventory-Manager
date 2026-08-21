@@ -1,33 +1,43 @@
 import "../styles/header.css";
-export function AnalyticsHeader({overViewTime,setOverViewTime}) {
+
+export function AnalyticsHeader({ overViewTime, setOverViewTime }) {
   return (
     <>
       <div className="header">
-        <h2 className="analytics-h2">ANALYTICS</h2>
+        <div className="header-left">
+          <span className="header-eyebrow">Dashboard</span>
+          <h2 className="analytics-h2">Analytics</h2>
+        </div>
       </div>
       <SubHeader overViewTime={overViewTime} setOverViewTime={setOverViewTime} />
     </>
   );
 }
-function SubHeader({overViewTime,setOverViewTime}) {
+
+function SubHeader({ overViewTime, setOverViewTime }) {
   return (
     <div className="sub-header">
-      <div className="switch-time">
-        <h4>Viewing Analytics of:</h4>
-        <div className="switch-container">
-          <p>Monthly</p>
-          <SwitchBtn overViewTime={overViewTime} setOverViewTime={setOverViewTime} />
-          <p>Yearly</p>
-        </div>
-      </div>
+      <span className="sub-header-label">Viewing period</span>
+      <TabSwitcher overViewTime={overViewTime} setOverViewTime={setOverViewTime} />
     </div>
   );
 }
-function SwitchBtn({overViewTime,setOverViewTime}) {
+
+function TabSwitcher({ overViewTime, setOverViewTime }) {
   return (
-    <label className="switch">
-      <input type="checkbox" className="checkbox" onClick={()=>setOverViewTime(!overViewTime)} />
-      <div className="slider"></div>
-    </label>
+    <div className="tab-switcher">
+      <button
+        className={`tab-btn ${!overViewTime ? "tab-active" : ""}`}
+        onClick={() => setOverViewTime(false)}
+      >
+        Monthly
+      </button>
+      <button
+        className={`tab-btn ${overViewTime ? "tab-active" : ""}`}
+        onClick={() => setOverViewTime(true)}
+      >
+        Yearly
+      </button>
+    </div>
   );
 }

@@ -1,23 +1,46 @@
 import "../styles/overview.css";
-export function OverView({overViewTime}) {
+
+export function OverView({ overViewTime }) {
+  const period = overViewTime ? "Year" : "Month";
+
   return (
     <div className="overview">
-     
-
+      <div className="overview-period-label">This {period}</div>
       <div className="info-section">
-        <div className="sales-overview info-content">
-          <h5>Sales Completed This {!overViewTime ? 'Month' : 'Year'}:</h5>
-          <p>Number of Items Sold: {1}</p>
-        </div>
-        <div className="amount-of-sales info-content">
-          <h5>Amount of Sales Completed This {!overViewTime ? 'Month' : 'Year'}</h5>
-          <p>Amount of Items Sold: NPR {400}</p>
-        </div>
-        <div className="profit-overview info-content">
-          <h5>Profit Earned This {!overViewTime ? 'Month' : 'Year'}</h5>
-          <p>Profit Earned: {200}</p>
-        </div>
+        <StatCard
+          accent="var(--success)"
+          icon="ti-shopping-bag"
+          label="Sales completed"
+          stat="1"
+          sub="items sold"
+        />
+        <StatCard
+          accent="var(--info)"
+          icon="ti-coins"
+          label="Revenue"
+          stat="NPR 400"
+          sub="total amount"
+        />
+        <StatCard
+          accent="var(--warning)"
+          icon="ti-trending-up"
+          label="Profit earned"
+          stat="NPR 200"
+          sub="net profit"
+        />
       </div>
+    </div>
+  );
+}
+
+function StatCard({ accent, icon, label, stat, sub }) {
+  return (
+    <div className="info-content" style={{ "--card-accent": accent }}>
+      <div className="card-accent-bar" />
+      <i className={`ti ${icon} card-icon`} aria-hidden="true" />
+      <span className="card-label">{label}</span>
+      <p className="card-stat">{stat}</p>
+      <span className="card-sub">{sub}</span>
     </div>
   );
 }
