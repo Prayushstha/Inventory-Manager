@@ -1,13 +1,31 @@
-import { AnalyticsHeader } from "./Components/AnalyticsHeader"
-import { OverView } from "./Components/Overview"
-import { useState } from "react"
+import { AnalyticsHeader } from "./Components/AnalyticsHeader";
+import { RecentTransactions, SalesChart, TopCustomers, TopProducts } from "./Components/Extras";
+import { OverView } from "./Components/Overview";
+import { useState } from "react";
+import "./styles/styles.css"; // Ensure CSS is imported
 
-export function AnalyticsPage(){
-   const [overViewTime,setOverViewTime] = useState(false);
- return (
-    <>
-    <AnalyticsHeader overViewTime={overViewTime} setOverViewTime={setOverViewTime} />
-    <OverView overViewTime={overViewTime} />
-    </>
- )
+export function AnalyticsPage() {
+  const [overViewTime, setOverViewTime] = useState(false);
+
+  return (
+    <div className="dashboard-container">
+      <AnalyticsHeader overViewTime={overViewTime} setOverViewTime={setOverViewTime} />
+      
+      <div className="dashboard-grid">
+        <OverView overViewTime={overViewTime} />
+        
+        {/* Main Chart */}
+        <SalesChart overViewTime={overViewTime} />
+
+        {/* Side-by-side Row */}
+        <div className="dashboard-two-col">
+          <TopProducts />
+          <TopCustomers />
+        </div>
+
+        {/* Bottom Full-width Table */}
+        <RecentTransactions />
+      </div>
+    </div>
+  );
 }

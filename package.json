@@ -17,6 +17,7 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router": "^7.18.0",
+    "recharts": "^3.10.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
@@ -36,24 +37,26 @@
     "vite-plugin-electron-renderer": "^1.0.0"
   },
   "build": {
-  "appId": "com.yourname.inventorymanager",
-  "productName": "StockWise",
-  "directories": {
-    "output": "release"
-  },
-  "files": [
-    "dist/**/*",
-    "dist-electron/**/*",
-    "electron/**/*",
-    "src/Backend/**/*",
-    "src/Database/.gitkeep"
-  ],
-  "win": {
-    "target": "nsis"
-  },
-  "linux": {
-    "target": ["AppImage"],
-    "category": "Office"
+    "appId": "com.yourname.inventorymanager",
+    "productName": "StockWise",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "electron/**/*",
+      "src/Backend/**/*",
+      "src/Database/.gitkeep"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Office"
+    }
   }
-}
 }

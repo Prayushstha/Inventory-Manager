@@ -1,0 +1,429 @@
+import { useState, useMemo } from "react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
+
+/* ────────────────────────────────────────────────────────────────
+   Design tokens — lifted straight from the existing dashboard shell
+   (dark surface, orange brand accent, success/info/warning role colors)
+   ──────────────────────────────────────────────────────────────── */
+const T = {
+  bg: "#121212",
+  card: "#1a1a1a",
+  cardBorder: "#2a2a28",
+  divider: "#242422",
+  textPrimary: "#f5f5f3",
+  textSecondary: "#8f8f8a",
+  textMuted: "#63635f",
+  primary: "rgb(251, 129, 53)",
+  primaryDim: "rgba(251, 129, 53, 0.14)",
+  success: "#1D9E75",
+  warning: "#e6a817",
+  danger: "#e24b4a",
+  info: "#378add",
+};
+
+function Eyebrow({ children, color = T.primary, tint = T.primaryDim }) {
+  return (
+    <span
+      style={{
+        display: "inline-block",
+        fontSize: 11,
+        fontWeight: 700,
+        letterSpacing: "0.06em",
+        color,
+        background: tint,
+        border: `1px solid ${color}`,
+        borderRadius: 4,
+        padding: "3px 8px",
+        textTransform: "uppercase",
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+function Card({ accent, children, style }) {
+  return (
+    <div
+      style={{
+        background: T.card,
+        border: `1px solid ${T.cardBorder}`,
+        borderTop: accent ? `3px solid ${accent}` : `1px solid ${T.cardBorder}`,
+        borderRadius: 10,
+        padding: "20px 22px",
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────
+   1. Sales & revenue chart
+   ──────────────────────────────────────────────────────────────── */
+const MONTHLY_DATA = [
+  { label: "1", revenue: 40 }, { label: "4", revenue: 90 }, { label: "7", revenue: 60 },
+  { label: "10", revenue: 130 }, { label: "13", revenue: 80 }, { label: "16", revenue: 150 },
+  { label: "19", revenue: 100 }, { label: "22", revenue: 170 }, { label: "25", revenue: 120 },
+  { label: "28", revenue: 400 },
+];
+const YEARLY_DATA = [
+  { label: "Jan", revenue: 1200 }, { label: "Feb", revenue: 1800 }, { label: "Mar", revenue: 900 },
+  { label: "Apr", revenue: 2100 }, { label: "May", revenue: 1600 }, { label: "Jun", revenue: 2400 },
+  { label: "Jul", revenue: 1300 }, { label: "Aug", revenue: 400 }, { label: "Sep", revenue: 0 },
+  { label: "Oct", revenue: 0 }, { label: "Nov", revenue: 0 }, { label: "Dec", revenue: 0 },
+];
+
+function ChartTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div
+      style={{
+        background: "#0f0f0f",
+        border: `1px solid ${T.cardBorder}`,
+        borderRadius: 6,
+        padding: "8px 12px",
+        fontSize: 12,
+        color: T.textPrimary,
+      }}
+    >
+      <div style={{ color: T.textSecondary, marginBottom: 2 }}>{label}</div>
+      <div style={{ fontWeight: 700 }}>NPR {payload[0].value.toLocaleString()}</div>
+    </div>
+  );
+}
+
+export function SalesChart({ overViewTime }) {
+  const data = overViewTime ? YEARLY_DATA : MONTHLY_DATA;
+  const total = useMemo(() => data.reduce((s, d) => s + d.revenue, 0), [data]);
+
+  return (
+    <Card>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 }}>
+        <div>
+          <Eyebrow>trends</Eyebrow>
+          <h3 style={{ margin: "10px 0 2px", fontSize: 17, fontWeight: 700, color: T.textPrimary }}>
+            Sales &amp; revenue
+          </h3>
+          <p style={{ margin: 0, fontSize: 13, color: T.textMuted }}>
+            {overViewTime ? "By month, this year" : "By day, this month"}
+          </p>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: 12, color: T.textMuted, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            Total
+          </div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: T.textPrimary }}>
+            NPR {total.toLocaleString()}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ width: "100%", height: 220 }}>
+        <ResponsiveContainer>
+          <BarChart data={data} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
+            <CartesianGrid vertical={false} stroke={T.divider} />
+            <XAxis
+              dataKey="label"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: T.textMuted, fontSize: 11 }}
+            />
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: T.textMuted, fontSize: 11 }}
+              width={36}
+            />
+            <Tooltip cursor={{ fill: "rgba(255,255,255,0.04)" }} content={<ChartTooltip />} />
+            <Bar dataKey="revenue" fill={T.primary} radius={[3, 3, 0, 0]} maxBarSize={28} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </Card>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────
+   2. Recent transactions
+   ──────────────────────────────────────────────────────────────── */
+const TRANSACTIONS = [
+  { item: "Wireless mouse", customer: "Anish Rai", date: "Aug 19", amount: 1200, status: "paid" },
+  { item: "Mechanical keyboard", customer: "Sujata Thapa", date: "Aug 18", amount: 4500, status: "paid" },
+  { item: "USB-C hub", customer: "Bikash Shrestha", date: "Aug 17", amount: 1800, status: "pending" },
+  { item: "Laptop stand", customer: "Nisha Gurung", date: "Aug 15", amount: 2200, status: "paid" },
+  { item: "Webcam 1080p", customer: "Prakash KC", date: "Aug 12", amount: 3100, status: "refunded" },
+];
+
+const STATUS_STYLE = {
+  paid: { color: T.success, label: "Paid" },
+  pending: { color: T.warning, label: "Pending" },
+  refunded: { color: T.danger, label: "Refunded" },
+};
+
+export function RecentTransactions() {
+  return (
+    <Card>
+      <Eyebrow>latest</Eyebrow>
+      <h3 style={{ margin: "10px 0 16px", fontSize: 17, fontWeight: 700, color: T.textPrimary }}>
+        Recent transactions
+      </h3>
+
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "2.2fr 1.6fr 1fr 1fr 0.9fr",
+            padding: "0 4px 10px",
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.05em",
+            textTransform: "uppercase",
+            color: T.textMuted,
+          }}
+        >
+          <span>Item</span>
+          <span>Customer</span>
+          <span>Date</span>
+          <span style={{ textAlign: "right" }}>Amount</span>
+          <span style={{ textAlign: "right" }}>Status</span>
+        </div>
+
+        {TRANSACTIONS.map((t, i) => (
+          <div
+            key={i}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "2.2fr 1.6fr 1fr 1fr 0.9fr",
+              alignItems: "center",
+              padding: "12px 4px",
+              borderTop: `1px solid ${T.divider}`,
+              fontSize: 13,
+            }}
+          >
+            <span style={{ color: T.textPrimary, fontWeight: 500 }}>{t.item}</span>
+            <span style={{ color: T.textSecondary }}>{t.customer}</span>
+            <span style={{ color: T.textSecondary }}>{t.date}</span>
+            <span style={{ color: T.textPrimary, textAlign: "right", fontWeight: 600 }}>
+              NPR {t.amount.toLocaleString()}
+            </span>
+            <span style={{ textAlign: "right" }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: STATUS_STYLE[t.status].color,
+                  background: `${STATUS_STYLE[t.status].color}22`,
+                  borderRadius: 4,
+                  padding: "3px 7px",
+                }}
+              >
+                {STATUS_STYLE[t.status].label}
+              </span>
+            </span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────
+   3. Top products
+   ──────────────────────────────────────────────────────────────── */
+const PRODUCTS = [
+  { name: "Mechanical keyboard", units: 18, revenue: 81000 },
+  { name: "Wireless mouse", units: 14, revenue: 16800 },
+  { name: "Laptop stand", units: 9, revenue: 19800 },
+  { name: "USB-C hub", units: 7, revenue: 12600 },
+  { name: "Webcam 1080p", units: 5, revenue: 15500 },
+];
+
+export function TopProducts() {
+  const max = Math.max(...PRODUCTS.map((p) => p.revenue));
+  return (
+    <Card>
+      <Eyebrow color={T.info} tint="rgba(55,138,221,0.14)">best sellers</Eyebrow>
+      <h3 style={{ margin: "10px 0 16px", fontSize: 17, fontWeight: 700, color: T.textPrimary }}>
+        Top products
+      </h3>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {PRODUCTS.map((p, i) => (
+          <div key={p.name}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: T.textMuted,
+                    width: 16,
+                  }}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span style={{ fontSize: 13, color: T.textPrimary, fontWeight: 500 }}>{p.name}</span>
+              </div>
+              <span style={{ fontSize: 13, color: T.textSecondary }}>{p.units} sold</span>
+            </div>
+            <div style={{ height: 5, background: T.divider, borderRadius: 3, overflow: "hidden" }}>
+              <div
+                style={{
+                  height: "100%",
+                  width: `${(p.revenue / max) * 100}%`,
+                  background: T.info,
+                  borderRadius: 3,
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────
+   4. Top customers
+   ──────────────────────────────────────────────────────────────── */
+const CUSTOMERS = [
+  { name: "Sujata Thapa", orders: 6, spend: 21400 },
+  { name: "Anish Rai", orders: 5, spend: 15200 },
+  { name: "Bikash Shrestha", orders: 4, spend: 12800 },
+  { name: "Nisha Gurung", orders: 3, spend: 9100 },
+  { name: "Prakash KC", orders: 2, spend: 6200 },
+];
+
+function initials(name) {
+  return name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
+}
+
+export function TopCustomers() {
+  const max = Math.max(...CUSTOMERS.map((c) => c.spend));
+  return (
+    <Card>
+      <Eyebrow color={T.warning} tint="rgba(230,168,23,0.14)">loyalty</Eyebrow>
+      <h3 style={{ margin: "10px 0 16px", fontSize: 17, fontWeight: 700, color: T.textPrimary }}>
+        Top customers
+      </h3>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {CUSTOMERS.map((c) => (
+          <div key={c.name} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: "50%",
+                background: T.primaryDim,
+                color: T.primary,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 12,
+                fontWeight: 700,
+                flexShrink: 0,
+              }}
+            >
+              {initials(c.name)}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 13, color: T.textPrimary, fontWeight: 500 }}>{c.name}</span>
+                <span style={{ fontSize: 13, color: T.textPrimary, fontWeight: 600 }}>
+                  NPR {c.spend.toLocaleString()}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
+                <span style={{ fontSize: 12, color: T.textMuted }}>{c.orders} orders</span>
+                <div style={{ width: 90, height: 4, background: T.divider, borderRadius: 2, overflow: "hidden" }}>
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${(c.spend / max) * 100}%`,
+                      background: T.primary,
+                      borderRadius: 2,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Demo shell — drop-in preview of how the four pieces sit together
+   under the existing header. Swap this for AnalyticsPage.jsx's own
+   layout once wired up.
+   ──────────────────────────────────────────────────────────────── */
+export default function DashboardExtrasDemo() {
+  const [overViewTime, setOverViewTime] = useState(true);
+
+  return (
+    <div style={{ background: T.bg, minHeight: "100vh", padding: 24, fontFamily: "system-ui, sans-serif" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div>
+          <Eyebrow>dashboard</Eyebrow>
+          <h1 style={{ margin: "8px 0 0", fontSize: 26, fontWeight: 800, color: T.textPrimary }}>Analytics</h1>
+        </div>
+        <div style={{ display: "flex", background: "#232321", borderRadius: 8, padding: 4 }}>
+          <button
+            onClick={() => setOverViewTime(false)}
+            style={{
+              border: "none",
+              cursor: "pointer",
+              padding: "7px 14px",
+              borderRadius: 6,
+              fontSize: 13,
+              fontWeight: 600,
+              background: !overViewTime ? "#33332f" : "transparent",
+              color: !overViewTime ? T.textPrimary : T.textSecondary,
+            }}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setOverViewTime(true)}
+            style={{
+              border: "none",
+              cursor: "pointer",
+              padding: "7px 14px",
+              borderRadius: 6,
+              fontSize: 13,
+              fontWeight: 700,
+              background: overViewTime ? T.primary : "transparent",
+              color: overViewTime ? "#1a0d05" : T.textSecondary,
+            }}
+          >
+            Yearly
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        <SalesChart overViewTime={overViewTime} />
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+          <TopProducts />
+          <TopCustomers />
+        </div>
+
+        <RecentTransactions />
+      </div>
+    </div>
+  );
+}
