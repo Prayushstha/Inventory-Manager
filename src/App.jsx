@@ -2,7 +2,7 @@
 import { DashboardPage } from "./pages/Dashboard/dashboard";
 import { AnalyticsPage } from "./pages/Analytics/analytics";
 import { InventoryPage } from "./pages/Inventory/inventory";
-import { FinancesPage } from "./pages/finances";
+import { FinancePage } from "./pages/Finances/finances";
 import { ProductsPage } from "./pages/products";
 import { SettingsPage } from "./pages/settings";
 import { SideBar } from "./components/sidebar";
@@ -35,7 +35,7 @@ function App() {
               element={<DashboardPage isDark={isDark} setIsDark={setIsDark} />}
             />
             <Route path="/analytics" element={<AnalyticsPage />} />
-            <Route path="/finances" element={<FinancesPage />} />
+            <Route path="/finances" element={<FinancePage />} />
             <Route path="/inventory" element={<InventoryPage isDark={isDark} setIsDark={setIsDark}/>} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/settings" element={<SettingsPage />} />

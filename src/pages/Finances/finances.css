@@ -1,0 +1,390 @@
+/* ── finance.css ─────────────────────────────────────────────────────────────
+   Companion styles for FinancePage.jsx
+   Depends on the app's :root / html[data-theme="dark"] CSS variables.
+   Place this file at: src/styles/finance.css
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Page shell */
+.finance-page {
+  min-height: 100vh;
+  background-color: var(--background-primary);
+  color: var(--color-primary);
+}
+
+.finance-body {
+  padding: 1.5rem 2rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1200px;
+}
+
+/* ── Net Hero ──────────────────────────────────────────────────────────────── */
+
+.net-hero {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.75rem 2rem;
+  border-radius: 16px;
+  background-color: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.net-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.net-positive::before {
+  background: var(--success);
+  box-shadow: inset 0 0 80px var(--success);
+}
+
+.net-negative::before {
+  background: var(--danger);
+  box-shadow: inset 0 0 80px var(--danger);
+}
+
+/* Left glow accent bar */
+.net-hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 4px 0 0 4px;
+}
+
+.net-positive::after { background: var(--success); }
+.net-negative::after { background: var(--danger); }
+
+.net-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+.net-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.net-badge {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-left: auto;
+}
+
+.badge-profit {
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success);
+}
+
+.badge-loss {
+  background-color: color-mix(in srgb, var(--danger) 15%, transparent);
+  color: var(--danger);
+}
+
+/* ── Stat Cards Grid ───────────────────────────────────────────────────────── */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 540px) {
+  .stat-grid { grid-template-columns: 1fr; }
+  .finance-body { padding: 1rem 1rem 2.5rem; }
+  .net-value { font-size: 1.75rem; }
+}
+
+.stat-card {
+  background-color: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+/* Top accent line per variant */
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 14px 14px 0 0;
+}
+
+.stat-card--earned::before   { background: var(--success); }
+.stat-card--expenses::before { background: var(--danger); }
+.stat-card--due::before      { background: var(--warning); }
+.stat-card--profit::before   { background: var(--button-primary); }
+
+.stat-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-primary);
+  line-height: 1.1;
+}
+
+.stat-sub {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  margin-top: 0.1rem;
+}
+
+/* ── Bottom Row ────────────────────────────────────────────────────────────── */
+
+.finance-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (max-width: 780px) {
+  .finance-bottom { grid-template-columns: 1fr; }
+}
+
+/* ── Summary Card ──────────────────────────────────────────────────────────── */
+
+.summary-card,
+.activity-card {
+  background-color: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 1.5rem;
+}
+
+.summary-title,
+.activity-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin: 0 0 1.1rem 0;
+}
+
+.summary-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.summary-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.summary-list li:last-child {
+  border-bottom: none;
+}
+
+.summary-list li span {
+  color: var(--color-secondary);
+}
+
+.summary-list li strong {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.summary-divider {
+  border: none !important;
+  border-top: 2px solid var(--border-color) !important;
+  padding: 0 !important;
+  margin: 0.25rem 0 !important;
+  height: 0 !important;
+  display: block !important;
+}
+
+/* Color helpers */
+.color-success { color: var(--success) !important; }
+.color-danger  { color: var(--danger)  !important; }
+.color-warning { color: var(--warning) !important; }
+
+/* ── Activity Card ─────────────────────────────────────────────────────────── */
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.activity-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.activity-row:last-child {
+  border-bottom: none;
+}
+
+.activity-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.activity-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
+.activity-date {
+  font-size: 0.72rem;
+  color: var(--color-muted);
+}
+
+.activity-amount {
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.amount-in  { color: var(--success); }
+.amount-out { color: var(--danger); }
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 20px;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--border-color);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.header-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--button-primary);
+}
+
+.analytics-h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.sub-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 20px;
+  background: var(--background-tertiary);
+  border-bottom: 1px solid var(--border-color);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sub-header-label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.tab-switcher {
+  display: flex;
+  background: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.tab-btn {
+  border: none;
+  background: transparent;
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--color-muted);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tab-btn:hover {
+  color: var(--color-secondary);
+}
+
+.tab-btn.tab-active {
+  background: var(--button-primary);
+  color: #ffffff;
+}
+
+.tab-btn.tab-active:hover {
+  background: var(--button-primary-hover);
+}
