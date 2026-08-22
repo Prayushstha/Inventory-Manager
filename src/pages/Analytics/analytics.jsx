@@ -1,5 +1,5 @@
 import { AnalyticsHeader } from "./Components/AnalyticsHeader";
-import { RecentTransactions, SalesChart, TopCustomers, TopProducts } from "./Components/Extras";
+import { DashboardExtrasDemo } from "./Components/DashboardExtras";
 import { OverView } from "./Components/Overview";
 import { useState } from "react";
 import "./styles/styles.css"; // Ensure CSS is imported
@@ -9,22 +9,13 @@ export function AnalyticsPage() {
 
   return (
     <div className="dashboard-container">
-      <AnalyticsHeader overViewTime={overViewTime} setOverViewTime={setOverViewTime} />
-      
+      <AnalyticsHeader
+        overViewTime={overViewTime}
+        setOverViewTime={setOverViewTime}
+      />
       <div className="dashboard-grid">
         <OverView overViewTime={overViewTime} />
-        
-        {/* Main Chart */}
-        <SalesChart overViewTime={overViewTime} />
-
-        {/* Side-by-side Row */}
-        <div className="dashboard-two-col">
-          <TopProducts />
-          <TopCustomers />
-        </div>
-
-        {/* Bottom Full-width Table */}
-        <RecentTransactions />
+        <DashboardExtrasDemo overViewTime={overViewTime} />
       </div>
     </div>
   );
