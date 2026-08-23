@@ -2,7 +2,7 @@ import { AnalyticsHeader } from "./Components/AnalyticsHeader";
 import { DashboardExtrasDemo } from "./Components/DashboardExtras";
 import { OverView } from "./Components/Overview";
 import { useState } from "react";
-import "./styles/styles.css"; // Ensure CSS is imported
+import "./styles/styles.css"; 
 
 export function AnalyticsPage() {
   const [overViewTime, setOverViewTime] = useState(false);

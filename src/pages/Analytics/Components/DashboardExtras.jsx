@@ -1,4 +1,3 @@
-import { useState, useMemo } from "react";
 import "../styles/styles.css";
 import { SalesChart } from "./SalesChart";
 import { RecentTransactions } from "./RecentTransactions";

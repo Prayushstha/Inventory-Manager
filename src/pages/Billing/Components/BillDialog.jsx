@@ -262,6 +262,7 @@ export function BillDialog({ bill, isNew, onClose, onSaved }) {
                       }))
                     }
                   />
+                 
                   <input
                     type="text"
                     placeholder="Base (e.g. AC1)"
