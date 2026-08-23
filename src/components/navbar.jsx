@@ -2,19 +2,25 @@ import "./Styles/navbar.css";
 import { EditConsole } from "../pages/Inventory/Components/EditConsole";
 import { useRef } from "react";
 
-export function NavBar({ isDark, setIsDark, isInventoryPage, fetchProducts, search, setSearch }) {
-
+export function NavBar({
+  isDark,
+  setIsDark,
+  isInventoryPage,
+  fetchProducts,
+  search,
+  setSearch,
+}) {
   const addItemToInventory = useRef();
 
   function toggleAddItemDialog() {
-  if (!addItemToInventory.current) {
-    return;
+    if (!addItemToInventory.current) {
+      return;
+    }
+    addItemToInventory.current.hasAttribute("open")
+      ? addItemToInventory.current.close()
+      : addItemToInventory.current.showModal();
   }
-  addItemToInventory.current.hasAttribute("open")
-    ? addItemToInventory.current.close()
-    : addItemToInventory.current.showModal();
-}
-   async function handleImportExcel() {
+  async function handleImportExcel() {
     const filePath = await window.db.pickExcelFile();
     if (!filePath) return;
     const result = await window.db.importExcel(filePath);
@@ -50,18 +56,23 @@ export function NavBar({ isDark, setIsDark, isInventoryPage, fetchProducts, sear
             <span className="slider"></span>
           </label>
         </div>
-        
       </div>
-      { 
-        isInventoryPage ? 
+      {isInventoryPage ? (
         <>
-        <button className="nav-add-item-btn" onClick={()=> toggleAddItemDialog()}>Add Item</button>
-        <button className="nav-add-item-btn"onClick={handleImportExcel}>Import</button>
+          <button
+            className="nav-add-item-btn"
+            onClick={() => toggleAddItemDialog()}
+          >
+            Add Item
+          </button>
+          <button className="nav-add-item-btn" onClick={handleImportExcel}>
+            Import
+          </button>
         </>
-        : ""  
-      }
+      ) : (
+        ""
+      )}
       <EditConsole ref={addItemToInventory} />
     </div>
-
   );
 }

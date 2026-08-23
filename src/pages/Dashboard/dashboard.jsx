@@ -4,15 +4,7 @@ import { ProductCard } from "./Components/ProductCard.jsx";
 import { useState, useEffect } from "react";
 
 export function DashboardPage({ isDark, setIsDark }) {
-  return (
-    <>
-      <NavBar isDark={isDark} setIsDark={setIsDark} />
-      <ProductContainer />
-    </>
-  );
-}
-
-function ProductContainer() {
+  const [search, setSearch] = useState("");
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
@@ -23,6 +15,24 @@ function ProductContainer() {
     fetchProducts();
   }, []);
 
+  const filteredProducts = products.filter((p) =>
+    p.name.toLowerCase().includes(search.toLowerCase()),
+  );
+
+  return (
+    <>
+      <NavBar
+        isDark={isDark}
+        setIsDark={setIsDark}
+        search={search}
+        setSearch={setSearch}
+      />
+      <ProductContainer products={filteredProducts}/>
+    </>
+  );
+}
+
+function ProductContainer({products}) {
   return (
     <div className="products-container">
       <div className="product-grid">
