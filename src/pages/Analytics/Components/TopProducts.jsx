@@ -23,7 +23,7 @@ export function TopProducts({ Card, Eyebrow }) {
                 <span className="product-index">
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <span className="product-name">{p.name}</span>
+                <span className="product-analytics-name">{p.name}</span>
               </div>
               <span className="product-units">{p.units} sold</span>
             </div>
