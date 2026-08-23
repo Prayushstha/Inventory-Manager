@@ -65,6 +65,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    align-self: flex-start;
 }
 
 .product-sku {
@@ -77,10 +78,13 @@
 .price-block {
     display: flex;
     flex-direction: column;
+    justify-self: flex-start;
     gap: 5px;
     font-family: "JetBrains Mono", monospace;
     padding-top: 4px;
     border-top: 1px solid var(--border-color);
+    align-self: flex-start;
+    width: 100%;
 }
 
 .price-line {
@@ -156,6 +160,8 @@
     gap: 6px;
     flex-wrap: wrap;
     padding-top: 2px;
+        align-self: flex-start;
+
 }
 
 .bucket-pill {

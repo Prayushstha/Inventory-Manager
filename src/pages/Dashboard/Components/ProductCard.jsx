@@ -36,11 +36,11 @@ export function ProductCard({ product }) {
         <div className="price-block">
           <div className="price-line">
             <span className="price-label">Market price</span>
-            <span className="price-value">Rs {variant.mp}</span>
+            <span className="price-value"> Rs {variant.mp}</span>
           </div>
           <div className="price-line">
             <span className="price-label">Sales price</span>
-            <span className="price-value">Rs {variant.sales}</span>
+            <span className="price-value"> Rs {variant.sales}</span>
           </div>
         </div>
 
