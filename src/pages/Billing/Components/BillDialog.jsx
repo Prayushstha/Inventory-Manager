@@ -286,9 +286,8 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
                     ))}
                   </select>
 
-              
-                     <select
-                   placeholder="Base (e.g. AC1)"
+                  <select
+                    placeholder="Base (e.g. AC1)"
                     value={productForm.base}
                     onChange={(e) =>
                       setProductForm((f) => ({ ...f, base: e.target.value }))
@@ -297,10 +296,11 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
                     <option className="product-options product-name-options">
                       Select a Base...
                     </option>
-                    {filteredFromOptions.map((p) => p.bases.map(b=>(<option key={b.id}>{b.name}</option>)))}
+                    {filteredFromOptions.map((p) =>
+                      p.bases.map((b) => <option key={b.id}>{b.name}</option>),
+                    )}
                   </select>
-                  <input
-                    type="number"
+                  <select
                     placeholder="Bucket size"
                     value={productForm.bucketSize}
                     onChange={(e) =>
@@ -309,23 +309,20 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
                         bucketSize: e.target.value,
                       }))
                     }
-                  />
-                    <select
-                   placeholder="Bucket size"
-                    value={productForm.bucketSize}
-                    onChange={(e) =>
-                      setProductForm((f) => ({
-                        ...f,
-                        bucketSize: e.target.value,
-                      }))
-                    }
                   >
-                    <option className="product-options product-name-options">
-                      Select a Base...
+                     <option className="product-options product-name-options">
+                      Select a Size...
                     </option>
-                    {filteredFromOptions.map((p) => p.variants.map(v=>(
-                      <option key={v.id}>{v.bucket_size}</option>
-                    )))}
+
+                    {!filteredFromOptions || filteredFromOptions?.length === 0  ?
+                    "" :
+                    filteredFromOptions.map((p) =>
+                      p.variants.map((v) => (
+                        <option key={v.id}>{v.bucket_size}</option>
+                      )),
+                    )
+                  }
+                
                   </select>
                   <input
                     type="number"
