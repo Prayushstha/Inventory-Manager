@@ -24,8 +24,13 @@ const emptyProductForm = {
   priceAtSale: "",
 };
 
-export function BillDialog({ bill, isNew, onClose, onSaved }) {
+export function BillDialog({ bill,products, isNew, onClose, onSaved }) {
   const showToast = useToast();
+  
+  const [productOption,setProductOption] = useState("");
+  const filteredFromOptions = ()=>products.filter(p=>p.name.toLowerCase().includes(productOption).toLowerCase())
+  
+
   const [form, setForm] = useState({
     ...bill,
     products: (bill.products || []).map(normalizeProduct),
@@ -251,17 +256,21 @@ export function BillDialog({ bill, isNew, onClose, onSaved }) {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <p className="section-label">Add Product</p>
-                  <input
-                    type="text"
-                    placeholder="Product name"
+                  <select
                     value={productForm.productName}
                     onChange={(e) =>
-                      setProductForm((f) => ({
+                     {
+                      console.log(filteredFromOptions)
+                      setProductOption(e.target.value);
+                      return setProductForm((f) => ({
                         ...f,
                         productName: e.target.value,
-                      }))
-                    }
-                  />
+                      }
+                    ))}
+                    }>
+                    <option className="product-options product-name-options">Select a Product...</option>
+                    {products.map((product)=><option key={product.id}>{product.name}</option>)}
+                  </select>
                  
                   <input
                     type="text"

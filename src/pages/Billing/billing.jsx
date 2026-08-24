@@ -8,6 +8,7 @@ export function Billing() {
   const [selectedBill, setSelectedBill] = useState(null);
   const [isNewBill, setIsNewBill] = useState(false);
   const [customers, setCustomers] = useState([]);
+  const [products, setProducts] = useState([]);
 
   useEffect(() => {
     fetchCustomers();
@@ -36,7 +37,13 @@ export function Billing() {
       products: bill.products,
     })),
   );
-
+  useEffect(() => {
+    async function fetchProducts() {
+      const data = await window.db.getProducts();
+      setProducts(data);
+    }
+    fetchProducts();
+  }, []);
   const filtered = rows.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -87,6 +94,7 @@ export function Billing() {
         <BillDialog
           bill={selectedBill}
           isNew={isNewBill}
+          products={products}
           onClose={closeDialog}
           onSaved={handleSaved}
         />

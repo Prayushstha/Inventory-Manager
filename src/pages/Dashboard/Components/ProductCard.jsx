@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useResolvedImage } from "../../../hooks/resolvedImage.js";
+import { Billing } from "../../Billing/billing.jsx";
 export function ProductCard({ product }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const variant = product.variants[selectedIndex];
@@ -44,7 +45,7 @@ export function ProductCard({ product }) {
           </div>
         </div>
 
-        <button className="add-item-btn" type="button">
+        <button className="add-item-btn" type="button" onClick={()=><Billing />}>
           <svg
             viewBox="0 0 24 24"
             fill="none"

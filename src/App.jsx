@@ -12,8 +12,12 @@ import "./index.css";
 import { useState, useEffect } from "react";
 import { Billing } from "./pages/Billing/billing";
 
+
+
+
 function App() {
   const [isDark, setIsDark] = useState(true);
+  
 
   useEffect(() => {
     if (isDark) {
