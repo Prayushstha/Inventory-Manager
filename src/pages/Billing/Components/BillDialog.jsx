@@ -256,6 +256,14 @@ export function BillDialog({ bill,products, isNew, onClose, onSaved }) {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <p className="section-label">Add Product</p>
+                  <input
+                    type="text"
+                    placeholder="Enter A product name or Select"
+                    value={productForm.productName}
+                    onChange={(e) =>
+                      setProductForm((f) => ({ ...f, productName: e.target.value }))
+                    }
+                  />
                   <select
                     value={productForm.productName}
                     onChange={(e) =>
