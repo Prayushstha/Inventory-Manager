@@ -76,7 +76,7 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
   }
 
   async function handleSave() {
-    const customerName = form.name.trim() || "Customer";
+    const customerName = form.name.trim() || "Unknown";
     const customerPhone = form.phone.trim() || "0";
 
     if (form.products.length === 0) {
