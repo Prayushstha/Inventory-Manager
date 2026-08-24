@@ -76,7 +76,21 @@ db.exec(`
     FOREIGN KEY (bill_id) REFERENCES bills(id)
   );
 `);
+const billItemsColumns = db.prepare(`PRAGMA table_info(bill_items)`).all();
+const hasCostPrice = billItemsColumns.some((c) => c.name === "cost_price");
+if (!hasCostPrice) {
+  db.exec(`ALTER TABLE bill_items ADD COLUMN cost_price REAL DEFAULT 0`);
+}
+function getLandingPrice(productName, bucketSize) {
+  const product = db.prepare(`SELECT * FROM products WHERE name = ?`).get(productName);
+  if (!product) return 0;
 
+  const variant = db
+    .prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`)
+    .get(product.id, bucketSize);
+
+  return variant ? variant.landing : 0;
+}
 export function addProduct(product) {
   const { id, name, images, variants, bases } = product;
 
