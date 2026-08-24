@@ -24,12 +24,13 @@ const emptyProductForm = {
   priceAtSale: "",
 };
 
-export function BillDialog({ bill,products, isNew, onClose, onSaved }) {
+export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
   const showToast = useToast();
-  
-  const [productOption,setProductOption] = useState("");
-  const filteredFromOptions = ()=>products.filter(p=>p.name.toLowerCase().includes(productOption).toLowerCase())
-  
+
+  const [productOption, setProductOption] = useState("");
+  const filteredFromOptions = products.filter((p) =>
+    p.name.toLowerCase().includes(productOption.toLowerCase()),
+  );
 
   const [form, setForm] = useState({
     ...bill,
@@ -261,33 +262,43 @@ export function BillDialog({ bill,products, isNew, onClose, onSaved }) {
                     placeholder="Enter A product name or Select"
                     value={productForm.productName}
                     onChange={(e) =>
-                      setProductForm((f) => ({ ...f, productName: e.target.value }))
+                      setProductForm((f) => ({
+                        ...f,
+                        productName: e.target.value,
+                      }))
                     }
                   />
                   <select
                     value={productForm.productName}
-                    onChange={(e) =>
-                     {
-                      console.log(filteredFromOptions)
+                    onChange={(e) => {
                       setProductOption(e.target.value);
                       return setProductForm((f) => ({
                         ...f,
                         productName: e.target.value,
-                      }
+                      }));
+                    }}
+                  >
+                    <option className="product-options product-name-options">
+                      Select a Product...
+                    </option>
+                    {products.map((product) => (
+                      <option key={product.id}>{product.name}</option>
                     ))}
-                    }>
-                    <option className="product-options product-name-options">Select a Product...</option>
-                    {products.map((product)=><option key={product.id}>{product.name}</option>)}
                   </select>
-                 
-                  <input
-                    type="text"
-                    placeholder="Base (e.g. AC1)"
+
+              
+                     <select
+                   placeholder="Base (e.g. AC1)"
                     value={productForm.base}
                     onChange={(e) =>
                       setProductForm((f) => ({ ...f, base: e.target.value }))
                     }
-                  />
+                  >
+                    <option className="product-options product-name-options">
+                      Select a Base...
+                    </option>
+                    {filteredFromOptions.map((p) => p.bases.map(b=>(<option key={b.id}>{b.name}</option>)))}
+                  </select>
                   <input
                     type="number"
                     placeholder="Bucket size"
@@ -299,6 +310,23 @@ export function BillDialog({ bill,products, isNew, onClose, onSaved }) {
                       }))
                     }
                   />
+                    <select
+                   placeholder="Bucket size"
+                    value={productForm.bucketSize}
+                    onChange={(e) =>
+                      setProductForm((f) => ({
+                        ...f,
+                        bucketSize: e.target.value,
+                      }))
+                    }
+                  >
+                    <option className="product-options product-name-options">
+                      Select a Base...
+                    </option>
+                    {filteredFromOptions.map((p) => p.variants.map(v=>(
+                      <option key={v.id}>{v.bucket_size}</option>
+                    )))}
+                  </select>
                   <input
                     type="number"
                     placeholder="Quantity"
