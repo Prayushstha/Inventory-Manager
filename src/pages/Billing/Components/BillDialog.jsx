@@ -29,7 +29,7 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
 
   const [productOption, setProductOption] = useState("");
   const filteredFromOptions = products.filter((p) =>
-    p.name.toLowerCase().includes(productOption.toLowerCase()),
+    p.name === productOption
   );
 
   const [form, setForm] = useState({
