@@ -17,7 +17,7 @@ function initials(name) {
 export function TopCustomers({ Card, Eyebrow }) {
   const max = Math.max(...CUSTOMERS.map((c) => c.spend));
   return (
-    <Card>
+    <Card style={{width: "48%"}}>
       <Eyebrow color="var(--warning)" tint="rgba(230,168,23,0.14)">
         loyalty
       </Eyebrow>

@@ -1,4 +1,4 @@
-:root {
+/* :root {
   --bg-color: #0d0d0d;
   --card-bg: #151515;
   --card-border: #222222;
@@ -83,38 +83,6 @@
 }
 
 
-.eyebrow {
-  display: inline-block;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  border-radius: 5px;
-  padding: 4px 9px;
-  text-transform: uppercase;
-  color: var(--primary);
-  background-color: transparent;
-  border: 1px solid var(--primary);
-}
-
-.card {
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 24px 28px;
-}
-
-.card-title {
-  margin: 12px 0 4px;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.card-subtitle {
-  margin: 0;
-  font-size: 13px;
-  color: var(--text-muted);
-}
 
 .chart-header {
   display: flex;
@@ -352,4 +320,4 @@
 
 .align-right {
   text-align: right;
-}
+} */

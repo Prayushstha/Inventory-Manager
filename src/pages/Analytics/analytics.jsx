@@ -1,11 +1,13 @@
 import { useState } from "react";
-import "./finances.css";
+import "./analytics.css";
 import { FinanceHeader } from "./Components/FinanceHeader";
 import { MOCK } from "./mockdata";
 import { NetPosition } from "./Components/NetPosition";
 import { StatCard } from "./Components/StatCard";
 import { ActivityRow } from "./Components/ActivityRow";
 import { SummarySection } from "./Components/SummarySection";
+import { TopCustomers } from "./Components/TopCustomers";
+import { TopProducts } from "./Components/TopProducts";
 
 function fmt(n) {
   return new Intl.NumberFormat("en-US", {
@@ -24,6 +26,37 @@ function fmtSmall(n) {
   }).format(n);
 }
 
+function Eyebrow({
+  children,
+  color = "var(--primary)",
+  tint = "var(--primary-dim)",
+}) {
+  return (
+    <span
+      className="eyebrow"
+      style={{
+        color,
+        background: tint,
+        border: `1px solid ${color}`,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+function Card({ accent, children, style }) {
+  return (
+    <div
+      className="card"
+      style={{
+        borderTop: accent ? `3px solid ${accent}` : undefined,
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 
@@ -74,7 +107,10 @@ export function AnalyticsPage() {
             variant="profit"
           />
         </div>
-
+        <Card style={{display:"flex",flex:"1",padding:"10px",justifyContent:"space-evenly", flexDirection: "row",minWidth:"90vh", maxHeight:"500px"}}>
+          <TopCustomers Card={Card} Eyebrow={Eyebrow}  />
+          <TopProducts Card={Card} Eyebrow={Eyebrow}/>
+        </Card>
         {/* Bottom row: summary + recent activity */}
         <div className="finance-bottom">
           <SummarySection data={data} period={period} fmtSmall={fmtSmall} fmt={fmt}/>

@@ -9,7 +9,7 @@ const PRODUCTS = [
 export function TopProducts({ Card, Eyebrow }) {
   const max = Math.max(...PRODUCTS.map((p) => p.revenue));
   return (
-    <Card>
+    <Card style={{width: "48%"}}>
       <Eyebrow color="var(--info)" tint="rgba(55,138,221,0.14)">
         best sellers
       </Eyebrow>
