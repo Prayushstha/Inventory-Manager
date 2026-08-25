@@ -1,323 +1,55 @@
-/* :root {
-  --bg-color: #0d0d0d;
-  --card-bg: #151515;
-  --card-border: #222222;
-  --divider-color: #242422;
-  --text-primary: #ffffff;
-  --text-secondary: #9e9e9e;
-  --text-muted: #666666;
-  --primary: #f26522;
-  --primary-dim: rgba(242, 101, 34, 0.12);
-  --success: #1d9e75;
-  --warning: #e6a817;
-  --danger: #e24b4a;
-  --info: #378add;
-  --blue-accent: #2e8bfe;
-}
-
-.dashboard-container {
-  background-color: var(--bg-color);
-  min-height: 100vh;
-  padding: 32px 40px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  box-sizing: border-box;
-}
-
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.dashboard-title {
-  margin: 10px 0 0;
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-}
-
-.dashboard-grid {
+.view-sales {
+  height: 600px;
+  border: 1px solid var(--border-color);
+  margin: 1rem;
+  border-radius: 10px;
+  background-color: var(--background-secondary);
   display: flex;
   flex-direction: column;
-  gap: 20px;
 }
-
-.dashboard-two-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-
-.time-toggle-group {
+.sales-top {
   display: flex;
-  background-color: #1a1a1a;
+  flex-direction: row;
+  justify-content: space-between;
+  height: 44px;
+  padding: 10px;
+  color: var(--color-primary);
+}
+.switch-btns {
+  display: flex;
+  background: var(--background-tertiary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  padding: 4px;
   gap: 2px;
 }
-
-.toggle-btn {
+.switch-viewing-btn {
   border: none;
-  cursor: pointer;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
   background: transparent;
-  color: var(--text-secondary);
-  transition: all 0.2s ease;
-}
-
-.toggle-btn.active {
-  background-color: #2a2a2a;
-  color: var(--text-primary);
-}
-
-.toggle-btn.active-primary {
-  background-color: var(--primary);
-  color: #000000;
-  font-weight: 700;
-}
-
-
-
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
-}
-
-.chart-total-section {
-  text-align: right;
-}
-
-.chart-total-label {
-  font-size: 11px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  padding: 4px 14px;
+  font-size: 12px;
   font-weight: 600;
-}
-
-.chart-total-value {
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin-top: 4px;
-}
-
-.chart-container {
-  width: 100%;
-  height: 240px;
-}
-
-.chart-tooltip {
-  background-color: #1a1a1a;
-  border: 1px solid var(--card-border);
   border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 12px;
-  color: var(--text-primary);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  color: var(--color-muted);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.switch-viewing-btn:hover {
+  color: var(--color-secondary);
 }
 
-.chart-tooltip-label {
-  color: var(--text-secondary);
-  margin-bottom: 2px;
+.switch-viewing-btn-active {
+  background: var(--button-primary);
+  color: #ffffff;
 }
 
-.chart-tooltip-value {
-  font-weight: 700;
+.switch-viewing-btn-active:hover {
+  background: var(--button-primary-hover);
 }
-
-
-.item-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-top: 16px;
-}
-
-.product-row-top {
-  display: flex;
-  justify-content: space-between;
+.switch-viewing-btn-custom{
+      display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  justify-content: center; 
+  line-height: 1;
 }
-
-.product-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.product-index {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  width: 18px;
-}
-
-.product-analytics-name {
-  font-size: 14px;
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.product-units {
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.progress-track {
-  height: 4px;
-  background-color: #222222;
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background-color: var(--blue-accent);
-  border-radius: 2px;
-}
-
-.customer-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.customer-avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background-color: #221c18;
-  color: var(--primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.customer-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.customer-details-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.customer-name {
-  font-size: 14px;
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.customer-spend {
-  font-size: 14px;
-  color: var(--text-primary);
-  font-weight: 700;
-}
-
-.customer-details-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 4px;
-}
-
-.customer-orders {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.customer-progress-track {
-  width: 100px;
-  height: 4px;
-  background-color: #222222;
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-
-.tx-list {
-  display: flex;
-  flex-direction: column;
-  margin-top: 12px;
-}
-
-.tx-grid-row {
-  display: grid;
-  grid-template-columns: 2.2fr 1.6fr 1fr 1fr 0.9fr;
-  align-items: center;
-}
-
-.tx-header {
-  padding: 0 4px 12px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.tx-row {
-  padding: 14px 4px;
-  border-top: 1px solid var(--card-border);
-  font-size: 13px;
-}
-
-.tx-item {
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.tx-secondary {
-  color: var(--text-secondary);
-}
-
-.tx-amount {
-  color: var(--text-primary);
-  text-align: right;
-  font-weight: 600;
-}
-
-.tx-status {
-  text-align: right;
-}
-
-.status-badge {
-  font-size: 11px;
-  font-weight: 700;
-  border-radius: 4px;
-  padding: 3px 8px;
-}
-
-.status-badge.paid {
-  color: var(--success);
-  background-color: rgba(29, 158, 117, 0.15);
-}
-
-.status-badge.pending {
-  color: var(--warning);
-  background-color: rgba(230, 168, 23, 0.15);
-}
-
-.status-badge.refunded {
-  color: var(--danger);
-  background-color: rgba(226, 75, 74, 0.15);
-}
-
-.align-right {
-  text-align: right;
-} */
