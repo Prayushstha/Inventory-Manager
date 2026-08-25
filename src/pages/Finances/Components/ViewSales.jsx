@@ -3,31 +3,31 @@ const MockSales = [
   {
     id: "487213",
     dateOfSale: new Date("2026-08-03"),
-    TotalSalesDone: 6800,
+    TotalSalesDone: 6,
     netProfitEarned: 1450,
   },
   {
     id: "902341",
     dateOfSale: new Date("2026-08-07"),
-    TotalSalesDone: 3100,
+    TotalSalesDone: 3,
     netProfitEarned: 620,
   },
   {
     id: "664521",
     dateOfSale: new Date("2026-08-12"),
-    TotalSalesDone: 9500,
+    TotalSalesDone: 9,
     netProfitEarned: 2100,
   },
   {
     id: "738904",
     dateOfSale: new Date("2026-08-17"),
-    TotalSalesDone: 2400,
+    TotalSalesDone: 2,
     netProfitEarned: 380,
   },
   {
     id: "551128",
     dateOfSale: new Date("2026-08-22"),
-    TotalSalesDone: 5300,
+    TotalSalesDone: 5,
     netProfitEarned: 1175,
   },
 ];
@@ -91,15 +91,18 @@ function SalesTable() {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1</td>
-            <td>25th Aug 2026</td>
-            <td>6</td>
-            <td>700</td>
-            <td>
-              <button className="details-btn">View Details</button>
-            </td>
-          </tr>
+          {MockSales.map((sale) => 
+          { return <tr key={sale.id}>
+              <td>{sale.id}</td>
+              <td>{sale.dateOfSale.toLocaleDateString()}</td>
+              <td>{sale.TotalSalesDone}</td>
+              <td>NPR {sale.netProfitEarned}</td>
+              <td>
+                {" "}
+                <button className="details-btn">View Details</button>
+              </td>
+            </tr>}
+          )}
         </tbody>
       </table>
     </div>
