@@ -1,4 +1,4 @@
-.header {
+.finance-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -10,13 +10,14 @@
   width: 100%;
 }
 
-.header-left {
+.finance-header-left {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  color: var(--color-primary);
   gap: 1px;
 }
 
-.header-eyebrow {
+.finance-header-eyebrow {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -51,37 +52,18 @@
   text-transform: uppercase;
   color: var(--color-muted);
 }
-
-.tab-switcher {
-  display: flex;
-  background: var(--background-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 3px;
-  gap: 2px;
-}
-
-.tab-btn {
+.add-expenses-btn {
+  flex: 1;
+  padding: 8px 12px;
+  background-color: var(--button-primary);
+  color: var(--color-primary);
   border: none;
-  background: transparent;
-  padding: 4px 14px;
-  font-size: 12px;
-  font-weight: 600;
   border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
   cursor: pointer;
-  color: var(--color-muted);
-  transition: background 0.15s ease, color 0.15s ease;
+  max-width: 120px;
 }
-
-.tab-btn:hover {
-  color: var(--color-secondary);
-}
-
-.tab-btn.tab-active {
-  background: var(--button-primary);
-  color: #ffffff;
-}
-
-.tab-btn.tab-active:hover {
-  background: var(--button-primary-hover);
+.add-expenses-btn:hover {
+  background-color: var(--button-primary-hover);
 }
