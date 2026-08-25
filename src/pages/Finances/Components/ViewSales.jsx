@@ -1,10 +1,34 @@
 import { useState } from "react";
 const MockSales = [
   {
-    id: "123131321",
-    dateOfSale: new Date(),
-    TotalSalesDone: 4200,
-    netProfitEarned: 1000,
+    id: "487213",
+    dateOfSale: new Date("2026-08-03"),
+    TotalSalesDone: 6800,
+    netProfitEarned: 1450,
+  },
+  {
+    id: "902341",
+    dateOfSale: new Date("2026-08-07"),
+    TotalSalesDone: 3100,
+    netProfitEarned: 620,
+  },
+  {
+    id: "664521",
+    dateOfSale: new Date("2026-08-12"),
+    TotalSalesDone: 9500,
+    netProfitEarned: 2100,
+  },
+  {
+    id: "738904",
+    dateOfSale: new Date("2026-08-17"),
+    TotalSalesDone: 2400,
+    netProfitEarned: 380,
+  },
+  {
+    id: "551128",
+    dateOfSale: new Date("2026-08-22"),
+    TotalSalesDone: 5300,
+    netProfitEarned: 1175,
   },
 ];
 
