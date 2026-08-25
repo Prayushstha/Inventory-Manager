@@ -19,7 +19,7 @@ export function TopProducts({ Card, Eyebrow }) {
         {PRODUCTS.map((p, i) => (
           <div key={p.name}>
             <div className="product-row-top">
-              <div className="product-info">
+              <div className="analytics-product-info">
                 <span className="product-index">
                   {String(i + 1).padStart(2, "0")}
                 </span>

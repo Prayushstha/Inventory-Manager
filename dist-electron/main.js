@@ -803,6 +803,7 @@ db.exec(`
     FOREIGN KEY (bill_id) REFERENCES bills(id)
   );
 `);
+if (!db.prepare(`PRAGMA table_info(bill_items)`).all().some((c) => c.name === "cost_price")) db.exec(`ALTER TABLE bill_items ADD COLUMN cost_price REAL DEFAULT 0`);
 function addProduct(product) {
 	const { id, name, images, variants, bases } = product;
 	db.prepare(`INSERT INTO products (id, name, images) VALUES (?, ?, ?)`).run(id, name, images);
