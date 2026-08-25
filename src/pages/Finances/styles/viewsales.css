@@ -67,9 +67,6 @@
     color: var(--color-secondary);
     height: 100%;
 }
-
-
-
 .sales-table-container {
     margin-top: 1px;
     overflow-y: auto;
@@ -111,3 +108,4 @@
     color: var(--color-primary);
     cursor: pointer;
 }
+

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import '../styles/viewsales.css'
 const MockSales = [
   {
     id: "487213",
@@ -74,6 +75,7 @@ export function ViewSales() {
           <SalesTable />
         )}
       </div>
+
     </div>
   );
 }
