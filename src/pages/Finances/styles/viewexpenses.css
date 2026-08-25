@@ -70,7 +70,7 @@
 }
 .expenses-table-container {
     margin-top: 1px;
-    overflow-y: auto;
+    overflow-y: scroll;
 }
 
 .expenses-table {

@@ -69,7 +69,7 @@
 }
 .sales-table-container {
     margin-top: 1px;
-    overflow-y: auto;
+    overflow-y: scroll;
 }
 
 .sales-table {
