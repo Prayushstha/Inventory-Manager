@@ -2,7 +2,7 @@
 import { DashboardPage } from "./pages/Dashboard/dashboard";
 import { AnalyticsPage } from "./pages/Analytics/analytics";
 import { InventoryPage } from "./pages/Inventory/inventory";
-import { FinancePage } from "./pages/Finances/finances";
+import { FinancePage } from "./pages/Finances/finance";
 import { SettingsPage } from "./pages/settings";
 import { SideBar } from "./components/sidebar";
 import { HashRouter, Route, Routes } from "react-router";
