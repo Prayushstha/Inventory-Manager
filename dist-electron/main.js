@@ -842,7 +842,12 @@ function getProducts() {
 	for (const product of products) {
 		product.variants = db.prepare(`SELECT * FROM variants WHERE product_id = ?`).all(product.id);
 		const bases = db.prepare(`SELECT * FROM bases WHERE product_id = ?`).all(product.id);
-		for (const base of bases) base.stocks = db.prepare(`SELECT stock FROM base_stock WHERE base_id = ? ORDER BY variant_id`).all(base.id).map((s) => s.stock);
+		for (const base of bases) {
+			const stockRows = db.prepare(`SELECT variant_id, stock FROM base_stock WHERE base_id = ?`).all(base.id);
+			base.stockMap = {};
+			for (const row of stockRows) base.stockMap[row.variant_id] = row.stock;
+			base.stocks = product.variants.map((v) => base.stockMap[v.id] ?? 0);
+		}
 		product.bases = bases;
 	}
 	return products;
@@ -1177,6 +1182,13 @@ function getLandingPrice(productName, bucketSize) {
 	const variant = db.prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`).get(product.id, bucketSize);
 	return variant ? variant.landing : 0;
 }
+function deleteBaseStock(baseId, variantId) {
+	db.prepare(`DELETE FROM base_stock WHERE base_id = ? AND variant_id = ?`).run(baseId, variantId);
+}
+function deleteVariant(variantId) {
+	db.prepare(`DELETE FROM base_stock WHERE variant_id = ?`).run(variantId);
+	db.prepare(`DELETE FROM variants WHERE id = ?`).run(variantId);
+}
 function importProductsFromExcel(filePath) {
 	const sheet = XLSX.readFile(filePath).Sheets["JESTH- 2083"];
 	if (!sheet) throw new Error("Sheet \"JESTH- 2083\" not found in this file.");
@@ -1388,6 +1400,8 @@ app.whenReady().then(() => {
 	ipcMain.handle("db:recordImportExpense", (_, expenseMeta, items) => recordImportExpense(expenseMeta, items));
 	ipcMain.handle("db:importExcel", (_, filePath) => importProductsFromExcel(filePath));
 	ipcMain.handle("db:copyImage", (_, sourcePath) => copyImageToDatabase(sourcePath));
+	ipcMain.handle("db:deleteBaseStock", (_, baseId, variantId) => deleteBaseStock(baseId, variantId));
+	ipcMain.handle("db:deleteVariant", (_, variantId) => deleteVariant(variantId));
 	ipcMain.handle("dialog:pickImage", async () => {
 		const result = await dialog.showOpenDialog({
 			properties: ["openFile"],

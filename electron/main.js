@@ -8,6 +8,8 @@ import {
   getProducts,
   getExpenseDetails,
   editExpense,
+  deleteBaseStock,
+  deleteVariant,
   editImportExpense,
   deleteProduct,
   editProduct,
@@ -141,6 +143,13 @@ app.whenReady().then(() => {
   );
   ipcMain.handle("db:copyImage", (_, sourcePath) =>
     copyImageToDatabase(sourcePath),
+  );
+
+  ipcMain.handle("db:deleteBaseStock", (_, baseId, variantId) =>
+    deleteBaseStock(baseId, variantId),
+  );
+  ipcMain.handle("db:deleteVariant", (_, variantId) =>
+    deleteVariant(variantId),
   );
   ipcMain.handle("dialog:pickImage", async () => {
     const result = await dialog.showOpenDialog({

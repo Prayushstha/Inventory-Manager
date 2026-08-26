@@ -160,15 +160,19 @@ export function getProducts() {
       .prepare(`SELECT * FROM bases WHERE product_id = ?`)
       .all(product.id);
 
-    for (const base of bases) {
-      const stocks = db
-        .prepare(
-          `SELECT stock FROM base_stock WHERE base_id = ? ORDER BY variant_id`,
-        )
-        .all(base.id);
-      base.stocks = stocks.map((s) => s.stock);
-    }
+   for (const base of bases) {
+  const stockRows = db
+    .prepare(`SELECT variant_id, stock FROM base_stock WHERE base_id = ?`)
+    .all(base.id);
 
+  base.stockMap = {};
+  for (const row of stockRows) {
+    base.stockMap[row.variant_id] = row.stock;
+  }
+
+  // keep .stocks too, for any other screens still using it positionally
+  base.stocks = product.variants.map((v) => base.stockMap[v.id] ?? 0);
+}
     product.bases = bases;
   }
 
@@ -850,7 +854,14 @@ function getLandingPrice(productName, bucketSize) {
 
   return variant ? variant.landing : 0;
 }
+export function deleteBaseStock(baseId, variantId) {
+  db.prepare(`DELETE FROM base_stock WHERE base_id = ? AND variant_id = ?`).run(baseId, variantId);
+}
 
+export function deleteVariant(variantId) {
+  db.prepare(`DELETE FROM base_stock WHERE variant_id = ?`).run(variantId);
+  db.prepare(`DELETE FROM variants WHERE id = ?`).run(variantId);
+}
 export function importProductsFromExcel(filePath) {
   const workbook = XLSX.readFile(filePath);
   const sheet = workbook.Sheets["JESTH- 2083"];

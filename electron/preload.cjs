@@ -44,4 +44,6 @@ contextBridge.exposeInMainWorld("db", {
     ipcRenderer.invoke("db:editExpense", id, expense),
   editImportExpense: (id, expenseMeta, items) =>
     ipcRenderer.invoke("db:editImportExpense", id, expenseMeta, items),
+  deleteBaseStock: (baseId, variantId) => ipcRenderer.invoke('db:deleteBaseStock', baseId, variantId),
+deleteVariant: (variantId) => ipcRenderer.invoke('db:deleteVariant', variantId),
 });

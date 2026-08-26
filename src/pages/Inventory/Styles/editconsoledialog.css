@@ -22,6 +22,9 @@ dialog.edit-console::backdrop {
   padding: 1.25rem;
   border-right: 1px solid var(--border-color);
 }
+.dialog-body{
+  color: var(--color-primary);
+}
 
 .product-image-placeholder {
   width: 100%;
@@ -99,7 +102,9 @@ dialog.edit-console::backdrop {
   font-size: 14px;
   cursor: pointer;
 }
-
+.confirm-btn{
+  color: var(--color-secondary);
+}
 .btn-update:hover,
 .btn-add:hover {
   background: var(--button-primary-hover);
