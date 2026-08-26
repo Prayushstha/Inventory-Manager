@@ -1,85 +1,66 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import '../styles/viewsales.css'
-const MockSales = [
-  {
-    id: "487213",
-    dateOfSale: new Date("2026-08-03"),
-    TotalSalesDone: 6,
-    netProfitEarned: 1450,
-  },
-  {
-    id: "902341",
-    dateOfSale: new Date("2026-08-07"),
-    TotalSalesDone: 3,
-    netProfitEarned: 620,
-  },
-  {
-    id: "664521",
-    dateOfSale: new Date("2026-08-12"),
-    TotalSalesDone: 9,
-    netProfitEarned: 2100,
-  },
-  {
-    id: "738904",
-    dateOfSale: new Date("2026-08-17"),
-    TotalSalesDone: 2,
-    netProfitEarned: 380,
-  },
-  {
-    id: "551128",
-    dateOfSale: new Date("2026-08-22"),
-    TotalSalesDone: 5,
-    netProfitEarned: 1175,
-  },
-];
+
+function getRangeStart(period) {
+  const now = new Date();
+  if (period === 1) {
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(now.getFullYear(), now.getMonth(), diff);
+    monday.setHours(0, 0, 0, 0);
+    return monday;
+  }
+  if (period === 2) {
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+  if (period === 3) {
+    return new Date(now.getFullYear(), 0, 1);
+  }
+  return null; // custom range - not implemented yet
+}
 
 export function ViewSales() {
   const [viewingBtn, setViewingBtn] = useState(1);
+  const [sales, setSales] = useState([]);
+
+  useEffect(() => {
+    async function fetchSales() {
+      const data = await window.db.getSales();
+      setSales(data);
+    }
+    fetchSales();
+  }, []);
+
+  const rangeStart = getRangeStart(viewingBtn);
+  const filtered = rangeStart
+    ? sales.filter((s) => new Date(s.customer.date) >= rangeStart)
+    : sales;
+
   return (
     <div className="view-sales">
       <div className="sales-top">
         <h4>View Sales:</h4>
         <div className="switch-btns">
-          <button
-            onClick={() => setViewingBtn(1)}
-            className={`switch-viewing-btn ${viewingBtn === 1 ? "switch-viewing-btn-active" : ""}`}
-          >
-            This Week
-          </button>
-          <button
-            onClick={() => setViewingBtn(2)}
-            className={`switch-viewing-btn ${viewingBtn === 2 ? "switch-viewing-btn-active" : ""}`}
-          >
-            This Month
-          </button>
-          <button
-            onClick={() => setViewingBtn(3)}
-            className={`switch-viewing-btn ${viewingBtn === 3 ? "switch-viewing-btn-active" : ""}`}
-          >
-            This Year
-          </button>
-          <button
-            onClick={() => setViewingBtn(4)}
-            className={`switch-viewing-btn switch-viewing-btn-custom ${viewingBtn === 4 ? "switch-viewing-btn-active" : ""}`}
-          >
-            ...
-          </button>
+          <button onClick={() => setViewingBtn(1)} className={`switch-viewing-btn ${viewingBtn === 1 ? "switch-viewing-btn-active" : ""}`}>This Week</button>
+          <button onClick={() => setViewingBtn(2)} className={`switch-viewing-btn ${viewingBtn === 2 ? "switch-viewing-btn-active" : ""}`}>This Month</button>
+          <button onClick={() => setViewingBtn(3)} className={`switch-viewing-btn ${viewingBtn === 3 ? "switch-viewing-btn-active" : ""}`}>This Year</button>
+          <button onClick={() => setViewingBtn(4)} className={`switch-viewing-btn switch-viewing-btn-custom ${viewingBtn === 4 ? "switch-viewing-btn-active" : ""}`}>...</button>
         </div>
       </div>
       <div className="sales-overview-table">
-        {MockSales.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="no-items">
             <h1>NO SALES DONE</h1>
           </div>
         ) : (
-          <SalesTable />
+          <SalesTable sales={filtered} />
         )}
       </div>
-
     </div>
   );
 }
-function SalesTable() {
+
+function SalesTable({ sales }) {
   return (
     <div className="sales-table-container">
       <table width={"3px"} className="sales-table">
@@ -87,24 +68,25 @@ function SalesTable() {
           <tr>
             <th>SN</th>
             <th>Date</th>
-            <th>Total Sales Done</th>
-            <th>Total Net Profit </th>
+            <th>Customer</th>
+            <th>Sale Amount</th>
+            <th>Net Profit</th>
             <th className="empty-th"> </th>
           </tr>
         </thead>
         <tbody>
-          {MockSales.map((sale) => 
-          { return <tr key={sale.id}>
-              <td>{sale.id}</td>
-              <td>{sale.dateOfSale.toLocaleDateString()}</td>
-              <td>{sale.TotalSalesDone}</td>
-              <td>NPR {sale.netProfitEarned}</td>
+          {sales.map((sale, i) => (
+            <tr key={sale.id}>
+              <td>{i + 1}</td>
+              <td>{new Date(sale.customer.date).toLocaleDateString()}</td>
+              <td>{sale.customer.name}</td>
+              <td>NPR {sale.sellingPrice.toLocaleString()}</td>
+              <td>NPR {sale.netGain.toLocaleString()}</td>
               <td>
-                {" "}
                 <button className="details-btn">View Details</button>
               </td>
-            </tr>}
-          )}
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
