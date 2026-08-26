@@ -1,38 +1,31 @@
 import "../styles/viewexpenses.css";
 import { useState, useEffect } from "react";
 import { ExpenseDetailDialog } from "./ExpenseDetailDialog";
-
-function getRangeStart(period) {
-  const now = new Date();
-  if (period === 1) {
-    const day = now.getDay();
-    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(now.getFullYear(), now.getMonth(), diff);
-    monday.setHours(0, 0, 0, 0);
-    return monday;
-  }
-  if (period === 2) {
-    return new Date(now.getFullYear(), now.getMonth(), 1);
-  }
-  if (period === 3) {
-    return new Date(now.getFullYear(), 0, 1);
-  }
-  return null;
-}
+import { getRangeStart } from "../../../utils/dateUtils";
+import { useConfirm } from "../../../hooks/useConfirm";
+import { useErrorHandler } from "../../../hooks/useErrorHandler";
 
 export function ViewExpenses() {
   const [selectedExpenseId, setSelectedExpenseId] = useState(null);
   const [viewingBtn, setViewingBtn] = useState(1);
   const [expenses, setExpenses] = useState([]);
+  const { confirm, ConfirmDialogComponent } = useConfirm();
+  const { handleAsync } = useErrorHandler();
 
   useEffect(() => {
+    let cancelled = false;
+    async function fetchExpenses() {
+      const data = await handleAsync(
+        () => window.db.getExpenses(),
+        "Failed to load expenses"
+      );
+      if (!cancelled && data) {
+        setExpenses(data);
+      }
+    }
     fetchExpenses();
-  }, []);
-
-  async function fetchExpenses() {
-    const data = await window.db.getExpenses();
-    setExpenses(data);
-  }
+    return () => { cancelled = true; };
+  }, [handleAsync]);
 
   const rangeStart = getRangeStart(viewingBtn);
   const filtered = rangeStart
@@ -78,8 +71,18 @@ export function ViewExpenses() {
         ) : (
           <ExpensesTable
             expenses={filtered}
-            onDeleted={fetchExpenses}
+            onDeleted={() => {
+              handleAsync(
+                async () => {
+                  const data = await window.db.getExpenses();
+                  setExpenses(data);
+                },
+                "Failed to refresh expenses"
+              );
+            }}
             onSelect={setSelectedExpenseId}
+            confirm={confirm}
+            handleAsync={handleAsync}
           />
         )}
       </div>
@@ -90,23 +93,38 @@ export function ViewExpenses() {
           onClose={() => setSelectedExpenseId(null)}
           onSaved={() => {
             setSelectedExpenseId(null);
-            fetchExpenses();
+            handleAsync(
+              async () => {
+                const data = await window.db.getExpenses();
+                setExpenses(data);
+              },
+              "Failed to refresh expenses"
+            );
           }}
         />
       )}
+      {ConfirmDialogComponent}
     </div>
   );
 }
 
-function ExpensesTable({ expenses, onDeleted, onSelect }) {
+function ExpensesTable({ expenses, onDeleted, onSelect, confirm, handleAsync }) {
   async function handleDelete(id) {
-    await window.db.deleteExpense(id);
+    const confirmed = await confirm(
+      "Are you sure you want to delete this expense? This action cannot be undone."
+    );
+    if (!confirmed) return;
+
+    await handleAsync(
+      () => window.db.deleteExpense(id),
+      "Failed to delete expense"
+    );
     onDeleted();
   }
 
   return (
     <div className="expenses-table-container">
-      <table width={"3px"} className="expenses-table">
+      <table className="expenses-table">
         <thead>
           <tr>
             <th>SN</th>
@@ -114,7 +132,7 @@ function ExpensesTable({ expenses, onDeleted, onSelect }) {
             <th>Expenses Info</th>
             <th>Type</th>
             <th>Total Expenses</th>
-            <th className="empty-th"> </th>
+            <th aria-label="Actions">Actions</th>
           </tr>
         </thead>
         <tbody>

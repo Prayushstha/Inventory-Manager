@@ -1,24 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import '../styles/viewsales.css'
 import { SalesDetailDialog } from "./SalesDetailDialog";
-
-function getRangeStart(period) {
-  const now = new Date();
-  if (period === 1) {
-    const day = now.getDay();
-    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(now.getFullYear(), now.getMonth(), diff);
-    monday.setHours(0, 0, 0, 0);
-    return monday;
-  }
-  if (period === 2) {
-    return new Date(now.getFullYear(), now.getMonth(), 1);
-  }
-  if (period === 3) {
-    return new Date(now.getFullYear(), 0, 1);
-  }
-  return null; // custom range - not implemented yet
-}
+import { getRangeStart } from "../../../utils/dateUtils";
+import { useErrorHandler } from "../../../hooks/useErrorHandler";
 
 function groupSalesByDay(sales) {
   const groups = {};
@@ -54,21 +38,32 @@ export function ViewSales() {
   const [viewingBtn, setViewingBtn] = useState(1);
   const [sales, setSales] = useState([]);
   const [selectedDay, setSelectedDay] = useState(null);
+  const { handleAsync } = useErrorHandler();
 
   useEffect(() => {
+    let cancelled = false;
     async function fetchSales() {
-      const data = await window.db.getSales();
-      setSales(data);
+      const data = await handleAsync(
+        () => window.db.getSales(),
+        "Failed to load sales"
+      );
+      if (!cancelled && data) {
+        setSales(data);
+      }
     }
     fetchSales();
-  }, []);
+    return () => { cancelled = true; };
+  }, [handleAsync]);
 
   const rangeStart = getRangeStart(viewingBtn);
   const filtered = rangeStart
     ? sales.filter((s) => new Date(s.customer.date) >= rangeStart)
     : sales;
 
-  const dailyGroups = groupSalesByDay(filtered);
+  const dailyGroups = useMemo(
+    () => groupSalesByDay(filtered),
+    [filtered]
+  );
 
   return (
     <div className="view-sales">
@@ -101,7 +96,7 @@ export function ViewSales() {
 function SalesTable({ dailyGroups, onViewDetails }) {
   return (
     <div className="sales-table-container">
-      <table width={"3px"} className="sales-table">
+      <table className="sales-table">
         <thead>
           <tr>
             <th>SN</th>
@@ -109,7 +104,7 @@ function SalesTable({ dailyGroups, onViewDetails }) {
             <th>Sales Count</th>
             <th>Total Sales Done</th>
             <th>Total Net Profit</th>
-            <th className="empty-th"> </th>
+            <th aria-label="Actions">Actions</th>
           </tr>
         </thead>
         <tbody>

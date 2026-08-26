@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useResolvedImage } from "../../../hooks/resolvedImage.js";
 import { useToast } from "../../../hooks/ToastContext.jsx";
-const BUCKET_SIZES = [1, 4, 10, 20];
+import { BUCKET_SIZES } from "../../../utils/constants.js";
+import { useErrorHandler } from "../../../hooks/useErrorHandler";
 
 export function AddConsole() {
     const showToast = useToast();
+    const { handleAsync } = useErrorHandler();
   const [name, setName] = useState("");
   const [baseInput, setBaseInput] = useState("");
   const [basesList, setBasesList] = useState([]);
@@ -41,10 +43,18 @@ export function AddConsole() {
   }
 
   async function handlePickImage() {
-    const filePath = await window.db.pickImage();
+    const filePath = await handleAsync(
+      () => window.db.pickImage(),
+      "Failed to pick image"
+    );
     if (!filePath) return;
-    const relativePath = await window.db.copyImage(filePath);
-    setImage(relativePath);
+    const relativePath = await handleAsync(
+      () => window.db.copyImage(filePath),
+      "Failed to copy image"
+    );
+    if (relativePath) {
+      setImage(relativePath);
+    }
   }
 
   async function handleAdd() {
@@ -60,46 +70,51 @@ export function AddConsole() {
       return;
     }
 
-    let product = await window.db.getProductByName(name);
+    const success = await handleAsync(async () => {
+      let product = await window.db.getProductByName(name);
 
-    if (!product) {
-      const id = crypto.randomUUID();
-      await window.db.addProduct({
-        id,
-        name,
-        images: image,
-        variants: [],
-        bases: [],
-      });
-      product = await window.db.getProductByName(name);
-    }
-
-    for (const size of filledRows) {
-      const r = rows[size];
-
-      let variant = await window.db.getVariantBySize(product.id, size);
-      if (!variant) {
-        const variantId = await window.db.addVariant(product.id, {
-          bucket_size: size,
-          landing: parseFloat(r.landing),
-          sales: parseFloat(r.sales),
-          mp: parseFloat(r.mp),
+      if (!product) {
+        const id = crypto.randomUUID();
+        await window.db.addProduct({
+          id,
+          name,
+          images: image,
+          variants: [],
+          bases: [],
         });
-        variant = { id: variantId };
+        product = await window.db.getProductByName(name);
       }
 
-      for (const baseName of basesList) {
-        let base = await window.db.getBaseByName(product.id, baseName);
-        const baseId = base
-          ? base.id
-          : await window.db.addBase(product.id, baseName);
-        await window.db.addBaseStock(
-          baseId,
-          variant.id,
-          parseFloat(r.stock || 0),
-        );
+      for (const size of filledRows) {
+        const r = rows[size];
+
+        let variant = await window.db.getVariantBySize(product.id, size);
+        if (!variant) {
+          const variantId = await window.db.addVariant(product.id, {
+            bucket_size: size,
+            landing: parseFloat(r.landing),
+            sales: parseFloat(r.sales),
+            mp: parseFloat(r.mp),
+          });
+          variant = { id: variantId };
+        }
+
+        for (const baseName of basesList) {
+          let base = await window.db.getBaseByName(product.id, baseName);
+          const baseId = base
+            ? base.id
+            : await window.db.addBase(product.id, baseName);
+          await window.db.addBaseStock(
+            baseId,
+            variant.id,
+            parseFloat(r.stock || 0),
+          );
+        }
       }
-    }
+      return true;
+    }, "Failed to add product");
+
+    if (!success) return;
 
     showToast("Added successfully!");
     setBasesList([]);

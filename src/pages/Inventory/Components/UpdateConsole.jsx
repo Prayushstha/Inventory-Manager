@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useResolvedImage } from "../../../hooks/resolvedImage.js";
+import { useErrorHandler } from "../../../hooks/useErrorHandler";
 export function UpdateConsole({ product, setProduct }) {
   const resolvedImage = useResolvedImage(product.images);
+  const { handleAsync } = useErrorHandler();
   const [name, setName] = useState(product.name);
   const [selectedBase, setSelectedBase] = useState(
     product.bases[0]?.id ?? null,
@@ -24,44 +26,58 @@ export function UpdateConsole({ product, setProduct }) {
       return;
     }
 
-    await window.db.editProduct(product.id, {
-      name,
-      images: product.images,
-      variants: product.variants.map((v) =>
-        v.id === selectedVariant
-          ? {
-              ...v,
-              landing: landing !== "" ? parseFloat(landing) : v.landing,
-              mp: mp !== "" ? parseFloat(mp) : v.mp,
-              sales: sales !== "" ? parseFloat(sales) : v.sales,
-            }
-          : v,
-      ),
-      bases: product.bases.map((b) =>
-        b.id === selectedBase
-          ? {
-              ...b,
-              stocks: b.stocks.map((s, i) =>
-                product.variants[i]?.id === selectedVariant
-                  ? stock !== ""
-                    ? parseFloat(stock)
-                    : s
-                  : s,
-              ),
-            }
-          : b,
-      ),
-    });
+    await handleAsync(async () => {
+      await window.db.editProduct(product.id, {
+        name,
+        images: product.images,
+        variants: product.variants.map((v) =>
+          v.id === selectedVariant
+            ? {
+                ...v,
+                landing: landing !== "" ? parseFloat(landing) : v.landing,
+                mp: mp !== "" ? parseFloat(mp) : v.mp,
+                sales: sales !== "" ? parseFloat(sales) : v.sales,
+              }
+            : v,
+        ),
+        bases: product.bases.map((b) =>
+          b.id === selectedBase
+            ? {
+                ...b,
+                stocks: b.stocks.map((s, i) =>
+                  product.variants[i]?.id === selectedVariant
+                    ? stock !== ""
+                      ? parseFloat(stock)
+                      : s
+                    : s,
+                ),
+              }
+            : b,
+        ),
+      });
 
-    const all = await window.db.getProducts();
-    const updated = all.find((p) => p.id === product.id);
-    setProduct(updated);
+      const all = await window.db.getProducts();
+      const updated = all.find((p) => p.id === product.id);
+      if (updated) {
+        setProduct(updated);
+      }
+      return true;
+    }, "Failed to update product");
   }
+
   async function handlePickImage() {
-    const filePath = await window.db.pickImage();
+    const filePath = await handleAsync(
+      () => window.db.pickImage(),
+      "Failed to pick image"
+    );
     if (!filePath) return;
-    const relativePath = await window.db.copyImage(filePath);
-    setProduct((prev) => ({ ...prev, images: relativePath }));
+    const relativePath = await handleAsync(
+      () => window.db.copyImage(filePath),
+      "Failed to copy image"
+    );
+    if (relativePath) {
+      setProduct((prev) => ({ ...prev, images: relativePath }));
+    }
   }
 
   return (

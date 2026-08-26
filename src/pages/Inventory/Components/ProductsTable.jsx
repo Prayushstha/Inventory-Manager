@@ -1,16 +1,13 @@
-import { Fragment, useState } from "react";
-import { forwardRef, useRef } from "react";
+import { Fragment, useState, useRef } from "react";
 import { EditConsole } from "./EditConsole";
-import { ConfirmDialog } from "./ConfirmDialog";
-
-const EditConsoleDialog = forwardRef((props, ref) => {
-  return <EditConsole ref={ref} {...props} />;
-});
+import { ConfirmDialog } from "../../../components/ConfirmDialog";
+import { useErrorHandler } from "../../../hooks/useErrorHandler";
 
 export function ProductsTable({ products, fetchProducts }) {
   const dialogRef = useRef(null);
   const [editingItem, setEditingItem] = useState(null);
   const [confirmTarget, setConfirmTarget] = useState(null);
+  const { handleAsync } = useErrorHandler();
 
   function toggleDialog() {
     if (!dialogRef.current) return;
@@ -22,11 +19,16 @@ export function ProductsTable({ products, fetchProducts }) {
   async function handleConfirmDelete() {
     if (!confirmTarget) return;
 
-    if (confirmTarget.type === "baseStock") {
-      await window.db.deleteBaseStock(confirmTarget.baseId, confirmTarget.variantId);
-    } else if (confirmTarget.type === "variant") {
-      await window.db.deleteVariant(confirmTarget.variantId);
-    }
+    const success = await handleAsync(async () => {
+      if (confirmTarget.type === "baseStock") {
+        await window.db.deleteBaseStock(confirmTarget.baseId, confirmTarget.variantId);
+      } else if (confirmTarget.type === "variant") {
+        await window.db.deleteVariant(confirmTarget.variantId);
+      }
+      return true;
+    }, "Failed to delete item");
+
+    if (!success) return;
 
     setConfirmTarget(null);
     fetchProducts?.();
@@ -34,7 +36,7 @@ export function ProductsTable({ products, fetchProducts }) {
 
   return (
     <Fragment>
-      <EditConsoleDialog
+      <EditConsole
         ref={dialogRef}
         editingItem={editingItem}
         setEditingItem={setEditingItem}
@@ -105,6 +107,7 @@ export function ProductsTable({ products, fetchProducts }) {
                             type="button"
                             className="btn-remove-row"
                             title={hasBases ? "Delete this base + size" : "Delete this size"}
+                            aria-label={hasBases ? `Delete ${product.name} - ${base.name}, size ${v.bucket_size}` : `Delete ${product.name} - size ${v.bucket_size}`}
                             onClick={() =>
                               setConfirmTarget(
                                 hasBases
@@ -129,6 +132,7 @@ export function ProductsTable({ products, fetchProducts }) {
                           <td rowSpan={totalRows}>
                             <button
                               className="edit-btn"
+                              aria-label={`Edit ${product.name}`}
                               onClick={() => {
                                 setEditingItem(product.id);
                                 toggleDialog();

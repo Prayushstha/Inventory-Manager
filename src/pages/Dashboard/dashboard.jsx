@@ -2,18 +2,27 @@ import "./Styles/dashboard.css";
 import { NavBar } from "../../components/navbar.jsx";
 import { ProductCard } from "./Components/ProductCard.jsx";
 import { useState, useEffect } from "react";
+import { useErrorHandler } from "../../hooks/useErrorHandler";
 
 export function DashboardPage({ isDark, setIsDark }) {
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState([]);
+  const { handleAsync } = useErrorHandler();
 
   useEffect(() => {
+    let cancelled = false;
     async function fetchProducts() {
-      const data = await window.db.getProducts();
-      setProducts(data);
+      const data = await handleAsync(
+        () => window.db.getProducts(),
+        "Failed to load products"
+      );
+      if (!cancelled && data) {
+        setProducts(data);
+      }
     }
     fetchProducts();
-  }, []);
+    return () => { cancelled = true; };
+  }, [handleAsync]);
 
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase()),

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import './toastcontext.css'
+import { TOAST_DURATION } from '../utils/constants';
 const ToastContext = createContext(null);
 
 let idCounter = 0;
@@ -12,7 +13,7 @@ export function ToastProvider({ children }) {
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 3500);
+    }, TOAST_DURATION);
   }, []);
 
   const dismissToast = useCallback((id) => {

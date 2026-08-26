@@ -2,20 +2,38 @@ import "./Styles/inventory.css";
 import { NavBar } from "../../components/navbar";
 import { ProductsTable } from "./Components/ProductsTable";
 import { useState, useEffect } from "react";
+import { useErrorHandler } from "../../hooks/useErrorHandler";
 
 export function InventoryPage({ isDark, setIsDark }) {
   const isInventoryPage = true;
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
+  const { handleAsync } = useErrorHandler();
 
   async function fetchProducts() {
-    const data = await window.db.getProducts();
-    setProducts(data);
+    const data = await handleAsync(
+      () => window.db.getProducts(),
+      "Failed to load products"
+    );
+    if (data) {
+      setProducts(data);
+    }
   }
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchProducts();
+    let cancelled = false;
+    async function loadProducts() {
+      const data = await handleAsync(
+        () => window.db.getProducts(),
+        "Failed to load products"
+      );
+      if (!cancelled && data) {
+        setProducts(data);
+      }
+    }
+    loadProducts();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filteredProducts = products.filter((p) =>

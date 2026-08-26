@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import "./styles/billing.css";
 import { emptyBill, statusMeta } from "../../Backend/customers";
 import { BillDialog, BillHeader, BillTable } from "./Components/index.js";
+import { useConfirm } from "../../hooks/useConfirm";
+import { useErrorHandler } from "../../hooks/useErrorHandler";
 
 export function Billing() {
   const [search, setSearch] = useState("");
@@ -9,15 +11,38 @@ export function Billing() {
   const [isNewBill, setIsNewBill] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
+  const { confirm, ConfirmDialogComponent } = useConfirm();
+  const { handleAsync } = useErrorHandler();
 
   useEffect(() => {
+    let cancelled = false;
+    async function fetchCustomers() {
+      const data = await handleAsync(
+        () => window.db.getCustomers(),
+        "Failed to load customers"
+      );
+      if (!cancelled && data) {
+        setCustomers(data);
+      }
+    }
     fetchCustomers();
-  }, []);
+    return () => { cancelled = true; };
+  }, [handleAsync]);
 
-  async function fetchCustomers() {
-    const data = await window.db.getCustomers();
-    setCustomers(data);
-  }
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchProducts() {
+      const data = await handleAsync(
+        () => window.db.getProducts(),
+        "Failed to load products"
+      );
+      if (!cancelled && data) {
+        setProducts(data);
+      }
+    }
+    fetchProducts();
+    return () => { cancelled = true; };
+  }, [handleAsync]);
 
   // Flatten customers + their bills into one row-per-bill list for the table
   const rows = customers.flatMap((customer) =>
@@ -37,13 +62,7 @@ export function Billing() {
       products: bill.products,
     })),
   );
-  useEffect(() => {
-    async function fetchProducts() {
-      const data = await window.db.getProducts();
-      setProducts(data);
-    }
-    fetchProducts();
-  }, []);
+
   const filtered = rows.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -65,17 +84,35 @@ export function Billing() {
     setIsNewBill(false);
   };
 
-  const handleSaved = () => {
+  const handleSaved = async () => {
     closeDialog();
-    fetchCustomers();
+    const data = await handleAsync(
+      () => window.db.getCustomers(),
+      "Failed to refresh customers"
+    );
+    if (data) {
+      setCustomers(data);
+    }
   };
+
   async function handleDelete(billId) {
-    const confirmed = window.confirm(
-      "Delete this bill? This will restore the stock it used.",
+    const confirmed = await confirm(
+      "Delete this bill? This will restore the stock it used."
     );
     if (!confirmed) return;
-    await window.db.deleteBill(billId);
-    fetchCustomers();
+
+    await handleAsync(
+      () => window.db.deleteBill(billId),
+      "Failed to delete bill"
+    );
+
+    const data = await handleAsync(
+      () => window.db.getCustomers(),
+      "Failed to refresh customers"
+    );
+    if (data) {
+      setCustomers(data);
+    }
   }
 
   return (
@@ -99,6 +136,7 @@ export function Billing() {
           onSaved={handleSaved}
         />
       )}
+      {ConfirmDialogComponent}
     </>
   );
 }
