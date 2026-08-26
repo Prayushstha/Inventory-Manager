@@ -2,7 +2,6 @@ import { useState } from "react";
 import "./analytics.css";
 import { FinanceHeader } from "./Components/FinanceHeader";
 import { MOCK } from "./mockdata";
-import { StatCard } from "./Components/StatCard";
 import { ActivityRow } from "./Components/ActivityRow";
 import { SummarySection } from "./Components/SummarySection";
 import { TopCustomers } from "./Components/TopCustomers";
@@ -69,8 +68,6 @@ export function AnalyticsPage() {
       <FinanceHeader overViewTime={overViewTime} setOverViewTime={setOverViewTime} />
 
       <div className="finance-body">
-
-       
         <Card style={{display:"flex",flex:"1",padding:"10px",justifyContent:"space-evenly", flexDirection: "row",minWidth:"90vh", maxHeight:"500px"}}>
           <TopCustomers Card={Card} Eyebrow={Eyebrow}  />
           <TopProducts Card={Card} Eyebrow={Eyebrow}/>

@@ -562,10 +562,18 @@ export function getSales() {
 
 export function getNetPosition(period) {
   const now = new Date();
-  const startDate =
-    period === "yearly"
-      ? `${now.getFullYear()}-01-01`
-      : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  let startDate;
+
+  if (period === "yearly") {
+    startDate = `${now.getFullYear()}-01-01`;
+  } else if (period === "weekly") {
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(now.getFullYear(), now.getMonth(), diff);
+    startDate = monday.toISOString().slice(0, 10);
+  } else {
+    startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  }
 
   const bills = db
     .prepare(`SELECT * FROM bills WHERE date >= ?`)
@@ -633,6 +641,8 @@ export function getNetPosition(period) {
     recentActivity,
   };
 }
+
+
 export function recordImportExpense(expenseMeta, items) {
   const totalCost = items.reduce(
     (sum, i) => sum + (parseFloat(i.costPrice) || 0) * (parseFloat(i.quantity) || 0),

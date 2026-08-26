@@ -1029,7 +1029,13 @@ function getSales() {
 }
 function getNetPosition(period) {
 	const now = /* @__PURE__ */ new Date();
-	const startDate = period === "yearly" ? `${now.getFullYear()}-01-01` : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+	let startDate;
+	if (period === "yearly") startDate = `${now.getFullYear()}-01-01`;
+	else if (period === "weekly") {
+		const day = now.getDay();
+		const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+		startDate = new Date(now.getFullYear(), now.getMonth(), diff).toISOString().slice(0, 10);
+	} else startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
 	const bills = db.prepare(`SELECT * FROM bills WHERE date >= ?`).all(startDate);
 	let totalEarned = 0;
 	let totalCost = 0;
