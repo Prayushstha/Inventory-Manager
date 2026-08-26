@@ -85,8 +85,6 @@
     background-color: var(--background-tertiary);
     color: var(--color-primary);
     border: 1px solid var(--color-secondary);
-    border-top: none;
-    border-right: none;
     padding: 10px 15px;
     text-align: left;
 }
@@ -99,7 +97,6 @@
     color: var(--color-primary);
     border: 1px solid var(--color-secondary);
     border-top: none;
-    border-right: none;
     padding: 5px 15px;
 }
 .details-btn{
