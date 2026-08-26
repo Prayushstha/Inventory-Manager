@@ -35,7 +35,6 @@
   box-sizing: border-box;
 }
 
-
 .net-hero {
   display: flex;
   align-items: center;
@@ -79,8 +78,12 @@
   border-radius: 4px 0 0 4px;
 }
 
-.net-positive::after { background: var(--success); }
-.net-negative::after { background: var(--danger); }
+.net-positive::after {
+  background: var(--success);
+}
+.net-negative::after {
+  background: var(--danger);
+}
 
 .net-label {
   font-size: 0.75rem;
@@ -97,6 +100,7 @@
   letter-spacing: -0.03em;
   color: var(--color-primary);
   line-height: 1;
+  font-family: "Intel One Mono Variable", monospace;
 }
 
 .net-badge {
@@ -109,9 +113,10 @@
   text-transform: uppercase;
   margin-left: auto;
 }
-.stat-grid-finance{
+.stat-grid-finance {
   margin: 1rem;
-   display: grid;
+  display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
+  font-family: "Intel One Mono Variable", monospace;
 }
