@@ -81,7 +81,15 @@ const hasCostPrice = billItemsColumns.some((c) => c.name === "cost_price");
 if (!hasCostPrice) {
   db.exec(`ALTER TABLE bill_items ADD COLUMN cost_price REAL DEFAULT 0`);
 }
-
+db.exec(`
+  CREATE TABLE IF NOT EXISTS expenses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    label TEXT NOT NULL,
+    amount REAL NOT NULL,
+    type TEXT DEFAULT 'General'
+  );
+`);
 export function addProduct(product) {
   const { id, name, images, variants, bases } = product;
 
@@ -333,11 +341,13 @@ export function addBill(customerId, bill) {
   const billId = result.lastInsertRowid;
 
   for (const item of bill.products) {
+    const costPrice = getLandingPrice(item.productName, item.bucketSize);
+
     db.prepare(
       `
-      INSERT INTO bill_items (bill_id, product_name, base, bucket_size, quantity, price_at_sale)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `,
+    INSERT INTO bill_items (bill_id, product_name, base, bucket_size, quantity, price_at_sale, cost_price)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `,
     ).run(
       billId,
       item.productName,
@@ -345,6 +355,7 @@ export function addBill(customerId, bill) {
       item.bucketSize,
       item.quantity,
       item.priceAtSale,
+      costPrice,
     );
 
     adjustStock(item.productName, item.base, item.bucketSize, -item.quantity);
@@ -423,11 +434,13 @@ export function editBill(billId, bill) {
   db.prepare(`DELETE FROM bill_items WHERE bill_id = ?`).run(billId);
 
   for (const item of bill.products) {
+    const costPrice = getLandingPrice(item.productName, item.bucketSize);
+
     db.prepare(
       `
-      INSERT INTO bill_items (bill_id, product_name, base, bucket_size, quantity, price_at_sale)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `,
+    INSERT INTO bill_items (bill_id, product_name, base, bucket_size, quantity, price_at_sale, cost_price)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `,
     ).run(
       billId,
       item.productName,
@@ -435,6 +448,7 @@ export function editBill(billId, bill) {
       item.bucketSize,
       item.quantity,
       item.priceAtSale,
+      costPrice,
     );
   }
 }
@@ -457,6 +471,179 @@ function adjustStock(productName, baseName, bucketSize, deltaQty) {
   db.prepare(
     `UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?`,
   ).run(deltaQty, base.id, variant.id);
+}
+export function addExpense(expense) {
+  const result = db
+    .prepare(
+      `INSERT INTO expenses (date, label, amount, type) VALUES (?, ?, ?, ?)`,
+    )
+    .run(
+      expense.date,
+      expense.nameOfExpense,
+      expense.amountOfExpense,
+      expense.typeOfExpense,
+    );
+  return result.lastInsertRowid;
+}
+
+export function getExpenses() {
+  const rows = db.prepare(`SELECT * FROM expenses ORDER BY date DESC`).all();
+  return rows.map((r) => ({
+    id: r.id,
+    date: r.date,
+    nameOfExpense: r.label,
+    typeOfExpense: r.type,
+    amountOfExpense: r.amount,
+  }));
+}
+
+export function deleteExpense(id) {
+  db.prepare(`DELETE FROM expenses WHERE id = ?`).run(id);
+}
+
+export function getSales() {
+  const bills = db.prepare(`SELECT * FROM bills`).all();
+  const customerTotalDue = {};
+
+  return bills.map((bill) => {
+    const customer = db
+      .prepare(`SELECT * FROM customers WHERE id = ?`)
+      .get(bill.customer_id);
+    const items = db
+      .prepare(`SELECT * FROM bill_items WHERE bill_id = ?`)
+      .all(bill.id);
+
+    if (!(bill.customer_id in customerTotalDue)) {
+      const allBills = db
+        .prepare(`SELECT amount_due FROM bills WHERE customer_id = ?`)
+        .all(bill.customer_id);
+      customerTotalDue[bill.customer_id] = allBills.reduce(
+        (sum, b) => sum + b.amount_due,
+        0,
+      );
+    }
+
+    const costPrice = items.reduce(
+      (sum, i) => sum + (i.cost_price || 0) * i.quantity,
+      0,
+    );
+    const sellingPrice = bill.total_purchased;
+    const netGain = sellingPrice - costPrice;
+
+    return {
+      id: bill.id,
+      customer: {
+        id: customer.id,
+        name: customer.name,
+        phone: customer.phone,
+        address: customer.address,
+        date: bill.date,
+        paymentMethod: bill.payment_method,
+        totalPurchased: bill.total_purchased,
+        amountPaid: bill.amount_paid,
+        amountDue: bill.amount_due,
+        totalDue: customerTotalDue[bill.customer_id],
+        status: bill.status,
+      },
+      purchasedProducts: items.map((i) => ({
+        name: i.product_name,
+        base: i.base,
+        bucketSize: i.bucket_size,
+        quantity: i.quantity,
+        priceAtSale: i.price_at_sale,
+        costPrice: i.cost_price,
+      })),
+      sellingPrice,
+      costPrice,
+      netGain,
+    };
+  });
+}
+
+export function getNetPosition(period) {
+  const now = new Date();
+  const startDate =
+    period === "yearly"
+      ? `${now.getFullYear()}-01-01`
+      : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+
+  const bills = db
+    .prepare(`SELECT * FROM bills WHERE date >= ?`)
+    .all(startDate);
+  let totalEarned = 0;
+  let totalCost = 0;
+  let totalDue = 0;
+  const productTotals = {};
+
+  for (const bill of bills) {
+    const items = db
+      .prepare(`SELECT * FROM bill_items WHERE bill_id = ?`)
+      .all(bill.id);
+    totalEarned += bill.total_purchased;
+    totalCost += items.reduce(
+      (sum, i) => sum + (i.cost_price || 0) * i.quantity,
+      0,
+    );
+    totalDue += bill.amount_due;
+    for (const i of items) {
+      productTotals[i.product_name] =
+        (productTotals[i.product_name] || 0) + i.quantity;
+    }
+  }
+
+  const totalProfit = totalEarned - totalCost;
+
+  const expenseRows = db
+    .prepare(`SELECT * FROM expenses WHERE date >= ?`)
+    .all(startDate);
+  const totalExpenses = expenseRows.reduce((sum, e) => sum + e.amount, 0);
+
+  let topCategory = "-";
+  let topQty = 0;
+  for (const [name, qty] of Object.entries(productTotals)) {
+    if (qty > topQty) {
+      topQty = qty;
+      topCategory = name;
+    }
+  }
+
+  const salesActivity = bills.map((b) => ({
+    label: `Sale #${b.id}`,
+    date: b.date,
+    amount: b.total_purchased,
+  }));
+  const expenseActivity = expenseRows.map((e) => ({
+    label: e.label,
+    date: e.date,
+    amount: -e.amount,
+  }));
+  const recentActivity = [...salesActivity, ...expenseActivity]
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 8);
+
+  return {
+    totalEarned,
+    totalExpenses,
+    totalDue,
+    totalProfit,
+    netPosition: totalProfit - totalExpenses,
+    totalSales: bills.length,
+    profitPerSale: bills.length > 0 ? totalProfit / bills.length : 0,
+    topCategory,
+    recentActivity,
+  };
+}
+function getLandingPrice(productName, bucketSize) {
+  const product = db
+    .prepare(`SELECT * FROM products WHERE name = ?`)
+    .get(productName);
+  if (!product) return 0;
+
+  const variant = db
+    .prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`)
+    .get(product.id, bucketSize);
+
+  return variant ? variant.landing : 0;
 }
 export function importProductsFromExcel(filePath) {
   const workbook = XLSX.readFile(filePath);

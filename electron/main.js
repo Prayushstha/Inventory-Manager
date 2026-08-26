@@ -24,6 +24,11 @@ import {
   deleteCustomer,
   getBaseByName,
   deleteBill,
+  addExpense,
+  getExpenses,
+  deleteExpense,
+  getSales,
+  getNetPosition,
 } from "../src/Backend/server.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -74,6 +79,11 @@ app.whenReady().then(() => {
   ipcMain.handle("db:editProduct", (_, id, product) =>
     editProduct(id, product),
   );
+  ipcMain.handle("db:addExpense", (_, expense) => addExpense(expense));
+  ipcMain.handle("db:getExpenses", () => getExpenses());
+  ipcMain.handle("db:deleteExpense", (_, id) => deleteExpense(id));
+  ipcMain.handle("db:getSales", () => getSales());
+  ipcMain.handle("db:getNetPosition", (_, period) => getNetPosition(period));
   ipcMain.handle("db:getProductByName", (_, name) => getProductByName(name));
   ipcMain.handle("db:getVariantBySize", (_, productId, bucketSize) =>
     getVariantBySize(productId, bucketSize),

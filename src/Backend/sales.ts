@@ -17,5 +17,14 @@ type sales = {
   purchasedProducts: Product[];
   sellingPrice: number;
   costPrice: number; //Products.variants.landing
-  netGain: number; //profit or loss
+  netGain: number; //profit or loss per sale
 };
+type expenses = {
+  id: number;
+  date: Date;
+  nameOfExpense: string;
+  typeOfExpense: string; //Import || General || Taxes
+  amountOfExpense: number;
+};
+type netPosition = {
+}

@@ -32,4 +32,9 @@ contextBridge.exposeInMainWorld("db", {
   editBill: (billId, bill) => ipcRenderer.invoke("db:editBill", billId, bill),
   pickExcelFile: () => ipcRenderer.invoke("dialog:pickExcelFile"),
   importExcel: (filePath) => ipcRenderer.invoke("db:importExcel", filePath),
+  addExpense: (expense) => ipcRenderer.invoke("db:addExpense", expense),
+  getExpenses: () => ipcRenderer.invoke("db:getExpenses"),
+  deleteExpense: (id) => ipcRenderer.invoke("db:deleteExpense", id),
+  getSales: () => ipcRenderer.invoke("db:getSales"),
+  getNetPosition: (period) => ipcRenderer.invoke("db:getNetPosition", period),
 });
