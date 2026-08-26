@@ -2,7 +2,6 @@ import { useState } from "react";
 import "./analytics.css";
 import { FinanceHeader } from "./Components/FinanceHeader";
 import { MOCK } from "./mockdata";
-import { NetPosition } from "./Components/NetPosition";
 import { StatCard } from "./Components/StatCard";
 import { ActivityRow } from "./Components/ActivityRow";
 import { SummarySection } from "./Components/SummarySection";
@@ -71,42 +70,7 @@ export function AnalyticsPage() {
 
       <div className="finance-body">
 
-        {/* Hero net position */}
-        <NetPosition
-          earned={data.totalEarned}
-          expenses={data.totalExpenses}
-          due={data.totalDue}
-          fmt={fmt}
-          fmtSmall={fmtSmall}
-        />
-
-        {/* Stat cards */}
-        <div className="stat-grid">
-          <StatCard
-            label="Total Earned"
-            value={fmt(data.totalEarned)}
-            sub={`${data.totalSales.toLocaleString()} sales`}
-            variant="earned"
-          />
-          <StatCard
-            label="Total Expenses"
-            value={fmt(data.totalExpenses)}
-            sub="Operating costs"
-            variant="expenses"
-          />
-          <StatCard
-            label="Total Due"
-            value={fmt(data.totalDue)}
-            sub="Unpaid payables"
-            variant="due"
-          />
-          <StatCard
-            label="Profit per Sale"
-            value={fmtSmall(data.profitPerSale)}
-            sub={`Avg. across ${data.totalSales.toLocaleString()} sales`}
-            variant="profit"
-          />
-        </div>
+       
         <Card style={{display:"flex",flex:"1",padding:"10px",justifyContent:"space-evenly", flexDirection: "row",minWidth:"90vh", maxHeight:"500px"}}>
           <TopCustomers Card={Card} Eyebrow={Eyebrow}  />
           <TopProducts Card={Card} Eyebrow={Eyebrow}/>

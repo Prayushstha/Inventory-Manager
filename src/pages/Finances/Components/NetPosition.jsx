@@ -1,4 +1,9 @@
+import '../styles/overview.css'
+
 export function NetPosition({ earned, expenses, due,fmt }) {
+  earned = 80000;
+  expenses = 30000;
+  due= 12000;
   const net = earned - expenses - due;
   const isPositive = net >= 0;
   return (
