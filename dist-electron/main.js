@@ -1074,6 +1074,34 @@ function getNetPosition(period) {
 		recentActivity
 	};
 }
+function recordImportExpense(expenseMeta, items) {
+	const totalCost = items.reduce((sum, i) => sum + (parseFloat(i.costPrice) || 0) * (parseFloat(i.quantity) || 0), 0);
+	db.transaction(() => {
+		for (const item of items) {
+			let product = db.prepare(`SELECT * FROM products WHERE name = ?`).get(item.productName);
+			let productId;
+			if (!product) {
+				productId = randomUUID();
+				db.prepare(`INSERT INTO products (id, name, images) VALUES (?, ?, ?)`).run(productId, item.productName, "");
+			} else productId = product.id;
+			let variant = db.prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`).get(productId, Number(item.bucketSize));
+			let variantId;
+			if (!variant) variantId = db.prepare(`INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`).run(productId, Number(item.bucketSize), parseFloat(item.costPrice), 0, 0).lastInsertRowid;
+			else {
+				variantId = variant.id;
+				db.prepare(`UPDATE variants SET landing = ? WHERE id = ?`).run(parseFloat(item.costPrice), variantId);
+			}
+			let base = db.prepare(`SELECT * FROM bases WHERE product_id = ? AND name = ?`).get(productId, item.base);
+			let baseId;
+			if (!base) baseId = db.prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`).run(productId, item.base).lastInsertRowid;
+			else baseId = base.id;
+			if (!db.prepare(`SELECT * FROM base_stock WHERE base_id = ? AND variant_id = ?`).get(baseId, variantId)) db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`).run(baseId, variantId, parseFloat(item.quantity));
+			else db.prepare(`UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?`).run(parseFloat(item.quantity), baseId, variantId);
+		}
+		db.prepare(`INSERT INTO expenses (date, label, amount, type) VALUES (?, ?, ?, ?)`).run(expenseMeta.date, expenseMeta.nameOfExpense, totalCost, "Import");
+	})();
+	return totalCost;
+}
 function getLandingPrice(productName, bucketSize) {
 	const product = db.prepare(`SELECT * FROM products WHERE name = ?`).get(productName);
 	if (!product) return 0;
@@ -1285,6 +1313,7 @@ app.whenReady().then(() => {
 		if (result.canceled || result.filePaths.length === 0) return null;
 		return result.filePaths[0];
 	});
+	ipcMain.handle("db:recordImportExpense", (_, expenseMeta, items) => recordImportExpense(expenseMeta, items));
 	ipcMain.handle("db:importExcel", (_, filePath) => importProductsFromExcel(filePath));
 	ipcMain.handle("db:copyImage", (_, sourcePath) => copyImageToDatabase(sourcePath));
 	ipcMain.handle("dialog:pickImage", async () => {

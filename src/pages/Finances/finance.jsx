@@ -10,7 +10,7 @@ import { AddExpenseDialog } from "./Components/AddExpenseDialog";
 function fmt(n) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: "NPR",
     maximumFractionDigits: 0,
   }).format(n);
 }
@@ -18,7 +18,7 @@ function fmt(n) {
 function fmtSmall(n) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: "NPR",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(n);
