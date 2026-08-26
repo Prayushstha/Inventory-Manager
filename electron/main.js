@@ -9,6 +9,7 @@ import {
   deleteProduct,
   editProduct,
   getProductByName,
+  recordImportExpense,
   getVariantBySize,
   addVariant,
   importProductsFromExcel,
@@ -122,7 +123,9 @@ app.whenReady().then(() => {
     if (result.canceled || result.filePaths.length === 0) return null;
     return result.filePaths[0];
   });
-
+ipcMain.handle("db:recordImportExpense", (_, expenseMeta, items) =>
+  recordImportExpense(expenseMeta, items),
+);
   ipcMain.handle("db:importExcel", (_, filePath) =>
     importProductsFromExcel(filePath),
   );

@@ -633,6 +633,88 @@ export function getNetPosition(period) {
     recentActivity,
   };
 }
+export function recordImportExpense(expenseMeta, items) {
+  const totalCost = items.reduce(
+    (sum, i) => sum + (parseFloat(i.costPrice) || 0) * (parseFloat(i.quantity) || 0),
+    0,
+  );
+
+  const run = db.transaction(() => {
+    for (const item of items) {
+      let product = db.prepare(`SELECT * FROM products WHERE name = ?`).get(item.productName);
+      let productId;
+      if (!product) {
+        productId = randomUUID();
+        db.prepare(`INSERT INTO products (id, name, images) VALUES (?, ?, ?)`).run(
+          productId,
+          item.productName,
+          "",
+        );
+      } else {
+        productId = product.id;
+      }
+
+      let variant = db
+        .prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`)
+        .get(productId, Number(item.bucketSize));
+      let variantId;
+      if (!variant) {
+        const result = db
+          .prepare(
+            `INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`,
+          )
+          .run(productId, Number(item.bucketSize), parseFloat(item.costPrice), 0, 0);
+        variantId = result.lastInsertRowid;
+      } else {
+        variantId = variant.id;
+        // Update landing price to the latest import cost
+        db.prepare(`UPDATE variants SET landing = ? WHERE id = ?`).run(
+          parseFloat(item.costPrice),
+          variantId,
+        );
+      }
+
+      let base = db
+        .prepare(`SELECT * FROM bases WHERE product_id = ? AND name = ?`)
+        .get(productId, item.base);
+      let baseId;
+      if (!base) {
+        const result = db
+          .prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`)
+          .run(productId, item.base);
+        baseId = result.lastInsertRowid;
+      } else {
+        baseId = base.id;
+      }
+
+      const existingStock = db
+        .prepare(`SELECT * FROM base_stock WHERE base_id = ? AND variant_id = ?`)
+        .get(baseId, variantId);
+      if (!existingStock) {
+        db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`).run(
+          baseId,
+          variantId,
+          parseFloat(item.quantity),
+        );
+      } else {
+        db.prepare(
+          `UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?`,
+        ).run(parseFloat(item.quantity), baseId, variantId);
+      }
+    }
+
+    db.prepare(`INSERT INTO expenses (date, label, amount, type) VALUES (?, ?, ?, ?)`).run(
+      expenseMeta.date,
+      expenseMeta.nameOfExpense,
+      totalCost,
+      "Import",
+    );
+  });
+
+  run();
+
+  return totalCost;
+}
 function getLandingPrice(productName, bucketSize) {
   const product = db
     .prepare(`SELECT * FROM products WHERE name = ?`)

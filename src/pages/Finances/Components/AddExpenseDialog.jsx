@@ -1,22 +1,69 @@
 import { useState } from "react";
 
+const emptyImportItem = {
+  productName: "",
+  base: "",
+  bucketSize: "",
+  quantity: "",
+  costPrice: "",
+};
+
 export function AddExpenseDialog({ onClose, onSaved }) {
   const [nameOfExpense, setNameOfExpense] = useState("");
   const [typeOfExpense, setTypeOfExpense] = useState("General");
   const [amountOfExpense, setAmountOfExpense] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
 
-  async function handleSave() {
-    if (!nameOfExpense || !amountOfExpense) {
-      alert("Please enter a name and amount.");
+  const [importItems, setImportItems] = useState([]);
+  const [itemForm, setItemForm] = useState(emptyImportItem);
+
+  const isImport = typeOfExpense === "Import";
+  const importTotal = importItems.reduce(
+    (sum, i) => sum + (parseFloat(i.quantity) || 0) * (parseFloat(i.costPrice) || 0),
+    0,
+  );
+
+  function handleAddItem() {
+    if (!itemForm.productName || !itemForm.base || !itemForm.bucketSize || !itemForm.quantity || !itemForm.costPrice) {
+      alert("Please fill in all item fields.");
       return;
     }
-    await window.db.addExpense({
-      date,
-      nameOfExpense,
-      typeOfExpense,
-      amountOfExpense: parseFloat(amountOfExpense),
-    });
+    setImportItems((prev) => [...prev, { ...itemForm }]);
+    setItemForm(emptyImportItem);
+  }
+
+  function handleRemoveItem(index) {
+    setImportItems((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  async function handleSave() {
+    if (!nameOfExpense) {
+      alert("Please enter a name for this expense.");
+      return;
+    }
+
+    if (isImport) {
+      if (importItems.length === 0) {
+        alert("Please add at least one imported item.");
+        return;
+      }
+      await window.db.recordImportExpense(
+        { date, nameOfExpense },
+        importItems,
+      );
+    } else {
+      if (!amountOfExpense) {
+        alert("Please enter an amount.");
+        return;
+      }
+      await window.db.addExpense({
+        date,
+        nameOfExpense,
+        typeOfExpense,
+        amountOfExpense: parseFloat(amountOfExpense),
+      });
+    }
+
     onSaved?.();
   }
 
@@ -27,6 +74,7 @@ export function AddExpenseDialog({ onClose, onSaved }) {
           <h2 className="dialog-title">Add Expense</h2>
           <button className="dialog-close" onClick={onClose}>✕</button>
         </div>
+
         <div className="dialog-body">
           <div className="field-grid">
             <div className="field">
@@ -35,7 +83,7 @@ export function AddExpenseDialog({ onClose, onSaved }) {
                 type="text"
                 value={nameOfExpense}
                 onChange={(e) => setNameOfExpense(e.target.value)}
-                placeholder="e.g. Shop rent"
+                placeholder="e.g. August stock import"
               />
             </div>
             <div className="field">
@@ -50,9 +98,10 @@ export function AddExpenseDialog({ onClose, onSaved }) {
               <label>Amount (NPR)</label>
               <input
                 type="number"
-                value={amountOfExpense}
+                value={isImport ? importTotal : amountOfExpense}
                 onChange={(e) => setAmountOfExpense(e.target.value)}
                 placeholder="0"
+                disabled={isImport}
               />
             </div>
             <div className="field">
@@ -60,7 +109,83 @@ export function AddExpenseDialog({ onClose, onSaved }) {
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
           </div>
+
+          {isImport && (
+            <section className="dialog-section">
+              <p className="section-label">Imported Items</p>
+
+              <div className="field-grid">
+                <input
+                  type="text"
+                  placeholder="Product name"
+                  value={itemForm.productName}
+                  onChange={(e) => setItemForm((f) => ({ ...f, productName: e.target.value }))}
+                />
+                <input
+                  type="text"
+                  placeholder="Base (e.g. AC1)"
+                  value={itemForm.base}
+                  onChange={(e) => setItemForm((f) => ({ ...f, base: e.target.value }))}
+                />
+                <input
+                  type="number"
+                  placeholder="Bucket size"
+                  value={itemForm.bucketSize}
+                  onChange={(e) => setItemForm((f) => ({ ...f, bucketSize: e.target.value }))}
+                />
+                <input
+                  type="number"
+                  placeholder="Quantity"
+                  value={itemForm.quantity}
+                  onChange={(e) => setItemForm((f) => ({ ...f, quantity: e.target.value }))}
+                />
+                <input
+                  type="number"
+                  placeholder="Cost price (per unit)"
+                  value={itemForm.costPrice}
+                  onChange={(e) => setItemForm((f) => ({ ...f, costPrice: e.target.value }))}
+                />
+              </div>
+              <button type="button" className="btn-secondary" onClick={handleAddItem}>
+                Add Item
+              </button>
+
+              {importItems.length > 0 && (
+                <table className="bill-products-table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Base</th>
+                      <th>Size</th>
+                      <th>Qty</th>
+                      <th>Cost/unit</th>
+                      <th>Subtotal</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {importItems.map((item, i) => (
+                      <tr key={i}>
+                        <td>{item.productName}</td>
+                        <td>{item.base}</td>
+                        <td>{item.bucketSize}</td>
+                        <td>{item.quantity}</td>
+                        <td>Rs {item.costPrice}</td>
+                        <td>Rs {(parseFloat(item.quantity) || 0) * (parseFloat(item.costPrice) || 0)}</td>
+                        <td>
+                          <button type="button" className="btn-remove-row" onClick={() => handleRemoveItem(i)}>
+                            ×
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </section>
+          )}
         </div>
+
         <div className="dialog-footer">
           <button className="btn-secondary" onClick={onClose}>Cancel</button>
           <button className="btn-primary" onClick={handleSave}>Save Expense</button>
