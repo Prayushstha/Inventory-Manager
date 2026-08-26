@@ -76,6 +76,7 @@
     width: 100%;
     table-layout: fixed;
     border-collapse: collapse;
+    
 }
 
 .sales-table thead th {
@@ -84,7 +85,8 @@
     z-index: 1;
     background-color: var(--background-tertiary);
     color: var(--color-primary);
-    border: 1px solid var(--color-secondary);
+    border: 1px solid var(--border-secondary);
+    border-radius: 5px;
     padding: 10px 15px;
     text-align: left;
 }
@@ -95,7 +97,7 @@
 
 .sales-table tbody td {
     color: var(--color-primary);
-    border: 1px solid var(--color-secondary);
+    border: 1px solid var(--border-tertiary);
     border-top: none;
     padding: 5px 15px;
 }

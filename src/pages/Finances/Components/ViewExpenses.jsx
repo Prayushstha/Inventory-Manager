@@ -70,8 +70,8 @@ export function ViewExpenses(){
 }
 function ExpensesTable() {
   return (
-    <div className="sales-table-container">
-      <table width={"3px"} className="sales-table">
+    <div className="expenses-table-container">
+      <table width={"3px"} className="expenses-table">
         <thead>
           <tr>
             <th>SN</th>
