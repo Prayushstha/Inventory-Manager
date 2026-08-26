@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { FinanceHeader } from "./Components/FinanceHeader";
-import './styles/header.css'
+import "./styles/header.css";
 import { ViewSales } from "./Components/ViewSales";
 import { ViewExpenses } from "./Components/ViewExpenses";
 import { NetPosition } from "./Components/NetPosition";
 import { StatCard } from "../Analytics/Components/StatCard";
 import { AddExpenseDialog } from "./Components/AddExpenseDialog";
-import './styles/dialogs.css'
+import "./styles/dialogs.css";
 function fmt(n) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -45,13 +45,7 @@ export function FinancePage() {
   return (
     <>
       <FinanceHeader onAddExpense={() => setShowAddExpense(true)} />
-      <NetPosition
-        earned={data.totalEarned}
-        expenses={data.totalExpenses}
-        due={data.totalDue}
-        fmt={fmt}
-        fmtSmall={fmtSmall}
-      />
+      <NetPosition net={data.netPosition} fmt={fmt} />
       <div className="stat-grid-finance">
         <StatCard
           label="Total Earned"
@@ -64,12 +58,6 @@ export function FinancePage() {
           value={fmt(data.totalExpenses)}
           sub="Operating costs"
           variant="expenses"
-        />
-        <StatCard
-          label="Total Due"
-          value={fmt(data.totalDue)}
-          sub="Unpaid payables"
-          variant="due"
         />
         <StatCard
           label="Profit per Sale"

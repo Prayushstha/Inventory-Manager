@@ -116,7 +116,7 @@
 .stat-grid-finance {
   margin: 1rem;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   font-family: "Intel One Mono Variable", monospace;
 }

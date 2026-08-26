@@ -1,7 +1,6 @@
 import '../styles/overview.css'
 
-export function NetPosition({ earned, expenses, due, fmt }) {
-  const net = earned - expenses - due;
+export function NetPosition({ net, fmt }) {
   const isPositive = net >= 0;
   return (
     <div className={`net-hero ${isPositive ? "net-positive" : "net-negative"}`}>
