@@ -2,7 +2,7 @@ import { useState } from "react";
 import "./analytics.css";
 import { FinanceHeader } from "./Components/FinanceHeader";
 import { MOCK } from "./mockdata";
-import { NetPosition } from "./Components/NetPosition";
+import { NetPosition } from "../Finances/Components/NetPosition";
 import { StatCard } from "./Components/StatCard";
 import { ActivityRow } from "./Components/ActivityRow";
 import { SummarySection } from "./Components/SummarySection";
