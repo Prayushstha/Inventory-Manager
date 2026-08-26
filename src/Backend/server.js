@@ -715,6 +715,7 @@ export function recordImportExpense(expenseMeta, items) {
 
   return totalCost;
 }
+
 function getLandingPrice(productName, bucketSize) {
   const product = db
     .prepare(`SELECT * FROM products WHERE name = ?`)
@@ -727,6 +728,7 @@ function getLandingPrice(productName, bucketSize) {
 
   return variant ? variant.landing : 0;
 }
+
 export function importProductsFromExcel(filePath) {
   const workbook = XLSX.readFile(filePath);
   const sheet = workbook.Sheets["JESTH- 2083"];

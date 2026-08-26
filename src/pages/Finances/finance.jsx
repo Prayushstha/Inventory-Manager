@@ -6,7 +6,7 @@ import { ViewExpenses } from "./Components/ViewExpenses";
 import { NetPosition } from "./Components/NetPosition";
 import { StatCard } from "../Analytics/Components/StatCard";
 import { AddExpenseDialog } from "./Components/AddExpenseDialog";
-
+import './styles/dialogs.css'
 function fmt(n) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",

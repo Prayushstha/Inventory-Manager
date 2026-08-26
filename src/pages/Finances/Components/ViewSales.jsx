@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import '../styles/viewsales.css'
+import { SalesDetailDialog } from "./SalesDetailDialog";
 
 function getRangeStart(period) {
   const now = new Date();
@@ -19,9 +20,40 @@ function getRangeStart(period) {
   return null; // custom range - not implemented yet
 }
 
+function groupSalesByDay(sales) {
+  const groups = {};
+
+  for (const sale of sales) {
+    const date = sale.customer.date;
+    if (!groups[date]) {
+      groups[date] = {
+        date,
+        totalSales: 0,
+        totalProfit: 0,
+        salesCount: 0,
+        items: [],
+      };
+    }
+    const day = groups[date];
+    day.totalSales += sale.sellingPrice;
+    day.totalProfit += sale.netGain;
+    day.salesCount += 1;
+    for (const p of sale.purchasedProducts) {
+      day.items.push({
+        ...p,
+        customerName: sale.customer.name,
+        billId: sale.id,
+      });
+    }
+  }
+
+  return Object.values(groups).sort((a, b) => new Date(b.date) - new Date(a.date));
+}
+
 export function ViewSales() {
   const [viewingBtn, setViewingBtn] = useState(1);
   const [sales, setSales] = useState([]);
+  const [selectedDay, setSelectedDay] = useState(null);
 
   useEffect(() => {
     async function fetchSales() {
@@ -36,6 +68,8 @@ export function ViewSales() {
     ? sales.filter((s) => new Date(s.customer.date) >= rangeStart)
     : sales;
 
+  const dailyGroups = groupSalesByDay(filtered);
+
   return (
     <div className="view-sales">
       <div className="sales-top">
@@ -48,19 +82,23 @@ export function ViewSales() {
         </div>
       </div>
       <div className="sales-overview-table">
-        {filtered.length === 0 ? (
+        {dailyGroups.length === 0 ? (
           <div className="no-items">
             <h1>NO SALES DONE</h1>
           </div>
         ) : (
-          <SalesTable sales={filtered} />
+          <SalesTable dailyGroups={dailyGroups} onViewDetails={setSelectedDay} />
         )}
       </div>
+
+      {selectedDay && (
+        <SalesDetailDialog day={selectedDay} onClose={() => setSelectedDay(null)} />
+      )}
     </div>
   );
 }
 
-function SalesTable({ sales }) {
+function SalesTable({ dailyGroups, onViewDetails }) {
   return (
     <div className="sales-table-container">
       <table width={"3px"} className="sales-table">
@@ -68,22 +106,24 @@ function SalesTable({ sales }) {
           <tr>
             <th>SN</th>
             <th>Date</th>
-            <th>Customer</th>
-            <th>Sale Amount</th>
-            <th>Net Profit</th>
+            <th>Sales Count</th>
+            <th>Total Sales Done</th>
+            <th>Total Net Profit</th>
             <th className="empty-th"> </th>
           </tr>
         </thead>
         <tbody>
-          {sales.map((sale, i) => (
-            <tr key={sale.id}>
+          {dailyGroups.map((day, i) => (
+            <tr key={day.date}>
               <td>{i + 1}</td>
-              <td>{new Date(sale.customer.date).toLocaleDateString()}</td>
-              <td>{sale.customer.name}</td>
-              <td>NPR {sale.sellingPrice.toLocaleString()}</td>
-              <td>NPR {sale.netGain.toLocaleString()}</td>
+              <td>{new Date(day.date).toLocaleDateString()}</td>
+              <td>{day.salesCount}</td>
+              <td>NPR {day.totalSales.toLocaleString()}</td>
+              <td>NPR {day.totalProfit.toLocaleString()}</td>
               <td>
-                <button className="details-btn">View Details</button>
+                <button className="details-btn" onClick={() => onViewDetails(day)}>
+                  View Details
+                </button>
               </td>
             </tr>
           ))}
