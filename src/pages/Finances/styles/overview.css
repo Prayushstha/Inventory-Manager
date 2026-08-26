@@ -109,3 +109,9 @@
   text-transform: uppercase;
   margin-left: auto;
 }
+.stat-grid-finance{
+  margin: 1rem;
+   display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
