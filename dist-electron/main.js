@@ -976,11 +976,14 @@ function editBill(billId, bill) {
 	}
 }
 function adjustStock(productName, baseName, bucketSize, deltaQty) {
-	const product = db.prepare(`SELECT * FROM products WHERE name = ?`).get(productName);
+	const pName = productName ? String(productName).trim() : "";
+	const bName = baseName ? String(baseName).trim() : "";
+	const bSize = parseFloat(bucketSize) || 0;
+	const product = db.prepare(`SELECT * FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE`).get(pName);
 	if (!product) return;
-	const variant = db.prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`).get(product.id, bucketSize);
+	const variant = db.prepare(`SELECT * FROM variants WHERE product_id = ? AND ABS(bucket_size - ?) < 0.001`).get(product.id, bSize);
 	if (!variant) return;
-	const base = db.prepare(`SELECT * FROM bases WHERE product_id = ? AND name = ?`).get(product.id, baseName);
+	const base = db.prepare(`SELECT * FROM bases WHERE product_id = ? AND TRIM(name) = TRIM(?) COLLATE NOCASE`).get(product.id, bName);
 	if (!base) return;
 	db.prepare(`UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?`).run(deltaQty, base.id, variant.id);
 }
@@ -1098,25 +1101,30 @@ function getNetPosition(period) {
 	};
 }
 function applyImportItemToStock(item) {
-	let product = db.prepare(`SELECT * FROM products WHERE name = ?`).get(item.productName);
+	const productName = item.productName ? String(item.productName).trim() : "";
+	const baseName = item.base ? String(item.base).trim() : "";
+	const bucketSize = parseFloat(item.bucketSize) || 0;
+	const quantity = parseFloat(item.quantity) || 0;
+	const costPrice = parseFloat(item.costPrice) || 0;
+	let product = db.prepare(`SELECT * FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE`).get(productName);
 	let productId;
 	if (!product) {
 		productId = randomUUID();
-		db.prepare(`INSERT INTO products (id, name, images) VALUES (?, ?, ?)`).run(productId, item.productName, "");
+		db.prepare(`INSERT INTO products (id, name, images) VALUES (?, ?, ?)`).run(productId, productName, "");
 	} else productId = product.id;
-	let variant = db.prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`).get(productId, Number(item.bucketSize));
+	let variant = db.prepare(`SELECT * FROM variants WHERE product_id = ? AND ABS(bucket_size - ?) < 0.001`).get(productId, bucketSize);
 	let variantId;
-	if (!variant) variantId = db.prepare(`INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`).run(productId, Number(item.bucketSize), parseFloat(item.costPrice), 0, 0).lastInsertRowid;
+	if (!variant) variantId = db.prepare(`INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`).run(productId, bucketSize, costPrice, 0, 0).lastInsertRowid;
 	else {
 		variantId = variant.id;
-		db.prepare(`UPDATE variants SET landing = ? WHERE id = ?`).run(parseFloat(item.costPrice), variantId);
+		db.prepare(`UPDATE variants SET landing = ? WHERE id = ?`).run(costPrice, variantId);
 	}
-	let base = db.prepare(`SELECT * FROM bases WHERE product_id = ? AND name = ?`).get(productId, item.base);
+	let base = db.prepare(`SELECT * FROM bases WHERE product_id = ? AND TRIM(name) = TRIM(?) COLLATE NOCASE`).get(productId, baseName);
 	let baseId;
-	if (!base) baseId = db.prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`).run(productId, item.base).lastInsertRowid;
+	if (!base) baseId = db.prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`).run(productId, baseName).lastInsertRowid;
 	else baseId = base.id;
-	if (!db.prepare(`SELECT * FROM base_stock WHERE base_id = ? AND variant_id = ?`).get(baseId, variantId)) db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`).run(baseId, variantId, parseFloat(item.quantity));
-	else db.prepare(`UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?`).run(parseFloat(item.quantity), baseId, variantId);
+	if (!db.prepare(`SELECT * FROM base_stock WHERE base_id = ? AND variant_id = ?`).get(baseId, variantId)) db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`).run(baseId, variantId, quantity);
+	else db.prepare(`UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?`).run(quantity, baseId, variantId);
 }
 function reverseImportItemFromStock(item) {
 	adjustStock(item.product_name, item.base, item.bucket_size, -item.quantity);

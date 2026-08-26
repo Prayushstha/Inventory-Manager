@@ -160,19 +160,19 @@ export function getProducts() {
       .prepare(`SELECT * FROM bases WHERE product_id = ?`)
       .all(product.id);
 
-   for (const base of bases) {
-  const stockRows = db
-    .prepare(`SELECT variant_id, stock FROM base_stock WHERE base_id = ?`)
-    .all(base.id);
+    for (const base of bases) {
+      const stockRows = db
+        .prepare(`SELECT variant_id, stock FROM base_stock WHERE base_id = ?`)
+        .all(base.id);
 
-  base.stockMap = {};
-  for (const row of stockRows) {
-    base.stockMap[row.variant_id] = row.stock;
-  }
+      base.stockMap = {};
+      for (const row of stockRows) {
+        base.stockMap[row.variant_id] = row.stock;
+      }
 
-  // keep .stocks too, for any other screens still using it positionally
-  base.stocks = product.variants.map((v) => base.stockMap[v.id] ?? 0);
-}
+      // keep .stocks too, for any other screens still using it positionally
+      base.stocks = product.variants.map((v) => base.stockMap[v.id] ?? 0);
+    }
     product.bases = bases;
   }
 
@@ -466,19 +466,27 @@ export function editBill(billId, bill) {
   }
 }
 function adjustStock(productName, baseName, bucketSize, deltaQty) {
+  const pName = productName ? String(productName).trim() : "";
+  const bName = baseName ? String(baseName).trim() : "";
+  const bSize = parseFloat(bucketSize) || 0;
+
   const product = db
-    .prepare(`SELECT * FROM products WHERE name = ?`)
-    .get(productName);
+    .prepare(`SELECT * FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE`)
+    .get(pName);
   if (!product) return;
 
   const variant = db
-    .prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`)
-    .get(product.id, bucketSize);
+    .prepare(
+      `SELECT * FROM variants WHERE product_id = ? AND ABS(bucket_size - ?) < 0.001`,
+    )
+    .get(product.id, bSize);
   if (!variant) return;
 
   const base = db
-    .prepare(`SELECT * FROM bases WHERE product_id = ? AND name = ?`)
-    .get(product.id, baseName);
+    .prepare(
+      `SELECT * FROM bases WHERE product_id = ? AND TRIM(name) = TRIM(?) COLLATE NOCASE`,
+    )
+    .get(product.id, bName);
   if (!base) return;
 
   db.prepare(
@@ -511,7 +519,9 @@ export function getExpenses() {
 }
 
 export function deleteExpense(id) {
-  const items = db.prepare(`SELECT * FROM expense_items WHERE expense_id = ?`).all(id);
+  const items = db
+    .prepare(`SELECT * FROM expense_items WHERE expense_id = ?`)
+    .all(id);
   for (const item of items) {
     reverseImportItemFromStock(item);
   }
@@ -660,66 +670,83 @@ export function getNetPosition(period) {
   };
 }
 
-
 function applyImportItemToStock(item) {
-  let product = db.prepare(`SELECT * FROM products WHERE name = ?`).get(item.productName);
+  const productName = item.productName ? String(item.productName).trim() : "";
+  const baseName = item.base ? String(item.base).trim() : "";
+  const bucketSize = parseFloat(item.bucketSize) || 0;
+  const quantity = parseFloat(item.quantity) || 0;
+  const costPrice = parseFloat(item.costPrice) || 0;
+
+  // 1. Find or create Product (trimmed & case-insensitive)
+  let product = db
+    .prepare(`SELECT * FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE`)
+    .get(productName);
+
   let productId;
   if (!product) {
     productId = randomUUID();
     db.prepare(`INSERT INTO products (id, name, images) VALUES (?, ?, ?)`).run(
       productId,
-      item.productName,
+      productName,
       "",
     );
   } else {
     productId = product.id;
   }
 
+  // 2. Find or create Variant (tolerant float comparison)
   let variant = db
-    .prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`)
-    .get(productId, Number(item.bucketSize));
+    .prepare(
+      `SELECT * FROM variants WHERE product_id = ? AND ABS(bucket_size - ?) < 0.001`,
+    )
+    .get(productId, bucketSize);
+
   let variantId;
   if (!variant) {
     const result = db
       .prepare(
         `INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`,
       )
-      .run(productId, Number(item.bucketSize), parseFloat(item.costPrice), 0, 0);
+      .run(productId, bucketSize, costPrice, 0, 0);
     variantId = result.lastInsertRowid;
   } else {
     variantId = variant.id;
     db.prepare(`UPDATE variants SET landing = ? WHERE id = ?`).run(
-      parseFloat(item.costPrice),
+      costPrice,
       variantId,
     );
   }
 
+  // 3. Find or create Base (trimmed & case-insensitive)
   let base = db
-    .prepare(`SELECT * FROM bases WHERE product_id = ? AND name = ?`)
-    .get(productId, item.base);
+    .prepare(
+      `SELECT * FROM bases WHERE product_id = ? AND TRIM(name) = TRIM(?) COLLATE NOCASE`,
+    )
+    .get(productId, baseName);
+
   let baseId;
   if (!base) {
     const result = db
       .prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`)
-      .run(productId, item.base);
+      .run(productId, baseName);
     baseId = result.lastInsertRowid;
   } else {
     baseId = base.id;
   }
 
+  // 4. Update or Insert Stock in base_stock
   const existingStock = db
     .prepare(`SELECT * FROM base_stock WHERE base_id = ? AND variant_id = ?`)
     .get(baseId, variantId);
+
   if (!existingStock) {
-    db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`).run(
-      baseId,
-      variantId,
-      parseFloat(item.quantity),
-    );
+    db.prepare(
+      `INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`,
+    ).run(baseId, variantId, quantity);
   } else {
     db.prepare(
       `UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?`,
-    ).run(parseFloat(item.quantity), baseId, variantId);
+    ).run(quantity, baseId, variantId);
   }
 }
 
@@ -730,7 +757,8 @@ function reverseImportItemFromStock(item) {
 
 export function recordImportExpense(expenseMeta, items) {
   const totalCost = items.reduce(
-    (sum, i) => sum + (parseFloat(i.costPrice) || 0) * (parseFloat(i.quantity) || 0),
+    (sum, i) =>
+      sum + (parseFloat(i.costPrice) || 0) * (parseFloat(i.quantity) || 0),
     0,
   );
 
@@ -742,15 +770,19 @@ export function recordImportExpense(expenseMeta, items) {
     }
 
     const result = db
-      .prepare(`INSERT INTO expenses (date, label, amount, type) VALUES (?, ?, ?, ?)`)
+      .prepare(
+        `INSERT INTO expenses (date, label, amount, type) VALUES (?, ?, ?, ?)`,
+      )
       .run(expenseMeta.date, expenseMeta.nameOfExpense, totalCost, "Import");
     expenseId = result.lastInsertRowid;
 
     for (const item of items) {
-      db.prepare(`
+      db.prepare(
+        `
         INSERT INTO expense_items (expense_id, product_name, base, bucket_size, quantity, cost_price)
         VALUES (?, ?, ?, ?, ?, ?)
-      `).run(
+      `,
+      ).run(
         expenseId,
         item.productName,
         item.base,
@@ -767,10 +799,13 @@ export function recordImportExpense(expenseMeta, items) {
 }
 
 export function editImportExpense(expenseId, expenseMeta, newItems) {
-  const oldItems = db.prepare(`SELECT * FROM expense_items WHERE expense_id = ?`).all(expenseId);
+  const oldItems = db
+    .prepare(`SELECT * FROM expense_items WHERE expense_id = ?`)
+    .all(expenseId);
 
   const totalCost = newItems.reduce(
-    (sum, i) => sum + (parseFloat(i.costPrice) || 0) * (parseFloat(i.quantity) || 0),
+    (sum, i) =>
+      sum + (parseFloat(i.costPrice) || 0) * (parseFloat(i.quantity) || 0),
     0,
   );
 
@@ -784,10 +819,12 @@ export function editImportExpense(expenseId, expenseMeta, newItems) {
     // Apply the new items
     for (const item of newItems) {
       applyImportItemToStock(item);
-      db.prepare(`
+      db.prepare(
+        `
         INSERT INTO expense_items (expense_id, product_name, base, bucket_size, quantity, cost_price)
         VALUES (?, ?, ?, ?, ?, ?)
-      `).run(
+      `,
+      ).run(
         expenseId,
         item.productName,
         item.base,
@@ -797,12 +834,9 @@ export function editImportExpense(expenseId, expenseMeta, newItems) {
       );
     }
 
-    db.prepare(`UPDATE expenses SET date = ?, label = ?, amount = ? WHERE id = ?`).run(
-      expenseMeta.date,
-      expenseMeta.nameOfExpense,
-      totalCost,
-      expenseId,
-    );
+    db.prepare(
+      `UPDATE expenses SET date = ?, label = ?, amount = ? WHERE id = ?`,
+    ).run(expenseMeta.date, expenseMeta.nameOfExpense, totalCost, expenseId);
   });
 
   run();
@@ -811,7 +845,9 @@ export function editImportExpense(expenseId, expenseMeta, newItems) {
 }
 
 export function editExpense(id, expense) {
-  db.prepare(`UPDATE expenses SET date = ?, label = ?, amount = ?, type = ? WHERE id = ?`).run(
+  db.prepare(
+    `UPDATE expenses SET date = ?, label = ?, amount = ?, type = ? WHERE id = ?`,
+  ).run(
     expense.date,
     expense.nameOfExpense,
     expense.amountOfExpense,
@@ -821,10 +857,14 @@ export function editExpense(id, expense) {
 }
 
 export function getExpenseDetails(expenseId) {
-  const expense = db.prepare(`SELECT * FROM expenses WHERE id = ?`).get(expenseId);
+  const expense = db
+    .prepare(`SELECT * FROM expenses WHERE id = ?`)
+    .get(expenseId);
   if (!expense) return null;
 
-  const items = db.prepare(`SELECT * FROM expense_items WHERE expense_id = ?`).all(expenseId);
+  const items = db
+    .prepare(`SELECT * FROM expense_items WHERE expense_id = ?`)
+    .all(expenseId);
 
   return {
     id: expense.id,
@@ -855,7 +895,10 @@ function getLandingPrice(productName, bucketSize) {
   return variant ? variant.landing : 0;
 }
 export function deleteBaseStock(baseId, variantId) {
-  db.prepare(`DELETE FROM base_stock WHERE base_id = ? AND variant_id = ?`).run(baseId, variantId);
+  db.prepare(`DELETE FROM base_stock WHERE base_id = ? AND variant_id = ?`).run(
+    baseId,
+    variantId,
+  );
 }
 
 export function deleteVariant(variantId) {
