@@ -779,7 +779,16 @@ db.exec(`
     phone TEXT,
     address TEXT
   );
-
+  CREATE TABLE IF NOT EXISTS expense_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  expense_id INTEGER NOT NULL,
+  product_name TEXT NOT NULL,
+  base TEXT,
+  bucket_size REAL,
+  quantity REAL NOT NULL,
+  cost_price REAL NOT NULL,
+  FOREIGN KEY (expense_id) REFERENCES expenses(id)
+);
   CREATE TABLE IF NOT EXISTS bills (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     customer_id INTEGER NOT NULL,
@@ -983,6 +992,9 @@ function getExpenses() {
 	}));
 }
 function deleteExpense(id) {
+	const items = db.prepare(`SELECT * FROM expense_items WHERE expense_id = ?`).all(id);
+	for (const item of items) reverseImportItemFromStock(item);
+	db.prepare(`DELETE FROM expense_items WHERE expense_id = ?`).run(id);
 	db.prepare(`DELETE FROM expenses WHERE id = ?`).run(id);
 }
 function getSales() {
@@ -1080,33 +1092,84 @@ function getNetPosition(period) {
 		recentActivity
 	};
 }
+function applyImportItemToStock(item) {
+	let product = db.prepare(`SELECT * FROM products WHERE name = ?`).get(item.productName);
+	let productId;
+	if (!product) {
+		productId = randomUUID();
+		db.prepare(`INSERT INTO products (id, name, images) VALUES (?, ?, ?)`).run(productId, item.productName, "");
+	} else productId = product.id;
+	let variant = db.prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`).get(productId, Number(item.bucketSize));
+	let variantId;
+	if (!variant) variantId = db.prepare(`INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`).run(productId, Number(item.bucketSize), parseFloat(item.costPrice), 0, 0).lastInsertRowid;
+	else {
+		variantId = variant.id;
+		db.prepare(`UPDATE variants SET landing = ? WHERE id = ?`).run(parseFloat(item.costPrice), variantId);
+	}
+	let base = db.prepare(`SELECT * FROM bases WHERE product_id = ? AND name = ?`).get(productId, item.base);
+	let baseId;
+	if (!base) baseId = db.prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`).run(productId, item.base).lastInsertRowid;
+	else baseId = base.id;
+	if (!db.prepare(`SELECT * FROM base_stock WHERE base_id = ? AND variant_id = ?`).get(baseId, variantId)) db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`).run(baseId, variantId, parseFloat(item.quantity));
+	else db.prepare(`UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?`).run(parseFloat(item.quantity), baseId, variantId);
+}
+function reverseImportItemFromStock(item) {
+	adjustStock(item.product_name, item.base, item.bucket_size, -item.quantity);
+}
 function recordImportExpense(expenseMeta, items) {
 	const totalCost = items.reduce((sum, i) => sum + (parseFloat(i.costPrice) || 0) * (parseFloat(i.quantity) || 0), 0);
+	let expenseId;
 	db.transaction(() => {
-		for (const item of items) {
-			let product = db.prepare(`SELECT * FROM products WHERE name = ?`).get(item.productName);
-			let productId;
-			if (!product) {
-				productId = randomUUID();
-				db.prepare(`INSERT INTO products (id, name, images) VALUES (?, ?, ?)`).run(productId, item.productName, "");
-			} else productId = product.id;
-			let variant = db.prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`).get(productId, Number(item.bucketSize));
-			let variantId;
-			if (!variant) variantId = db.prepare(`INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`).run(productId, Number(item.bucketSize), parseFloat(item.costPrice), 0, 0).lastInsertRowid;
-			else {
-				variantId = variant.id;
-				db.prepare(`UPDATE variants SET landing = ? WHERE id = ?`).run(parseFloat(item.costPrice), variantId);
-			}
-			let base = db.prepare(`SELECT * FROM bases WHERE product_id = ? AND name = ?`).get(productId, item.base);
-			let baseId;
-			if (!base) baseId = db.prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`).run(productId, item.base).lastInsertRowid;
-			else baseId = base.id;
-			if (!db.prepare(`SELECT * FROM base_stock WHERE base_id = ? AND variant_id = ?`).get(baseId, variantId)) db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`).run(baseId, variantId, parseFloat(item.quantity));
-			else db.prepare(`UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?`).run(parseFloat(item.quantity), baseId, variantId);
+		for (const item of items) applyImportItemToStock(item);
+		expenseId = db.prepare(`INSERT INTO expenses (date, label, amount, type) VALUES (?, ?, ?, ?)`).run(expenseMeta.date, expenseMeta.nameOfExpense, totalCost, "Import").lastInsertRowid;
+		for (const item of items) db.prepare(`
+        INSERT INTO expense_items (expense_id, product_name, base, bucket_size, quantity, cost_price)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).run(expenseId, item.productName, item.base, Number(item.bucketSize), parseFloat(item.quantity), parseFloat(item.costPrice));
+	})();
+	return {
+		id: expenseId,
+		totalCost
+	};
+}
+function editImportExpense(expenseId, expenseMeta, newItems) {
+	const oldItems = db.prepare(`SELECT * FROM expense_items WHERE expense_id = ?`).all(expenseId);
+	const totalCost = newItems.reduce((sum, i) => sum + (parseFloat(i.costPrice) || 0) * (parseFloat(i.quantity) || 0), 0);
+	db.transaction(() => {
+		for (const item of oldItems) reverseImportItemFromStock(item);
+		db.prepare(`DELETE FROM expense_items WHERE expense_id = ?`).run(expenseId);
+		for (const item of newItems) {
+			applyImportItemToStock(item);
+			db.prepare(`
+        INSERT INTO expense_items (expense_id, product_name, base, bucket_size, quantity, cost_price)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).run(expenseId, item.productName, item.base, Number(item.bucketSize), parseFloat(item.quantity), parseFloat(item.costPrice));
 		}
-		db.prepare(`INSERT INTO expenses (date, label, amount, type) VALUES (?, ?, ?, ?)`).run(expenseMeta.date, expenseMeta.nameOfExpense, totalCost, "Import");
+		db.prepare(`UPDATE expenses SET date = ?, label = ?, amount = ? WHERE id = ?`).run(expenseMeta.date, expenseMeta.nameOfExpense, totalCost, expenseId);
 	})();
 	return totalCost;
+}
+function editExpense(id, expense) {
+	db.prepare(`UPDATE expenses SET date = ?, label = ?, amount = ?, type = ? WHERE id = ?`).run(expense.date, expense.nameOfExpense, expense.amountOfExpense, expense.typeOfExpense, id);
+}
+function getExpenseDetails(expenseId) {
+	const expense = db.prepare(`SELECT * FROM expenses WHERE id = ?`).get(expenseId);
+	if (!expense) return null;
+	const items = db.prepare(`SELECT * FROM expense_items WHERE expense_id = ?`).all(expenseId);
+	return {
+		id: expense.id,
+		date: expense.date,
+		nameOfExpense: expense.label,
+		typeOfExpense: expense.type,
+		amountOfExpense: expense.amount,
+		items: items.map((i) => ({
+			productName: i.product_name,
+			base: i.base,
+			bucketSize: i.bucket_size,
+			quantity: i.quantity,
+			costPrice: i.cost_price
+		}))
+	};
 }
 function getLandingPrice(productName, bucketSize) {
 	const product = db.prepare(`SELECT * FROM products WHERE name = ?`).get(productName);
@@ -1303,6 +1366,9 @@ app.whenReady().then(() => {
 	ipcMain.handle("db:addCustomer", (_, customer) => addCustomer(customer));
 	ipcMain.handle("db:addBill", (_, customerId, bill) => addBill(customerId, bill));
 	ipcMain.handle("db:editCustomer", (_, id, customer) => editCustomer(id, customer));
+	ipcMain.handle("db:getExpenseDetails", (_, id) => getExpenseDetails(id));
+	ipcMain.handle("db:editExpense", (_, id, expense) => editExpense(id, expense));
+	ipcMain.handle("db:editImportExpense", (_, id, expenseMeta, items) => editImportExpense(id, expenseMeta, items));
 	ipcMain.handle("db:editBill", (_, billId, bill) => editBill(billId, bill));
 	ipcMain.handle("db:getCustomers", () => getCustomers());
 	ipcMain.handle("db:deleteCustomer", (_, id) => deleteCustomer(id));

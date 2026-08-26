@@ -1,5 +1,6 @@
-import '../styles/viewexpenses.css'
-import { useState, useEffect } from 'react';
+import "../styles/viewexpenses.css";
+import { useState, useEffect } from "react";
+import { ExpenseDetailDialog } from "./ExpenseDetailDialog";
 
 function getRangeStart(period) {
   const now = new Date();
@@ -20,6 +21,7 @@ function getRangeStart(period) {
 }
 
 export function ViewExpenses() {
+  const [selectedExpenseId, setSelectedExpenseId] = useState(null);
   const [viewingBtn, setViewingBtn] = useState(1);
   const [expenses, setExpenses] = useState([]);
 
@@ -42,10 +44,30 @@ export function ViewExpenses() {
       <div className="expenses-top">
         <h4>View Expenses:</h4>
         <div className="switch-btns">
-          <button onClick={() => setViewingBtn(1)} className={`switch-viewing-btn ${viewingBtn === 1 ? "switch-viewing-btn-active" : ""}`}>This Week</button>
-          <button onClick={() => setViewingBtn(2)} className={`switch-viewing-btn ${viewingBtn === 2 ? "switch-viewing-btn-active" : ""}`}>This Month</button>
-          <button onClick={() => setViewingBtn(3)} className={`switch-viewing-btn ${viewingBtn === 3 ? "switch-viewing-btn-active" : ""}`}>This Year</button>
-          <button onClick={() => setViewingBtn(4)} className={`switch-viewing-btn switch-viewing-btn-custom ${viewingBtn === 4 ? "switch-viewing-btn-active" : ""}`}>...</button>
+          <button
+            onClick={() => setViewingBtn(1)}
+            className={`switch-viewing-btn ${viewingBtn === 1 ? "switch-viewing-btn-active" : ""}`}
+          >
+            This Week
+          </button>
+          <button
+            onClick={() => setViewingBtn(2)}
+            className={`switch-viewing-btn ${viewingBtn === 2 ? "switch-viewing-btn-active" : ""}`}
+          >
+            This Month
+          </button>
+          <button
+            onClick={() => setViewingBtn(3)}
+            className={`switch-viewing-btn ${viewingBtn === 3 ? "switch-viewing-btn-active" : ""}`}
+          >
+            This Year
+          </button>
+          <button
+            onClick={() => setViewingBtn(4)}
+            className={`switch-viewing-btn switch-viewing-btn-custom ${viewingBtn === 4 ? "switch-viewing-btn-active" : ""}`}
+          >
+            ...
+          </button>
         </div>
       </div>
       <div className="expenses-overview-table">
@@ -54,14 +76,29 @@ export function ViewExpenses() {
             <h1>NO EXPENSES RECORDED</h1>
           </div>
         ) : (
-          <ExpensesTable expenses={filtered} onDeleted={fetchExpenses} />
+          <ExpensesTable
+            expenses={filtered}
+            onDeleted={fetchExpenses}
+            onSelect={setSelectedExpenseId}
+          />
         )}
       </div>
+
+      {selectedExpenseId && (
+        <ExpenseDetailDialog
+          expenseId={selectedExpenseId}
+          onClose={() => setSelectedExpenseId(null)}
+          onSaved={() => {
+            setSelectedExpenseId(null);
+            fetchExpenses();
+          }}
+        />
+      )}
     </div>
   );
 }
 
-function ExpensesTable({ expenses, onDeleted }) {
+function ExpensesTable({ expenses, onDeleted, onSelect }) {
   async function handleDelete(id) {
     await window.db.deleteExpense(id);
     onDeleted();
@@ -82,14 +119,20 @@ function ExpensesTable({ expenses, onDeleted }) {
         </thead>
         <tbody>
           {expenses.map((expense, i) => (
-            <tr key={expense.id}>
+            <tr
+              key={expense.id}
+              onClick={() => onSelect(expense.id)}
+              style={{ cursor: "pointer" }}
+            >
               <td>{i + 1}</td>
               <td>{new Date(expense.date).toLocaleDateString()}</td>
               <td>{expense.nameOfExpense}</td>
               <td>{expense.typeOfExpense}</td>
               <td>NPR {expense.amountOfExpense.toLocaleString()}</td>
-              <td>
-                <button className="details-btn" onClick={() => handleDelete(expense.id)}>Delete</button>
+              <td onClick={(e) => e.stopPropagation()}>
+                <button className="details-btn" onClick={() => handleDelete(expense.id)}>
+                  Delete
+                </button>
               </td>
             </tr>
           ))}

@@ -37,5 +37,11 @@ contextBridge.exposeInMainWorld("db", {
   deleteExpense: (id) => ipcRenderer.invoke("db:deleteExpense", id),
   getSales: () => ipcRenderer.invoke("db:getSales"),
   getNetPosition: (period) => ipcRenderer.invoke("db:getNetPosition", period),
-  recordImportExpense: (expenseMeta, items) => ipcRenderer.invoke('db:recordImportExpense', expenseMeta, items),
+  recordImportExpense: (expenseMeta, items) =>
+    ipcRenderer.invoke("db:recordImportExpense", expenseMeta, items),
+  getExpenseDetails: (id) => ipcRenderer.invoke("db:getExpenseDetails", id),
+  editExpense: (id, expense) =>
+    ipcRenderer.invoke("db:editExpense", id, expense),
+  editImportExpense: (id, expenseMeta, items) =>
+    ipcRenderer.invoke("db:editImportExpense", id, expenseMeta, items),
 });

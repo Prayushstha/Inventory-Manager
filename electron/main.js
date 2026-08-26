@@ -6,6 +6,9 @@ import { pathToFileURL } from "url";
 import {
   addProduct,
   getProducts,
+  getExpenseDetails,
+  editExpense,
+  editImportExpense,
   deleteProduct,
   editProduct,
   getProductByName,
@@ -108,6 +111,13 @@ app.whenReady().then(() => {
   ipcMain.handle("db:editCustomer", (_, id, customer) =>
     editCustomer(id, customer),
   );
+  ipcMain.handle("db:getExpenseDetails", (_, id) => getExpenseDetails(id));
+  ipcMain.handle("db:editExpense", (_, id, expense) =>
+    editExpense(id, expense),
+  );
+  ipcMain.handle("db:editImportExpense", (_, id, expenseMeta, items) =>
+    editImportExpense(id, expenseMeta, items),
+  );
   ipcMain.handle("db:editBill", (_, billId, bill) => editBill(billId, bill));
   ipcMain.handle("db:getCustomers", () => getCustomers());
   ipcMain.handle("db:deleteCustomer", (_, id) => deleteCustomer(id));
@@ -123,9 +133,9 @@ app.whenReady().then(() => {
     if (result.canceled || result.filePaths.length === 0) return null;
     return result.filePaths[0];
   });
-ipcMain.handle("db:recordImportExpense", (_, expenseMeta, items) =>
-  recordImportExpense(expenseMeta, items),
-);
+  ipcMain.handle("db:recordImportExpense", (_, expenseMeta, items) =>
+    recordImportExpense(expenseMeta, items),
+  );
   ipcMain.handle("db:importExcel", (_, filePath) =>
     importProductsFromExcel(filePath),
   );
