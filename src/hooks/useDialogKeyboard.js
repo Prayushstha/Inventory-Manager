@@ -24,19 +24,25 @@ export function useDialogKeyboard({
     if (!enabled) return;
 
     function handleKeyDown(e) {
-      // Ctrl+S or Cmd+S to save
+      // Only handle if an input field is focused
+      const isFocusedOnInput = e.target?.tagName === 'INPUT' || e.target?.tagName === 'SELECT' || e.target?.tagName === 'TEXTAREA';
+
+      // Ctrl+S or Cmd+S to save (any element)
       if ((e.ctrlKey || e.metaKey) && e.key === "s") {
         e.preventDefault();
         onSave?.();
         return;
       }
 
-      // Escape to close
+      // Escape to close (any element)
       if (e.key === "Escape") {
         e.preventDefault();
         onClose?.();
         return;
       }
+
+      // Only process other shortcuts when focused on an input
+      if (!isFocusedOnInput) return;
 
       // Shift+Enter to add item
       if (e.shiftKey && e.key === "Enter") {
@@ -51,8 +57,11 @@ export function useDialogKeyboard({
           e.preventDefault();
           const nextIndex = (currentFieldIndex + 1) % fields.length;
           onFieldChange(nextIndex);
-          const nextField = fields[nextIndex]?.current || fields[nextIndex];
-          nextField?.focus?.();
+          // Use setTimeout to ensure state update completes first
+          setTimeout(() => {
+            const nextField = fields[nextIndex]?.current || fields[nextIndex];
+            nextField?.focus?.();
+          }, 0);
           return;
         }
 
@@ -60,8 +69,11 @@ export function useDialogKeyboard({
           e.preventDefault();
           const prevIndex = currentFieldIndex - 1 < 0 ? fields.length - 1 : currentFieldIndex - 1;
           onFieldChange(prevIndex);
-          const prevField = fields[prevIndex]?.current || fields[prevIndex];
-          prevField?.focus?.();
+          // Use setTimeout to ensure state update completes first
+          setTimeout(() => {
+            const prevField = fields[prevIndex]?.current || fields[prevIndex];
+            prevField?.focus?.();
+          }, 0);
           return;
         }
       }
