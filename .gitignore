@@ -20,8 +20,10 @@ src\Database\inventory.db
 .DS_Store
 *.suo
 *.ntvs*
+.claude
 *.njsproj
 *.sln
 *.sw?
+$Home
 src/Database/images/
 src/Database/*.db
