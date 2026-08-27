@@ -51,7 +51,8 @@ export function useDialogKeyboard({
           e.preventDefault();
           const nextIndex = (currentFieldIndex + 1) % fields.length;
           onFieldChange(nextIndex);
-          fields[nextIndex]?.focus();
+          const nextField = fields[nextIndex]?.current || fields[nextIndex];
+          nextField?.focus?.();
           return;
         }
 
@@ -59,7 +60,8 @@ export function useDialogKeyboard({
           e.preventDefault();
           const prevIndex = currentFieldIndex - 1 < 0 ? fields.length - 1 : currentFieldIndex - 1;
           onFieldChange(prevIndex);
-          fields[prevIndex]?.focus();
+          const prevField = fields[prevIndex]?.current || fields[prevIndex];
+          prevField?.focus?.();
           return;
         }
       }
