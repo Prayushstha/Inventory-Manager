@@ -91,10 +91,38 @@ The output will be in the `release/` folder.
 - View full bill history
 
 ### 4. Finances
-> Work in Progress
+- View and manage all business expenses
+- Track two types of expenses: General expenses and Product imports
+- **General Expenses**: Record operational costs (rent, utilities, salaries, etc.)
+- **Import Expenses**: Track bulk product imports with detailed item-level breakdown
+  - Record product name, base, bucket size, quantity, and cost price per item
+  - Automatically calculate total import cost
+  - Items are added to stock upon import
+- View complete expense history with dates and amounts
+- Edit or delete expense records as needed
+- Use keyboard shortcuts (`Shift+Enter`) for rapid data entry
 
 ### 5. Analytics
-> Work in Progress
+- Real-time financial performance dashboard
+- **Summary Statistics**:
+  - Total revenue earned (monthly/yearly)
+  - Operating expenses breakdown
+  - Outstanding payables to customers
+  - Net profit calculation
+  - Profit margin percentage
+  - Expense ratio analysis
+  - Average profit per sale
+  - Top performing product category
+- **Top Performers**:
+  - Top 5 products by revenue with units sold
+  - Top 5 customers by total spending and order count
+- **Recent Activity Feed**:
+  - Last 8 transactions (sales and expenses)
+  - Chronologically sorted with amounts and dates
+- **Period Filtering**:
+  - Switch between monthly and yearly views
+  - All metrics update automatically
+- Data sourced directly from database for real-time accuracy
 
 ---
 
