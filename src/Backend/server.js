@@ -599,7 +599,10 @@ export function getNetPosition(period) {
     const diff = now.getDate() - day + (day === 0 ? -6 : 1);
     const monday = new Date(now.getFullYear(), now.getMonth(), diff);
     startDate = monday.toISOString().slice(0, 10);
-  } else {
+  }else if (period === "all"){
+    startDate = "0000-01-01";
+  } 
+  else {
     startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
   }
 

@@ -1055,7 +1055,8 @@ function getNetPosition(period) {
 		const day = now.getDay();
 		const diff = now.getDate() - day + (day === 0 ? -6 : 1);
 		startDate = new Date(now.getFullYear(), now.getMonth(), diff).toISOString().slice(0, 10);
-	} else startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+	} else if (period === "all") startDate = "0000-01-01";
+	else startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
 	const bills = db.prepare(`SELECT * FROM bills WHERE date >= ?`).all(startDate);
 	let totalEarned = 0;
 	let totalCost = 0;

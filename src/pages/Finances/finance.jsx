@@ -29,7 +29,7 @@ const PERIOD_MAP = {
   1: "weekly",
   2: "monthly",
   3: "yearly",
-  4: "yearly", // custom range not implemented yet, falls back to yearly
+  4: "all", 
 };
 
 export function FinancePage() {
