@@ -1100,6 +1100,59 @@ function getNetPosition(period) {
 		recentActivity
 	};
 }
+function getTopProducts(period, limit = 5) {
+	const now = /* @__PURE__ */ new Date();
+	let startDate;
+	if (period === "yearly") startDate = `${now.getFullYear()}-01-01`;
+	else if (period === "weekly") {
+		const day = now.getDay();
+		const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+		startDate = new Date(now.getFullYear(), now.getMonth(), diff).toISOString().slice(0, 10);
+	} else startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+	const bills = db.prepare(`SELECT * FROM bills WHERE date >= ?`).all(startDate);
+	const productStats = {};
+	for (const bill of bills) {
+		const items = db.prepare(`SELECT * FROM bill_items WHERE bill_id = ?`).all(bill.id);
+		for (const item of items) {
+			if (!productStats[item.product_name]) productStats[item.product_name] = {
+				units: 0,
+				revenue: 0
+			};
+			productStats[item.product_name].units += item.quantity;
+			productStats[item.product_name].revenue += item.price_at_sale * item.quantity;
+		}
+	}
+	return Object.entries(productStats).map(([name, stats]) => ({
+		name,
+		units: stats.units,
+		revenue: stats.revenue
+	})).sort((a, b) => b.revenue - a.revenue).slice(0, limit);
+}
+function getTopCustomers(period, limit = 5) {
+	const now = /* @__PURE__ */ new Date();
+	let startDate;
+	if (period === "yearly") startDate = `${now.getFullYear()}-01-01`;
+	else if (period === "weekly") {
+		const day = now.getDay();
+		const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+		startDate = new Date(now.getFullYear(), now.getMonth(), diff).toISOString().slice(0, 10);
+	} else startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+	const bills = db.prepare(`SELECT * FROM bills WHERE date >= ?`).all(startDate);
+	const customerStats = {};
+	for (const bill of bills) {
+		const customer = db.prepare(`SELECT * FROM customers WHERE id = ?`).get(bill.customer_id);
+		if (customer) {
+			if (!customerStats[customer.id]) customerStats[customer.id] = {
+				name: customer.name,
+				orders: 0,
+				spend: 0
+			};
+			customerStats[customer.id].orders += 1;
+			customerStats[customer.id].spend += bill.total_purchased;
+		}
+	}
+	return Object.values(customerStats).sort((a, b) => b.spend - a.spend).slice(0, limit);
+}
 function applyImportItemToStock(item) {
 	const productName = item.productName ? String(item.productName).trim() : "";
 	const baseName = item.base ? String(item.base).trim() : "";
@@ -1410,6 +1463,8 @@ app.whenReady().then(() => {
 	ipcMain.handle("db:copyImage", (_, sourcePath) => copyImageToDatabase(sourcePath));
 	ipcMain.handle("db:deleteBaseStock", (_, baseId, variantId) => deleteBaseStock(baseId, variantId));
 	ipcMain.handle("db:deleteVariant", (_, variantId) => deleteVariant(variantId));
+	ipcMain.handle("db:getTopProducts", (_, period) => getTopProducts(period));
+	ipcMain.handle("db:getTopCustomers", (_, period) => getTopCustomers(period));
 	ipcMain.handle("dialog:pickImage", async () => {
 		const result = await dialog.showOpenDialog({
 			properties: ["openFile"],

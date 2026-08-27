@@ -1,10 +1,3 @@
-const CUSTOMERS = [
-  { name: "Sujata Thapa", orders: 6, spend: 21400 },
-  { name: "Anish Rai", orders: 5, spend: 15200 },
-  { name: "Bikash Shrestha", orders: 4, spend: 12800 },
-  { name: "Nisha Gurung", orders: 3, spend: 9100 },
-  { name: "Prakash KC", orders: 2, spend: 6200 },
-];
 function initials(name) {
   return name
     .split(" ")
@@ -14,8 +7,9 @@ function initials(name) {
     .toUpperCase();
 }
 
-export function TopCustomers({ Card, Eyebrow }) {
-  const max = Math.max(...CUSTOMERS.map((c) => c.spend));
+export function TopCustomers({ Card, Eyebrow, customers = [] }) {
+  const displayCustomers = customers.length > 0 ? customers : [];
+  const max = displayCustomers.length > 0 ? Math.max(...displayCustomers.map((c) => c.spend)) : 1;
   return (
     <Card style={{width: "48%"}}>
       <Eyebrow color="var(--warning)" tint="rgba(230,168,23,0.14)">
@@ -24,7 +18,7 @@ export function TopCustomers({ Card, Eyebrow }) {
       <h3 className="card-title">Top customers</h3>
 
       <div className="item-list">
-        {CUSTOMERS.map((c) => (
+        {displayCustomers.map((c) => (
           <div key={c.name} className="customer-row">
             <div className="customer-avatar">{initials(c.name)}</div>
             <div className="customer-details">

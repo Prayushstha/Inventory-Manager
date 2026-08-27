@@ -670,6 +670,99 @@ export function getNetPosition(period) {
   };
 }
 
+export function getTopProducts(period, limit = 5) {
+  const now = new Date();
+  let startDate;
+
+  if (period === "yearly") {
+    startDate = `${now.getFullYear()}-01-01`;
+  } else if (period === "weekly") {
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(now.getFullYear(), now.getMonth(), diff);
+    startDate = monday.toISOString().slice(0, 10);
+  } else {
+    startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  }
+
+  const bills = db
+    .prepare(`SELECT * FROM bills WHERE date >= ?`)
+    .all(startDate);
+
+  const productStats = {};
+
+  for (const bill of bills) {
+    const items = db
+      .prepare(`SELECT * FROM bill_items WHERE bill_id = ?`)
+      .all(bill.id);
+
+    for (const item of items) {
+      if (!productStats[item.product_name]) {
+        productStats[item.product_name] = { units: 0, revenue: 0 };
+      }
+      productStats[item.product_name].units += item.quantity;
+      productStats[item.product_name].revenue += item.price_at_sale * item.quantity;
+    }
+  }
+
+  const topProducts = Object.entries(productStats)
+    .map(([name, stats]) => ({
+      name,
+      units: stats.units,
+      revenue: stats.revenue,
+    }))
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, limit);
+
+  return topProducts;
+}
+
+export function getTopCustomers(period, limit = 5) {
+  const now = new Date();
+  let startDate;
+
+  if (period === "yearly") {
+    startDate = `${now.getFullYear()}-01-01`;
+  } else if (period === "weekly") {
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(now.getFullYear(), now.getMonth(), diff);
+    startDate = monday.toISOString().slice(0, 10);
+  } else {
+    startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  }
+
+  const bills = db
+    .prepare(`SELECT * FROM bills WHERE date >= ?`)
+    .all(startDate);
+
+  const customerStats = {};
+
+  for (const bill of bills) {
+    const customer = db
+      .prepare(`SELECT * FROM customers WHERE id = ?`)
+      .get(bill.customer_id);
+
+    if (customer) {
+      if (!customerStats[customer.id]) {
+        customerStats[customer.id] = {
+          name: customer.name,
+          orders: 0,
+          spend: 0,
+        };
+      }
+      customerStats[customer.id].orders += 1;
+      customerStats[customer.id].spend += bill.total_purchased;
+    }
+  }
+
+  const topCustomers = Object.values(customerStats)
+    .sort((a, b) => b.spend - a.spend)
+    .slice(0, limit);
+
+  return topCustomers;
+}
+
 function applyImportItemToStock(item) {
   const productName = item.productName ? String(item.productName).trim() : "";
   const baseName = item.base ? String(item.base).trim() : "";

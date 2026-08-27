@@ -35,6 +35,8 @@ import {
   deleteExpense,
   getSales,
   getNetPosition,
+  getTopProducts,
+  getTopCustomers,
 } from "../src/Backend/server.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -150,6 +152,12 @@ app.whenReady().then(() => {
   );
   ipcMain.handle("db:deleteVariant", (_, variantId) =>
     deleteVariant(variantId),
+  );
+  ipcMain.handle("db:getTopProducts", (_, period) =>
+    getTopProducts(period),
+  );
+  ipcMain.handle("db:getTopCustomers", (_, period) =>
+    getTopCustomers(period),
   );
   ipcMain.handle("dialog:pickImage", async () => {
     const result = await dialog.showOpenDialog({

@@ -1,13 +1,6 @@
-const PRODUCTS = [
-  { name: "Apex Ultima", units: 18, revenue: 81000 },
-  { name: "Royal Emulsion", units: 14, revenue: 16800 },
-  { name: "Tactor Emulsion", units: 9, revenue: 19800 },
-  { name: "Exterior Wall Primer", units: 7, revenue: 12600 },
-  { name: "Enamel", units: 5, revenue: 15500 },
-];
-
-export function TopProducts({ Card, Eyebrow }) {
-  const max = Math.max(...PRODUCTS.map((p) => p.revenue));
+export function TopProducts({ Card, Eyebrow, products = [] }) {
+  const displayProducts = products.length > 0 ? products : [];
+  const max = displayProducts.length > 0 ? Math.max(...displayProducts.map((p) => p.revenue)) : 1;
   return (
     <Card style={{width: "48%"}}>
       <Eyebrow color="var(--info)" tint="rgba(55,138,221,0.14)">
@@ -16,7 +9,7 @@ export function TopProducts({ Card, Eyebrow }) {
       <h3 className="card-title">Top products</h3>
 
       <div className="item-list">
-        {PRODUCTS.map((p, i) => (
+        {displayProducts.map((p, i) => (
           <div key={p.name}>
             <div className="product-row-top">
               <div className="analytics-product-info">
