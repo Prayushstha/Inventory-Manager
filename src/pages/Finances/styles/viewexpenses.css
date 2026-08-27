@@ -1,13 +1,12 @@
 .view-expenses {
   margin-top: 40px !important;
-  max-height: 600px;
   border: 1px solid var(--border-color);
   margin: 1rem;
   border-radius: 10px;
   background-color: var(--background-secondary);
   display: flex;
   flex-direction: column;
-  
+  height: max-content;
 }
 .expenses-top {
   display: flex;

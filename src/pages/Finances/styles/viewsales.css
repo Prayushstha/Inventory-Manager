@@ -1,11 +1,11 @@
 .view-sales {
-  max-height: 600px;
   border: 1px solid var(--border-color);
   margin: 1rem;
   border-radius: 10px;
   background-color: var(--background-secondary);
   display: flex;
   flex-direction: column;
+  height: max-content;
   
 }
 .sales-top {
