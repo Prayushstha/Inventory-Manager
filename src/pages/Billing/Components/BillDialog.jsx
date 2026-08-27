@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useToast } from "../../../hooks/ToastContext";
+import { useDialogKeyboard } from "../../../hooks/useDialogKeyboard";
 function normalizeProduct(p) {
   return {
     productName: p.productName ?? p.product_name ?? "",
@@ -28,6 +29,12 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
   const showToast = useToast();
 
   const [productOption, setProductOption] = useState("");
+  const [currentFieldIndex, setCurrentFieldIndex] = useState(0);
+  const productNameRef = useRef(null);
+  const quantityRef = useRef(null);
+  const priceRef = useRef(null);
+  const productFieldRefs = [productNameRef, quantityRef, priceRef];
+
   const filteredFromOptions = products.filter((p) =>
     p.name === productOption
   );
@@ -39,6 +46,17 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
   const [isEditing, setIsEditing] = useState(isNew);
   const [showProductPopup, setShowProductPopup] = useState(false);
   const [productForm, setProductForm] = useState(emptyProductForm);
+
+  // Keyboard shortcuts for product form
+  useDialogKeyboard({
+    onSave: handleAddProduct,
+    onClose: () => setShowProductPopup(false),
+    onAddItem: handleAddProduct,
+    fields: productFieldRefs,
+    currentFieldIndex,
+    onFieldChange: setCurrentFieldIndex,
+    enabled: showProductPopup && isEditing,
+  });
 
   const locked = !isEditing;
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -258,6 +276,7 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
                 >
                   <p className="section-label">Add Product</p>
                   <input
+                    ref={productNameRef}
                     type="text"
                     placeholder="Enter A product name or Select"
                     value={productForm.productName}
@@ -325,6 +344,7 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
                 
                   </select>
                   <input
+                    ref={quantityRef}
                     type="number"
                     placeholder="Quantity"
                     value={productForm.quantity}
@@ -336,6 +356,7 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
                     }
                   />
                   <input
+                    ref={priceRef}
                     type="number"
                     placeholder="Price of sale"
                     value={productForm.priceAtSale}

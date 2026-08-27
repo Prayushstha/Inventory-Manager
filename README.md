@@ -98,6 +98,44 @@ The output will be in the `release/` folder.
 
 ---
 
+## Keyboard Shortcuts
+
+For faster data entry, the following keyboard shortcuts are available in dialogs and forms:
+
+### Universal Shortcuts (All Dialogs)
+| Shortcut | Action | Details |
+|----------|--------|---------|
+| `Escape` | Close Dialog | Closes the current dialog without saving |
+| `Ctrl+S` / `Cmd+S` | Save | Saves the current form (when applicable) |
+| `Shift+Enter` | Add Item | Adds the current item to the list without closing dialog (e.g., add product to bill) |
+| `↑ / ↓ Arrow` | Navigate Fields | Move between input fields up and down |
+| `← / → Arrow` | Navigate Fields | Move between input fields left and right |
+
+### Bill Dialog Shortcuts
+| Shortcut | Action | Details |
+|----------|--------|---------|
+| `Shift+Enter` | Add Product | Adds the product form data and stays in the dialog for more entries |
+| `↑ ↓ → ←` | Navigate Product Fields | Move between Product Name → Quantity → Price fields |
+
+### Add Expense Dialog Shortcuts (Import Mode)
+| Shortcut | Action | Details |
+|----------|--------|---------|
+| `Shift+Enter` | Add Import Item | Adds the import item and clears the form for the next entry |
+| `↑ ↓ → ←` | Navigate Item Fields | Move between: Product Name → Base → Bucket Size → Quantity → Cost Price |
+
+### Add Product (Inventory) Shortcuts
+| Shortcut | Action | Details |
+|----------|--------|---------|
+| `Shift+Enter` | Add Base | Adds the base name to the product (when focus is on base input) |
+
+### Tips for Efficient Data Entry
+- Use **arrow keys** to quickly navigate between fields without touching the mouse
+- Use **Shift+Enter** to rapidly add multiple items without closing the dialog
+- Use **Escape** to close a dialog and start fresh
+- Use **Ctrl+S / Cmd+S** as a quick save shortcut (same as clicking Save button)
+
+---
+
 ## Data Storage
 
 All data is stored locally in a SQLite database at `src/Database/inventory.db`. Product images are stored in `src/Database/images/`. Neither the database nor images are tracked by Git.

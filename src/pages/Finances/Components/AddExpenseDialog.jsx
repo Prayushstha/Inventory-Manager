@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useDialogKeyboard } from "../../../hooks/useDialogKeyboard";
 
 const emptyImportItem = {
   productName: "",
@@ -16,12 +17,32 @@ export function AddExpenseDialog({ onClose, onSaved }) {
 
   const [importItems, setImportItems] = useState([]);
   const [itemForm, setItemForm] = useState(emptyImportItem);
+  const [currentFieldIndex, setCurrentFieldIndex] = useState(0);
+
+  // Refs for import item fields
+  const productNameRef = useRef(null);
+  const baseRef = useRef(null);
+  const bucketSizeRef = useRef(null);
+  const quantityRef = useRef(null);
+  const costPriceRef = useRef(null);
+  const itemFieldRefs = [productNameRef, baseRef, bucketSizeRef, quantityRef, costPriceRef];
 
   const isImport = typeOfExpense === "Import";
   const importTotal = importItems.reduce(
     (sum, i) => sum + (parseFloat(i.quantity) || 0) * (parseFloat(i.costPrice) || 0),
     0,
   );
+
+  // Keyboard shortcuts for import items
+  useDialogKeyboard({
+    onSave: handleSave,
+    onClose: onClose,
+    onAddItem: handleAddItem,
+    fields: itemFieldRefs,
+    currentFieldIndex,
+    onFieldChange: setCurrentFieldIndex,
+    enabled: isImport,
+  });
 
   function handleAddItem() {
     if (!itemForm.productName || !itemForm.base || !itemForm.bucketSize || !itemForm.quantity || !itemForm.costPrice) {
@@ -116,30 +137,35 @@ export function AddExpenseDialog({ onClose, onSaved }) {
 
               <div className="field-grid">
                 <input
+                  ref={productNameRef}
                   type="text"
                   placeholder="Product name"
                   value={itemForm.productName}
                   onChange={(e) => setItemForm((f) => ({ ...f, productName: e.target.value }))}
                 />
                 <input
+                  ref={baseRef}
                   type="text"
                   placeholder="Base (e.g. AC1)"
                   value={itemForm.base}
                   onChange={(e) => setItemForm((f) => ({ ...f, base: e.target.value }))}
                 />
                 <input
+                  ref={bucketSizeRef}
                   type="number"
                   placeholder="Bucket size"
                   value={itemForm.bucketSize}
                   onChange={(e) => setItemForm((f) => ({ ...f, bucketSize: e.target.value }))}
                 />
                 <input
+                  ref={quantityRef}
                   type="number"
                   placeholder="Quantity"
                   value={itemForm.quantity}
                   onChange={(e) => setItemForm((f) => ({ ...f, quantity: e.target.value }))}
                 />
                 <input
+                  ref={costPriceRef}
                   type="number"
                   placeholder="Cost price (per unit)"
                   value={itemForm.costPrice}
