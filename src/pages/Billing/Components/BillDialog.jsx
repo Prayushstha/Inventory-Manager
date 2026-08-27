@@ -1,5 +1,9 @@
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useToast } from "../../../hooks/ToastContext";
+import { AddProductPanel } from "./AddProductPanel";
+import { BillItemsTable } from "./BillItemsTable";
+import { NumericMathInput } from "./NumericMathInput";
+
 function normalizeProduct(p) {
   return {
     productName: p.productName ?? p.product_name ?? "",
@@ -16,83 +20,86 @@ function computeStatus(totalPurchased, amountPaid) {
   return "Due";
 }
 
-const emptyProductForm = {
-  productName: "",
-  base: "",
-  bucketSize: "",
-  quantity: "",
-  priceAtSale: "",
-};
-
-export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
+export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }) {
   const showToast = useToast();
-
-  const [productOption, setProductOption] = useState("");
-  const productNameRef = useRef(null);
-  const quantityRef = useRef(null);
-  const priceRef = useRef(null);
-
-  const filteredFromOptions = products.filter((p) =>
-    p.name === productOption
-  );
 
   const [form, setForm] = useState({
     ...bill,
     products: (bill.products || []).map(normalizeProduct),
   });
   const [isEditing, setIsEditing] = useState(isNew);
-  const [showProductPopup, setShowProductPopup] = useState(false);
-  const [productForm, setProductForm] = useState(emptyProductForm);
 
-  // Handle keyboard shortcuts in product form
-  const handleProductFormKeyDown = (e) => {
-    // Shift+Enter to add product
-    if (e.shiftKey && e.key === "Enter") {
-      e.preventDefault();
-      handleAddProduct();
-      return;
-    }
-    // Escape to close popup
-    if (e.key === "Escape") {
-      e.preventDefault();
-      setShowProductPopup(false);
-      return;
-    }
-  };
+  const [showPanel, setShowPanel] = useState(false);
+  const [panelInitial, setPanelInitial] = useState(null); // { item, editIndex }
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const panelRef = useRef(null);
+  // Remembers last-used base/size per product for this dialog session.
+  const sessionMemory = useRef(new Map());
 
   const locked = !isEditing;
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
   const totalPurchased = form.products.reduce(
-    (sum, p) =>
-      sum + (parseFloat(p.quantity) || 0) * (parseFloat(p.priceAtSale) || 0),
+    (sum, p) => sum + (parseFloat(p.quantity) || 0) * (parseFloat(p.priceAtSale) || 0),
     0,
   );
   const amountPaidNum = parseFloat(form.amountPaid) || 0;
   const amountDue = totalPurchased - amountPaidNum;
   const status = computeStatus(totalPurchased, amountPaidNum);
 
-  function handleAddProduct() {
-    if (
-      !productForm.productName ||
-      !productForm.quantity ||
-      !productForm.priceAtSale
-    ) {
-      showToast("Please fill in product name, quantity, and price.");
-      return;
-    }
-    setForm((f) => ({
-      ...f,
-      products: [...f.products, { ...productForm }],
-    }));
-    setProductForm(emptyProductForm);
-    setShowProductPopup(false);
-  }
+  // Clamp the selected row into range as items change (derived — no effect).
+  const maxItemIndex = Math.max(0, form.products.length - 1);
+  const selectedRow = Math.min(selectedIndex, maxItemIndex);
 
-  function handleRemoveProduct(index) {
+  // ── line-item mutations ───────────────────────────────────────────
+  function handleAddItem(item) {
+    setForm((f) => ({ ...f, products: [...f.products, item] }));
+  }
+  function handleReplaceItem(index, item) {
     setForm((f) => ({
       ...f,
-      products: f.products.filter((_, i) => i !== index),
+      products: f.products.map((p, i) => (i === index ? item : p)),
     }));
+  }
+  function handleRemoveProduct(index) {
+    setForm((f) => ({ ...f, products: f.products.filter((_, i) => i !== index) }));
+  }
+  function handleChangeQty(index, delta) {
+    setForm((f) => ({
+      ...f,
+      products: f.products.map((p, i) => {
+        if (i !== index) return p;
+        const q = Math.max(1, (parseFloat(p.quantity) || 0) + delta);
+        return { ...p, quantity: String(q) };
+      }),
+    }));
+  }
+  function handleEditRow(i) {
+    if (!isEditing) return;
+    setPanelInitial({ item: { ...form.products[i] }, editIndex: i });
+    setShowPanel(true);
+  }
+  function duplicateItem() {
+    if (!isEditing || form.products.length === 0) return;
+    const idx =
+      selectedRow >= 0 && selectedRow < form.products.length
+        ? selectedRow
+        : form.products.length - 1;
+    setForm((f) => ({ ...f, products: [...f.products, { ...f.products[idx] }] }));
+  }
+  function cloneItem() {
+    if (!isEditing || form.products.length === 0) return;
+    const idx =
+      selectedRow >= 0 && selectedRow < form.products.length
+        ? selectedRow
+        : form.products.length - 1;
+    setPanelInitial({ item: { ...form.products[idx] }, editIndex: null });
+    setShowPanel(true);
+  }
+  function openAddPanel() {
+    setPanelInitial(null);
+    setShowPanel(true);
   }
 
   async function handleSave() {
@@ -135,17 +142,80 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
     showToast("Bill saved successfully.", "success");
   }
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = () => window.print();
+
+  // ── global keyboard shortcuts (single document-level handler) ──────
+  // Latest state/handlers live in a ref, refreshed each render via an effect,
+  // so the document listener is attached once yet never sees stale closures.
+  const actionsRef = useRef({});
+  useEffect(() => {
+    actionsRef.current = {
+      showPanel,
+      isEditing,
+      save: handleSave,
+      close: onClose,
+      closePanel: () => setShowPanel(false),
+      addKeepOpen: () => panelRef.current?.addItem(true),
+      clearForm: () => panelRef.current?.clearForm(),
+      duplicate: duplicateItem,
+      clone: cloneItem,
+    };
+  });
+
+  useEffect(() => {
+    function onKey(e) {
+      const a = actionsRef.current;
+      // Ctrl/Cmd+S → save
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        if (a.isEditing) a.save();
+        return;
+      }
+      // Esc → close panel (if open) else the dialog. The combobox stops Esc
+      // while its list is open, so this only closes the panel afterwards.
+      if (e.key === "Escape") {
+        e.preventDefault();
+        if (a.showPanel) a.closePanel();
+        else a.close();
+        return;
+      }
+      // Shift+Enter → add current item & keep the panel open
+      if (e.shiftKey && e.key === "Enter") {
+        if (a.showPanel) {
+          e.preventDefault();
+          a.addKeepOpen();
+        }
+        return;
+      }
+      // Ctrl+Backspace → clear the Add Product form
+      if (e.ctrlKey && e.key === "Backspace") {
+        if (a.showPanel) {
+          e.preventDefault();
+          a.clearForm();
+        }
+        return;
+      }
+      // Ctrl+Shift+D → clone selected/last item into the panel
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "d") {
+        e.preventDefault();
+        a.clone();
+        return;
+      }
+      // Ctrl+D → duplicate selected/last item
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d") {
+        e.preventDefault();
+        a.duplicate();
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   return (
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-header">
-          <h2 className="dialog-title">
-            {isNew ? "New Bill" : `Bill — ${bill.name}`}
-          </h2>
+          <h2 className="dialog-title">{isNew ? "New Bill" : `Bill — ${bill.name}`}</h2>
           <button className="dialog-close" onClick={onClose}>
             ✕
           </button>
@@ -157,50 +227,23 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
             <div className="field-grid">
               <div className="field">
                 <label>Customer Name</label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={set("name")}
-                  disabled={locked}
-                  placeholder="Full name"
-                />
+                <input type="text" value={form.name} onChange={set("name")} disabled={locked} placeholder="Full name" />
               </div>
               <div className="field">
                 <label>Phone Number</label>
-                <input
-                  type="text"
-                  value={form.phone}
-                  onChange={set("phone")}
-                  disabled={locked}
-                  placeholder="98XXXXXXXX"
-                />
+                <input type="text" value={form.phone} onChange={set("phone")} disabled={locked} placeholder="98XXXXXXXX" />
               </div>
               <div className="field field-full">
                 <label>Address</label>
-                <input
-                  type="text"
-                  value={form.address}
-                  onChange={set("address")}
-                  disabled={locked}
-                  placeholder="Street, City"
-                />
+                <input type="text" value={form.address} onChange={set("address")} disabled={locked} placeholder="Street, City" />
               </div>
               <div className="field">
                 <label>Date</label>
-                <input
-                  type="date"
-                  value={form.date}
-                  onChange={set("date")}
-                  disabled={locked}
-                />
+                <input type="date" value={form.date} onChange={set("date")} disabled={locked} />
               </div>
               <div className="field">
                 <label>Payment Method</label>
-                <select
-                  value={form.paymentMethod}
-                  onChange={set("paymentMethod")}
-                  disabled={locked}
-                >
+                <select value={form.paymentMethod} onChange={set("paymentMethod")} disabled={locked}>
                   <option>Cash</option>
                   <option>UPI</option>
                   <option>Card</option>
@@ -211,186 +254,33 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
           </section>
 
           <section className="dialog-section">
-            <p className="section-label">Products</p>
-            <button
-              className="product-dropzone"
-              disabled={locked}
-              type="button"
-              onClick={() => setShowProductPopup(true)}
-            >
+            <div className="products-section-head">
+              <p className="section-label">Products</p>
+              {isEditing && form.products.length > 0 && (
+                <span className="kbd-hint-bar">
+                  <span><kbd>↑</kbd><kbd>↓</kbd> row</span>
+                  <span><kbd>Enter</kbd> edit</span>
+                  <span><kbd>+</kbd><kbd>−</kbd> qty</span>
+                  <span><kbd>Del</kbd> remove</span>
+                  <span><kbd>Ctrl</kbd>+<kbd>D</kbd> duplicate</span>
+                </span>
+              )}
+            </div>
+
+            <button className="product-dropzone" disabled={locked} type="button" onClick={openAddPanel}>
               <span className="dropzone-icon">+</span>
               <span>Add Product</span>
             </button>
 
-            {form.products.length === 0 ? (
-              <p className="empty-products">No products added yet.</p>
-            ) : (
-              <table className="bill-products-table">
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>Base</th>
-                    <th>Size</th>
-                    <th>Qty</th>
-                    <th>Price</th>
-                    <th>Subtotal</th>
-                    {isEditing && <th></th>}
-                  </tr>
-                </thead>
-                <tbody>
-                  {form.products.map((p, i) => (
-                    <tr key={i}>
-                      <td>{p.productName}</td>
-                      <td>{p.base || "—"}</td>
-                      <td>{p.bucketSize || "—"}</td>
-                      <td>{p.quantity}</td>
-                      <td>Rs {p.priceAtSale}</td>
-                      <td>
-                        Rs{" "}
-                        {(parseFloat(p.quantity) || 0) *
-                          (parseFloat(p.priceAtSale) || 0)}
-                      </td>
-                      {isEditing && (
-                        <td>
-                          <button
-                            type="button"
-                            className="btn-remove-row"
-                            onClick={() => handleRemoveProduct(i)}
-                          >
-                            ×
-                          </button>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-
-            {showProductPopup && (
-              <div
-                className="product-popup-overlay"
-                onClick={() => setShowProductPopup(false)}
-              >
-                <div
-                  className="product-popup"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <p className="section-label">Add Product</p>
-                  <input
-                    ref={productNameRef}
-                    type="text"
-                    placeholder="Enter A product name or Select"
-                    value={productForm.productName}
-                    onChange={(e) =>
-                      setProductForm((f) => ({
-                        ...f,
-                        productName: e.target.value,
-                      }))
-                    }
-                    onKeyDown={handleProductFormKeyDown}
-                  />
-                  <select
-                    value={productForm.productName}
-                    onChange={(e) => {
-                      setProductOption(e.target.value);
-                      return setProductForm((f) => ({
-                        ...f,
-                        productName: e.target.value,
-                      }));
-                    }}
-                  >
-                    <option className="product-options product-name-options">
-                      Select a Product...
-                    </option>
-                    {products.map((product) => (
-                      <option key={product.id}>{product.name}</option>
-                    ))}
-                  </select>
-
-                  <select
-                    placeholder="Base (e.g. AC1)"
-                    value={productForm.base}
-                    onChange={(e) =>
-                      setProductForm((f) => ({ ...f, base: e.target.value }))
-                    }
-                  >
-                    <option className="product-options product-name-options">
-                      Select a Base...
-                    </option>
-                    {filteredFromOptions.map((p) =>
-                      p.bases.map((b) => <option key={b.id}>{b.name}</option>),
-                    )}
-                  </select>
-                  <select
-                    placeholder="Bucket size"
-                    value={productForm.bucketSize}
-                    onChange={(e) =>
-                      setProductForm((f) => ({
-                        ...f,
-                        bucketSize: e.target.value,
-                      }))
-                    }
-                  >
-                     <option className="product-options product-name-options">
-                      Select a Size...
-                    </option>
-
-                    {!filteredFromOptions || filteredFromOptions?.length === 0  ?
-                    "" :
-                    filteredFromOptions.map((p) =>
-                      p.variants.map((v) => (
-                        <option key={v.id}>{v.bucket_size}</option>
-                      )),
-                    )
-                  }
-                
-                  </select>
-                  <input
-                    ref={quantityRef}
-                    type="number"
-                    placeholder="Quantity"
-                    value={productForm.quantity}
-                    onChange={(e) =>
-                      setProductForm((f) => ({
-                        ...f,
-                        quantity: e.target.value,
-                      }))
-                    }
-                    onKeyDown={handleProductFormKeyDown}
-                  />
-                  <input
-                    ref={priceRef}
-                    type="number"
-                    placeholder="Price of sale"
-                    value={productForm.priceAtSale}
-                    onChange={(e) =>
-                      setProductForm((f) => ({
-                        ...f,
-                        priceAtSale: e.target.value,
-                      }))
-                    }
-                    onKeyDown={handleProductFormKeyDown}
-                  />
-                  <div className="product-popup-actions">
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => setShowProductPopup(false)}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-primary"
-                      onClick={handleAddProduct}
-                    >
-                      Add
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+            <BillItemsTable
+              items={form.products}
+              isEditing={isEditing}
+              selectedIndex={selectedRow}
+              setSelectedIndex={setSelectedIndex}
+              onEdit={handleEditRow}
+              onDelete={handleRemoveProduct}
+              onChangeQty={handleChangeQty}
+            />
           </section>
 
           <section className="dialog-section">
@@ -402,12 +292,11 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
               </div>
               <div className="field">
                 <label>Amount Paid (Rs)</label>
-                <input
-                  type="number"
-                  value={form.amountPaid}
-                  onChange={set("amountPaid")}
+                <NumericMathInput
+                  value={form.amountPaid ?? ""}
+                  onChange={(v) => setForm((f) => ({ ...f, amountPaid: v }))}
                   disabled={locked}
-                  placeholder="0"
+                  placeholder="0 (supports 500+120)"
                 />
               </div>
               <div className="field">
@@ -423,23 +312,28 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
         </div>
 
         <div className="dialog-footer">
-          <button className="btn-secondary" onClick={onClose}>
-            Cancel
-          </button>
-          <button className="btn-secondary" onClick={handlePrint}>
-            Print Bill
-          </button>
+          <button className="btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn-secondary" onClick={handlePrint}>Print Bill</button>
           {isEditing ? (
-            <button className="btn-primary" onClick={handleSave}>
-              Save Bill
-            </button>
+            <button className="btn-primary" onClick={handleSave}>Save Bill</button>
           ) : (
-            <button className="btn-primary" onClick={() => setIsEditing(true)}>
-              Edit Bill
-            </button>
+            <button className="btn-primary" onClick={() => setIsEditing(true)}>Edit Bill</button>
           )}
         </div>
       </div>
+
+      {showPanel && (
+        <AddProductPanel
+          ref={panelRef}
+          products={products}
+          usageMap={usageMap}
+          sessionMemory={sessionMemory}
+          initial={panelInitial}
+          onAdd={handleAddItem}
+          onReplace={handleReplaceItem}
+          onClose={() => setShowPanel(false)}
+        />
+      )}
     </div>
   );
 }

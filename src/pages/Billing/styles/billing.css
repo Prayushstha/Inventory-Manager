@@ -537,3 +537,199 @@ display: none;
   gap: 8px;
   margin-top: 8px;
 }
+
+.product-popup input:focus,
+.product-popup select:focus {
+  border-color: var(--button-primary);
+  outline: none;
+}
+
+/* ── Keyboard-first Add Product panel ── */
+.add-product-panel {
+  gap: 10px;
+}
+
+.add-product-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.panel-field-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-muted);
+  margin: 4px 0 -2px;
+}
+
+.add-product-panel select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--background-primary);
+  color: var(--color-primary);
+  font-size: 0.875rem;
+}
+
+.auto-field {
+  font-size: 0.85rem;
+  color: var(--color-secondary);
+  padding: 6px 2px;
+}
+
+.auto-field strong {
+  color: var(--color-primary);
+}
+
+.auto-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 20px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(251, 129, 53, 0.14);
+  color: var(--button-primary);
+}
+
+.stock-hint {
+  font-size: 0.78rem;
+  color: var(--color-secondary);
+  margin: 2px 0 0;
+}
+
+/* ── Keyboard hint bar (kbd chips) ── */
+.kbd-hint-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.7rem;
+  color: var(--color-muted);
+}
+
+.kbd-hint-bar span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 16px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  border-bottom-width: 2px;
+  background: var(--background-tertiary);
+  color: var(--color-secondary);
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* ── Product combobox (VS Code palette style) ── */
+.product-combobox {
+  position: relative;
+  width: 100%;
+}
+
+.combobox-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.combobox-listbox {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--background-primary);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  scrollbar-width: thin;
+}
+
+.combobox-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--color-primary);
+  font-size: 0.875rem;
+}
+
+.combobox-option.active {
+  background: var(--button-primary);
+  color: #fff;
+}
+
+.combobox-option-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.combobox-option-meta {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  opacity: 0.75;
+}
+
+.combobox-footer,
+.combobox-empty {
+  padding: 8px 10px;
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+/* ── Products section header (label + hints) ── */
+.products-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ── Bill line-item rows (keyboard selectable) ── */
+.bill-item-row {
+  cursor: pointer;
+  transition: background 0.12s;
+  outline: none;
+}
+
+.bill-item-row:hover {
+  background: var(--background-secondary);
+}
+
+.bill-item-row.selected {
+  background: rgba(251, 129, 53, 0.12);
+  box-shadow: inset 2px 0 0 var(--button-primary);
+}
+
+.bill-item-row:focus-visible {
+  background: rgba(251, 129, 53, 0.16);
+}

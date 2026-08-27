@@ -4,6 +4,7 @@ import { emptyBill, statusMeta } from "../../Backend/customers";
 import { BillDialog, BillHeader, BillTable } from "./Components/index.js";
 import { useConfirm } from "../../hooks/useConfirm";
 import { useErrorHandler } from "../../hooks/useErrorHandler";
+import { useProductUsage } from "../../hooks/useProductUsage";
 
 export function Billing() {
   const [search, setSearch] = useState("");
@@ -13,6 +14,9 @@ export function Billing() {
   const [products, setProducts] = useState([]);
   const { confirm, ConfirmDialogComponent } = useConfirm();
   const { handleAsync } = useErrorHandler();
+
+  // Frequency/recency map derived from existing bill history (no new API call).
+  const usageMap = useProductUsage(customers);
 
   useEffect(() => {
     let cancelled = false;
@@ -132,6 +136,7 @@ export function Billing() {
           bill={selectedBill}
           isNew={isNewBill}
           products={products}
+          usageMap={usageMap}
           onClose={closeDialog}
           onSaved={handleSaved}
         />
