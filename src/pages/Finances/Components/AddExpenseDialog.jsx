@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useDialogKeyboard } from "../../../hooks/useDialogKeyboard";
 
 const emptyImportItem = {
   productName: "",
@@ -16,6 +17,7 @@ export function AddExpenseDialog({ onClose, onSaved }) {
 
   const [importItems, setImportItems] = useState([]);
   const [itemForm, setItemForm] = useState(emptyImportItem);
+  const [currentFieldIndex, setCurrentFieldIndex] = useState(0);
 
   // Refs for import item fields
   const productNameRef = useRef(null);
@@ -24,27 +26,13 @@ export function AddExpenseDialog({ onClose, onSaved }) {
   const quantityRef = useRef(null);
   const costPriceRef = useRef(null);
 
+  const importFields = [productNameRef, baseRef, bucketSizeRef, quantityRef, costPriceRef];
+
   const isImport = typeOfExpense === "Import";
   const importTotal = importItems.reduce(
     (sum, i) => sum + (parseFloat(i.quantity) || 0) * (parseFloat(i.costPrice) || 0),
     0,
   );
-
-  // Handle keyboard shortcuts for import items
-  const handleImportItemKeyDown = (e) => {
-    // Shift+Enter to add item
-    if (e.shiftKey && e.key === "Enter") {
-      e.preventDefault();
-      handleAddItem();
-      return;
-    }
-    // Escape to close dialog
-    if (e.key === "Escape") {
-      e.preventDefault();
-      onClose?.();
-      return;
-    }
-  };
 
   function handleAddItem() {
     if (!itemForm.productName || !itemForm.base || !itemForm.bucketSize || !itemForm.quantity || !itemForm.costPrice) {
@@ -53,6 +41,8 @@ export function AddExpenseDialog({ onClose, onSaved }) {
     }
     setImportItems((prev) => [...prev, { ...itemForm }]);
     setItemForm(emptyImportItem);
+    setCurrentFieldIndex(0);
+    setTimeout(() => productNameRef.current?.focus(), 0);
   }
 
   function handleRemoveItem(index) {
@@ -89,6 +79,16 @@ export function AddExpenseDialog({ onClose, onSaved }) {
 
     onSaved?.();
   }
+
+  useDialogKeyboard({
+    onSave: handleSave,
+    onClose,
+    onAddItem: handleAddItem,
+    fields: isImport ? importFields : undefined,
+    currentFieldIndex,
+    onFieldChange: setCurrentFieldIndex,
+    enabled: true,
+  });
 
   return (
     <div className="dialog-overlay" onClick={onClose}>
@@ -144,7 +144,7 @@ export function AddExpenseDialog({ onClose, onSaved }) {
                   placeholder="Product name"
                   value={itemForm.productName}
                   onChange={(e) => setItemForm((f) => ({ ...f, productName: e.target.value }))}
-                  onKeyDown={handleImportItemKeyDown}
+                  onFocus={() => setCurrentFieldIndex(0)}
                 />
                 <input
                   ref={baseRef}
@@ -152,7 +152,7 @@ export function AddExpenseDialog({ onClose, onSaved }) {
                   placeholder="Base (e.g. AC1)"
                   value={itemForm.base}
                   onChange={(e) => setItemForm((f) => ({ ...f, base: e.target.value }))}
-                  onKeyDown={handleImportItemKeyDown}
+                  onFocus={() => setCurrentFieldIndex(1)}
                 />
                 <input
                   ref={bucketSizeRef}
@@ -160,7 +160,7 @@ export function AddExpenseDialog({ onClose, onSaved }) {
                   placeholder="Bucket size"
                   value={itemForm.bucketSize}
                   onChange={(e) => setItemForm((f) => ({ ...f, bucketSize: e.target.value }))}
-                  onKeyDown={handleImportItemKeyDown}
+                  onFocus={() => setCurrentFieldIndex(2)}
                 />
                 <input
                   ref={quantityRef}
@@ -168,7 +168,7 @@ export function AddExpenseDialog({ onClose, onSaved }) {
                   placeholder="Quantity"
                   value={itemForm.quantity}
                   onChange={(e) => setItemForm((f) => ({ ...f, quantity: e.target.value }))}
-                  onKeyDown={handleImportItemKeyDown}
+                  onFocus={() => setCurrentFieldIndex(3)}
                 />
                 <input
                   ref={costPriceRef}
@@ -176,7 +176,7 @@ export function AddExpenseDialog({ onClose, onSaved }) {
                   placeholder="Cost price (per unit)"
                   value={itemForm.costPrice}
                   onChange={(e) => setItemForm((f) => ({ ...f, costPrice: e.target.value }))}
-                  onKeyDown={handleImportItemKeyDown}
+                  onFocus={() => setCurrentFieldIndex(4)}
                 />
               </div>
               <button type="button" className="btn-secondary" onClick={handleAddItem}>

@@ -21,6 +21,7 @@ export function useDialogKeyboard({
   enabled = true,
 } = {}) {
   useEffect(() => {
+
     if (!enabled) return;
 
     function handleKeyDown(e) {
