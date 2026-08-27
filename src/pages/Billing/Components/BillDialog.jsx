@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
 import { useToast } from "../../../hooks/ToastContext";
-import { useDialogKeyboard } from "../../../hooks/useDialogKeyboard";
 function normalizeProduct(p) {
   return {
     productName: p.productName ?? p.product_name ?? "",
@@ -29,11 +28,9 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
   const showToast = useToast();
 
   const [productOption, setProductOption] = useState("");
-  const [currentFieldIndex, setCurrentFieldIndex] = useState(0);
   const productNameRef = useRef(null);
   const quantityRef = useRef(null);
   const priceRef = useRef(null);
-  const productFieldRefs = [productNameRef, quantityRef, priceRef];
 
   const filteredFromOptions = products.filter((p) =>
     p.name === productOption
@@ -47,16 +44,21 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
   const [showProductPopup, setShowProductPopup] = useState(false);
   const [productForm, setProductForm] = useState(emptyProductForm);
 
-  // Keyboard shortcuts for product form
-  useDialogKeyboard({
-    onSave: handleAddProduct,
-    onClose: () => setShowProductPopup(false),
-    onAddItem: handleAddProduct,
-    fields: productFieldRefs,
-    currentFieldIndex,
-    onFieldChange: setCurrentFieldIndex,
-    enabled: showProductPopup && isEditing,
-  });
+  // Handle keyboard shortcuts in product form
+  const handleProductFormKeyDown = (e) => {
+    // Shift+Enter to add product
+    if (e.shiftKey && e.key === "Enter") {
+      e.preventDefault();
+      handleAddProduct();
+      return;
+    }
+    // Escape to close popup
+    if (e.key === "Escape") {
+      e.preventDefault();
+      setShowProductPopup(false);
+      return;
+    }
+  };
 
   const locked = !isEditing;
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -286,6 +288,7 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
                         productName: e.target.value,
                       }))
                     }
+                    onKeyDown={handleProductFormKeyDown}
                   />
                   <select
                     value={productForm.productName}
@@ -354,6 +357,7 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
                         quantity: e.target.value,
                       }))
                     }
+                    onKeyDown={handleProductFormKeyDown}
                   />
                   <input
                     ref={priceRef}
@@ -366,6 +370,7 @@ export function BillDialog({ bill, products, isNew, onClose, onSaved }) {
                         priceAtSale: e.target.value,
                       }))
                     }
+                    onKeyDown={handleProductFormKeyDown}
                   />
                   <div className="product-popup-actions">
                     <button

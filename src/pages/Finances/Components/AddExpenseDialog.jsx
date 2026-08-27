@@ -1,5 +1,4 @@
 import { useState, useRef } from "react";
-import { useDialogKeyboard } from "../../../hooks/useDialogKeyboard";
 
 const emptyImportItem = {
   productName: "",
@@ -17,7 +16,6 @@ export function AddExpenseDialog({ onClose, onSaved }) {
 
   const [importItems, setImportItems] = useState([]);
   const [itemForm, setItemForm] = useState(emptyImportItem);
-  const [currentFieldIndex, setCurrentFieldIndex] = useState(0);
 
   // Refs for import item fields
   const productNameRef = useRef(null);
@@ -25,7 +23,6 @@ export function AddExpenseDialog({ onClose, onSaved }) {
   const bucketSizeRef = useRef(null);
   const quantityRef = useRef(null);
   const costPriceRef = useRef(null);
-  const itemFieldRefs = [productNameRef, baseRef, bucketSizeRef, quantityRef, costPriceRef];
 
   const isImport = typeOfExpense === "Import";
   const importTotal = importItems.reduce(
@@ -33,16 +30,21 @@ export function AddExpenseDialog({ onClose, onSaved }) {
     0,
   );
 
-  // Keyboard shortcuts for import items
-  useDialogKeyboard({
-    onSave: handleSave,
-    onClose: onClose,
-    onAddItem: handleAddItem,
-    fields: itemFieldRefs,
-    currentFieldIndex,
-    onFieldChange: setCurrentFieldIndex,
-    enabled: isImport,
-  });
+  // Handle keyboard shortcuts for import items
+  const handleImportItemKeyDown = (e) => {
+    // Shift+Enter to add item
+    if (e.shiftKey && e.key === "Enter") {
+      e.preventDefault();
+      handleAddItem();
+      return;
+    }
+    // Escape to close dialog
+    if (e.key === "Escape") {
+      e.preventDefault();
+      onClose?.();
+      return;
+    }
+  };
 
   function handleAddItem() {
     if (!itemForm.productName || !itemForm.base || !itemForm.bucketSize || !itemForm.quantity || !itemForm.costPrice) {
@@ -142,6 +144,7 @@ export function AddExpenseDialog({ onClose, onSaved }) {
                   placeholder="Product name"
                   value={itemForm.productName}
                   onChange={(e) => setItemForm((f) => ({ ...f, productName: e.target.value }))}
+                  onKeyDown={handleImportItemKeyDown}
                 />
                 <input
                   ref={baseRef}
@@ -149,6 +152,7 @@ export function AddExpenseDialog({ onClose, onSaved }) {
                   placeholder="Base (e.g. AC1)"
                   value={itemForm.base}
                   onChange={(e) => setItemForm((f) => ({ ...f, base: e.target.value }))}
+                  onKeyDown={handleImportItemKeyDown}
                 />
                 <input
                   ref={bucketSizeRef}
@@ -156,6 +160,7 @@ export function AddExpenseDialog({ onClose, onSaved }) {
                   placeholder="Bucket size"
                   value={itemForm.bucketSize}
                   onChange={(e) => setItemForm((f) => ({ ...f, bucketSize: e.target.value }))}
+                  onKeyDown={handleImportItemKeyDown}
                 />
                 <input
                   ref={quantityRef}
@@ -163,6 +168,7 @@ export function AddExpenseDialog({ onClose, onSaved }) {
                   placeholder="Quantity"
                   value={itemForm.quantity}
                   onChange={(e) => setItemForm((f) => ({ ...f, quantity: e.target.value }))}
+                  onKeyDown={handleImportItemKeyDown}
                 />
                 <input
                   ref={costPriceRef}
@@ -170,6 +176,7 @@ export function AddExpenseDialog({ onClose, onSaved }) {
                   placeholder="Cost price (per unit)"
                   value={itemForm.costPrice}
                   onChange={(e) => setItemForm((f) => ({ ...f, costPrice: e.target.value }))}
+                  onKeyDown={handleImportItemKeyDown}
                 />
               </div>
               <button type="button" className="btn-secondary" onClick={handleAddItem}>

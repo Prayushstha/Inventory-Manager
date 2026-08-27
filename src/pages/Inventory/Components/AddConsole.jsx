@@ -3,7 +3,6 @@ import { useResolvedImage } from "../../../hooks/resolvedImage.js";
 import { useToast } from "../../../hooks/ToastContext.jsx";
 import { BUCKET_SIZES } from "../../../utils/constants.js";
 import { useErrorHandler } from "../../../hooks/useErrorHandler";
-import { useDialogKeyboard } from "../../../hooks/useDialogKeyboard";
 
 export function AddConsole() {
     const showToast = useToast();
@@ -16,12 +15,6 @@ export function AddConsole() {
 
   // Keyboard shortcut support
   const baseInputRef = useRef(null);
-
-  // Keyboard shortcuts for base input (Shift+Enter to add base)
-  useDialogKeyboard({
-    onAddItem: handleAddBase,
-    enabled: true,
-  });
 
   const [rows, setRows] = useState(
     BUCKET_SIZES.reduce((acc, size) => {
@@ -172,7 +165,12 @@ export function AddConsole() {
             placeholder="Base (e.g. AC1)"
             value={baseInput}
             onChange={(e) => setBaseInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAddBase()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || (e.shiftKey && e.key === "Enter")) {
+                e.preventDefault();
+                handleAddBase();
+              }
+            }}
           />
           <button
             type="button"
