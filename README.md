@@ -100,39 +100,46 @@ The output will be in the `release/` folder.
 
 ## Keyboard Shortcuts
 
-For faster data entry, the following keyboard shortcuts are available in dialogs and forms:
+For faster data entry, the following keyboard shortcuts are available in dialogs:
 
-### Universal Shortcuts (All Dialogs)
-| Shortcut | Action | Details |
-|----------|--------|---------|
-| `Escape` | Close Dialog | Closes the current dialog without saving |
-| `Ctrl+S` / `Cmd+S` | Save | Saves the current form (when applicable) |
-| `Shift+Enter` | Add Item | Adds the current item to the list without closing dialog (e.g., add product to bill) |
-| `↑ / ↓ Arrow` | Navigate Fields | Move between input fields up and down |
-| `← / → Arrow` | Navigate Fields | Move between input fields left and right |
+### Available Shortcuts
 
-### Bill Dialog Shortcuts
-| Shortcut | Action | Details |
-|----------|--------|---------|
-| `Shift+Enter` | Add Product | Adds the product form data and stays in the dialog for more entries |
-| `↑ ↓ → ←` | Navigate Product Fields | Move between Product Name → Quantity → Price fields |
+| Shortcut | Dialog | Action |
+|----------|--------|--------|
+| `Shift+Enter` | Bill Dialog (Add Product) | Add product to bill and keep form open for more entries |
+| `Shift+Enter` | Add Expense Dialog (Import Mode) | Add import item and clear form for next entry |
+| `Shift+Enter` | Add Product Console | Add base name quickly |
+| `Escape` | All Dialogs | Close dialog immediately |
+| `Enter` | Add Product Console | Add base name (standard Enter also works) |
 
-### Add Expense Dialog Shortcuts (Import Mode)
-| Shortcut | Action | Details |
-|----------|--------|---------|
-| `Shift+Enter` | Add Import Item | Adds the import item and clears the form for the next entry |
-| `↑ ↓ → ←` | Navigate Item Fields | Move between: Product Name → Base → Bucket Size → Quantity → Cost Price |
+### How to Use
 
-### Add Product (Inventory) Shortcuts
-| Shortcut | Action | Details |
-|----------|--------|---------|
-| `Shift+Enter` | Add Base | Adds the base name to the product (when focus is on base input) |
+1. **Adding Products to Bills Quickly**
+   - Open a bill and click "Add Product"
+   - Fill in Product Name, Quantity, and Price
+   - Press `Shift+Enter` to add the product
+   - Form clears automatically, ready for the next product
+   - Press `Escape` when done adding products
 
-### Tips for Efficient Data Entry
-- Use **arrow keys** to quickly navigate between fields without touching the mouse
-- Use **Shift+Enter** to rapidly add multiple items without closing the dialog
-- Use **Escape** to close a dialog and start fresh
-- Use **Ctrl+S / Cmd+S** as a quick save shortcut (same as clicking Save button)
+2. **Importing Multiple Items**
+   - Open Add Expense dialog
+   - Select "Import" type
+   - Fill in product details (Name, Base, Size, Qty, Cost Price)
+   - Press `Shift+Enter` to add item
+   - Form clears, ready for next import item
+   - Press `Escape` to close
+
+3. **Adding Product Bases**
+   - In Add Product, type base name (e.g., "AC1")
+   - Press `Enter` or `Shift+Enter` to add
+   - Type next base or close dialog with `Escape`
+
+### Tips
+
+- **Speed**: Use `Shift+Enter` to rapidly add multiple items without closing dialogs
+- **Cancel**: Press `Escape` anytime to exit a dialog
+- **Mouse Alternative**: All keyboard shortcuts complement mouse clicks - use whichever is faster
+- **Standard Input**: All standard keyboard input (typing, backspace, etc.) works normally
 
 ---
 
