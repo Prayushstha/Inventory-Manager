@@ -210,3 +210,52 @@
 .confirm-btn {
   min-width: 100px;
 }
+
+/* ── Tables ── */
+.bill-products-table,
+.products-table,
+.expenses-table,
+.sales-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.bill-products-table thead tr,
+.products-table thead tr,
+.expenses-table thead tr,
+.sales-table thead tr {
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.bill-products-table th,
+.products-table th,
+.expenses-table th,
+.sales-table th {
+  padding: 11px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-secondary);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.bill-products-table td,
+.products-table td,
+.expenses-table td,
+.sales-table td {
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--color-primary);
+  vertical-align: middle;
+}
+
+.bill-products-table tbody tr:hover,
+.products-table tbody tr:hover,
+.expenses-table tbody tr:hover,
+.sales-table tbody tr:hover {
+  background: var(--background-secondary);
+}
