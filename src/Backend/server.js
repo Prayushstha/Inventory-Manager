@@ -206,29 +206,22 @@ export function editProduct(id, product) {
     id,
   );
 
-  db.prepare(`DELETE FROM variants WHERE product_id = ?`).run(id);
+  // Update existing variants or create new ones
   for (const variant of variants) {
-    db.prepare(
-      `
-      INSERT INTO variants (product_id, bucket_size, rate, tax_bucket, scheme, after_scheme, after_trade, net_value, vat, with_vat, sales, mp)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `,
-    ).run(
-      id,
-      variant.bucket_size,
-      variant.rate,
-      variant.tax_bucket,
-      variant.scheme,
-      variant.after_scheme,
-      variant.after_trade,
-      variant.net_value,
-      variant.vat,
-      variant.with_vat,
-      variant.sales,
-      variant.mp,
-    );
+    if (variant.id) {
+      // Update existing variant
+      db.prepare(
+        `UPDATE variants SET bucket_size = ?, landing = ?, sales = ?, mp = ? WHERE id = ?`,
+      ).run(variant.bucket_size, variant.landing, variant.sales, variant.mp, variant.id);
+    } else {
+      // Create new variant if it doesn't have an ID
+      db.prepare(
+        `INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`,
+      ).run(id, variant.bucket_size, variant.landing, variant.sales, variant.mp);
+    }
   }
 
+  // Update bases and stocks
   const oldBases = db
     .prepare(`SELECT id FROM bases WHERE product_id = ?`)
     .all(id);
@@ -249,9 +242,11 @@ export function editProduct(id, product) {
           `SELECT id FROM variants WHERE product_id = ? LIMIT 1 OFFSET ?`,
         )
         .get(id, i);
-      db.prepare(
-        `INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`,
-      ).run(baseId, variant.id, base.stocks[i]);
+      if (variant) {
+        db.prepare(
+          `INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`,
+        ).run(baseId, variant.id, base.stocks[i]);
+      }
     }
   }
 }

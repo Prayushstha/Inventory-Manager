@@ -864,11 +864,8 @@ function deleteProduct(id) {
 function editProduct(id, product) {
 	const { name, images, variants, bases } = product;
 	db.prepare(`UPDATE products SET name = ?, images = ? WHERE id = ?`).run(name, images, id);
-	db.prepare(`DELETE FROM variants WHERE product_id = ?`).run(id);
-	for (const variant of variants) db.prepare(`
-      INSERT INTO variants (product_id, bucket_size, rate, tax_bucket, scheme, after_scheme, after_trade, net_value, vat, with_vat, sales, mp)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(id, variant.bucket_size, variant.rate, variant.tax_bucket, variant.scheme, variant.after_scheme, variant.after_trade, variant.net_value, variant.vat, variant.with_vat, variant.sales, variant.mp);
+	for (const variant of variants) if (variant.id) db.prepare(`UPDATE variants SET bucket_size = ?, landing = ?, sales = ?, mp = ? WHERE id = ?`).run(variant.bucket_size, variant.landing, variant.sales, variant.mp, variant.id);
+	else db.prepare(`INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`).run(id, variant.bucket_size, variant.landing, variant.sales, variant.mp);
 	const oldBases = db.prepare(`SELECT id FROM bases WHERE product_id = ?`).all(id);
 	for (const base of oldBases) db.prepare(`DELETE FROM base_stock WHERE base_id = ?`).run(base.id);
 	db.prepare(`DELETE FROM bases WHERE product_id = ?`).run(id);
@@ -876,7 +873,7 @@ function editProduct(id, product) {
 		const baseId = db.prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`).run(id, base.name).lastInsertRowid;
 		for (let i = 0; i < base.stocks.length; i++) {
 			const variant = db.prepare(`SELECT id FROM variants WHERE product_id = ? LIMIT 1 OFFSET ?`).get(id, i);
-			db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`).run(baseId, variant.id, base.stocks[i]);
+			if (variant) db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`).run(baseId, variant.id, base.stocks[i]);
 		}
 	}
 }
