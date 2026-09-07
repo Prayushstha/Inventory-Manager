@@ -29,6 +29,8 @@ export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }
   });
   const [isEditing, setIsEditing] = useState(isNew);
 
+  const [customerNotes,setCustomerNotes] = useState("");
+
   const [showPanel, setShowPanel] = useState(false);
   const [panelInitial, setPanelInitial] = useState(null); // { item, editIndex }
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -126,6 +128,7 @@ export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }
         name: customerName,
         phone: customerPhone,
         address: form.address,
+        notes: form.notes,
       });
       await window.db.addBill(customerId, billPayload);
     } else {
@@ -133,6 +136,7 @@ export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }
         name: customerName,
         phone: customerPhone,
         address: form.address,
+        notes: form.notes,
       });
       await window.db.editBill(form.id, billPayload);
     }
@@ -249,6 +253,9 @@ export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }
                   <option>Card</option>
                   <option>Credit</option>
                 </select>
+              </div>
+                <div className="field field-full">
+                <input type="textarea" value={form.notes ? form.notes : ""} onChange={set("notes")} placeholder="Customer Notes" disabled={locked} />
               </div>
             </div>
           </section>

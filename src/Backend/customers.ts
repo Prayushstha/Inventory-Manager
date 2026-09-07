@@ -20,6 +20,7 @@ export const emptyBill = {
   phone: "",
   address: "",
   date: today(),
+  notes: "",
   paymentMethod: "Cash",
   sellingPrice: "",
   amountPaid: "",

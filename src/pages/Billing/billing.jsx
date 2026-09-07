@@ -56,6 +56,7 @@ export function Billing() {
       name: customer.name,
       phone: customer.phone,
       address: customer.address,
+      notes: customer.notes,
       totalPurchased: bill.total_purchased,
       totalDue: customer.totalDue,
       amountDue: bill.amount_due,

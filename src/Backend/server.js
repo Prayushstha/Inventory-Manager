@@ -50,7 +50,8 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     phone TEXT,
-    address TEXT
+    address TEXT,
+    notes TEXT
   );
   CREATE TABLE IF NOT EXISTS expense_items (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -322,10 +323,10 @@ export function addCustomer(customer) {
   const result = db
     .prepare(
       `
-    INSERT INTO customers (name, phone, address) VALUES (?, ?, ?)
+    INSERT INTO customers (name, phone, address,notes) VALUES (?, ?, ?, ?)
   `,
     )
-    .run(customer.name, customer.phone, customer.address);
+    .run(customer.name, customer.phone, customer.address,customer.notes);
   return result.lastInsertRowid;
 }
 
@@ -418,9 +419,9 @@ export function deleteBill(billId) {
 export function editCustomer(id, customer) {
   db.prepare(
     `
-    UPDATE customers SET name = ?, phone = ?, address = ? WHERE id = ?
+    UPDATE customers SET name = ?, phone = ?, address = ? , notes= ? WHERE id = ?
   `,
-  ).run(customer.name, customer.phone, customer.address, id);
+  ).run(customer.name, customer.phone, customer.address,customer.notes, id);
 }
 
 export function editBill(billId, bill) {
