@@ -127,6 +127,10 @@ export function ProductsTable({ products, fetchProducts }) {
                           >
                             ×
                           </button>
+                                                        {stock < 4 ? 
+                              <p className="low-stocks-message">Stocks Low!</p>:
+                              ""  
+                            }
                         </td>
                         {i === 0 && (
                           <td rowSpan={totalRows}>
@@ -139,6 +143,7 @@ export function ProductsTable({ products, fetchProducts }) {
                               }}
                             >
                               <i className="fa-solid fa-pen"></i>
+
                             </button>
                           </td>
                         )}

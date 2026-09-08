@@ -13,6 +13,14 @@
     table-layout: fixed;
     border-collapse: collapse;
 }
+.low-stocks-message{
+    color: rgb(250, 77, 77);
+    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 10px;
+    display: inline;
+    margin-left: 20px;
+    padding: 5px;
+}
 
 .table-products thead th {
     position: sticky;
