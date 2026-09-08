@@ -48,7 +48,7 @@ export const AddProductPanel = forwardRef(function AddProductPanel(
   const isEdit = initial?.editIndex != null;
   const bases = selectedProduct?.bases ?? [];
   const sizes = selectedProduct?.variants ?? [];
-
+  const [checkQuantity,setCheckQuantity] = useState(form.quantity);
   // Focus the search for a fresh add, or Quantity when prefilled (edit/clone).
   useEffect(() => {
     if (initial?.item) qtyRef.current?.focus();
@@ -271,7 +271,9 @@ export const AddProductPanel = forwardRef(function AddProductPanel(
         <NumericMathInput
           ref={qtyRef}
           value={form.quantity}
-          onChange={(v) => setForm((f) => ({ ...f, quantity: v }))}
+          onChange={(v) => {
+            setCheckQuantity(v)
+            setForm((f) => ({ ...f, quantity: v }))}}
           onEnter={() => navigate("qty", "next")}
           onNavigate={(dir) => navigate("qty", dir)}
           stepper
@@ -297,7 +299,7 @@ export const AddProductPanel = forwardRef(function AddProductPanel(
           <button type="button" className="btn-secondary" onClick={onClose}>
             Cancel
           </button>
-          <button type="button" className="btn-primary" onClick={() => addItem(false)}>
+          <button type="button" className="btn-primary" onClick={() => stock === "null" || stock < checkQuantity ? alert("Stocks too low: ", stock) :  addItem(false)}>
             {isEdit ? "Save Item" : "Add"}
           </button>
         </div>

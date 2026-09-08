@@ -21,7 +21,10 @@ export function ProductsTable({ products, fetchProducts }) {
 
     const success = await handleAsync(async () => {
       if (confirmTarget.type === "baseStock") {
-        await window.db.deleteBaseStock(confirmTarget.baseId, confirmTarget.variantId);
+        await window.db.deleteBaseStock(
+          confirmTarget.baseId,
+          confirmTarget.variantId,
+        );
       } else if (confirmTarget.type === "variant") {
         await window.db.deleteVariant(confirmTarget.variantId);
       }
@@ -65,7 +68,9 @@ export function ProductsTable({ products, fetchProducts }) {
               if (hasBases) {
                 for (const base of product.bases) {
                   for (const v of product.variants) {
-                    const stock = base.stockMap ? base.stockMap[v.id] : undefined;
+                    const stock = base.stockMap
+                      ? base.stockMap[v.id]
+                      : undefined;
                     if (stock === undefined) continue;
                     rows.push({ base, variant: v, stock });
                   }
@@ -85,14 +90,22 @@ export function ProductsTable({ products, fetchProducts }) {
                     const { base, variant: v, stock } = row;
 
                     const isFirstOfThisBase =
-                      base && rows.findIndex((r) => r.base && r.base.id === base.id) === i;
+                      base &&
+                      rows.findIndex((r) => r.base && r.base.id === base.id) ===
+                        i;
 
                     return (
                       <tr key={base ? `${base.id}-${v.id}` : v.id}>
                         {i === 0 && <td rowSpan={totalRows}>{product.name}</td>}
                         {hasBases
                           ? isFirstOfThisBase && (
-                              <td rowSpan={rows.filter((r) => r.base && r.base.id === base.id).length}>
+                              <td
+                                rowSpan={
+                                  rows.filter(
+                                    (r) => r.base && r.base.id === base.id,
+                                  ).length
+                                }
+                              >
                                 {base.name}
                               </td>
                             )
@@ -106,8 +119,16 @@ export function ProductsTable({ products, fetchProducts }) {
                           <button
                             type="button"
                             className="btn-remove-row"
-                            title={hasBases ? "Delete this base + size" : "Delete this size"}
-                            aria-label={hasBases ? `Delete ${product.name} - ${base.name}, size ${v.bucket_size}` : `Delete ${product.name} - size ${v.bucket_size}`}
+                            title={
+                              hasBases
+                                ? "Delete this base + size"
+                                : "Delete this size"
+                            }
+                            aria-label={
+                              hasBases
+                                ? `Delete ${product.name} - ${base.name}, size ${v.bucket_size}`
+                                : `Delete ${product.name} - size ${v.bucket_size}`
+                            }
                             onClick={() =>
                               setConfirmTarget(
                                 hasBases
@@ -121,16 +142,17 @@ export function ProductsTable({ products, fetchProducts }) {
                                       type: "variant",
                                       variantId: v.id,
                                       message: `Delete "${product.name}" — size ${v.bucket_size}? This cannot be undone.`,
-                                    }
+                                    },
                               )
                             }
                           >
                             ×
                           </button>
-                                                        {stock < 4 ? 
-                              <p className="low-stocks-message">Stocks Low!</p>:
-                              ""  
-                            }
+                          {stock < 4 ? (
+                            <p className="low-stocks-message">Stocks Low!</p>
+                          ) : (
+                            ""
+                          )}
                         </td>
                         {i === 0 && (
                           <td rowSpan={totalRows}>
@@ -143,7 +165,6 @@ export function ProductsTable({ products, fetchProducts }) {
                               }}
                             >
                               <i className="fa-solid fa-pen"></i>
-
                             </button>
                           </td>
                         )}
