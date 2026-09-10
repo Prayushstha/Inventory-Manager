@@ -299,7 +299,7 @@ export const AddProductPanel = forwardRef(function AddProductPanel(
           <button type="button" className="btn-secondary" onClick={onClose}>
             Cancel
           </button>
-          <button type="button" className="btn-primary" onClick={() => stock === "null" || stock < checkQuantity ? alert("Stocks too low: ", stock) :  addItem(false)}>
+          <button type="button" className="btn-primary" onClick={() => stock === "null" || stock < checkQuantity ? showToast(`Stocks too low: ${stock} item remaining`,'error') :  addItem(false)}>
             {isEdit ? "Save Item" : "Add"}
           </button>
         </div>
