@@ -69,6 +69,7 @@ export function BillItemsTable({
     <table className="bill-products-table">
       <thead>
         <tr>
+          <th></th>
           <th>Product</th>
           <th>Base</th>
           <th>Size</th>
@@ -89,6 +90,7 @@ export function BillItemsTable({
             onDoubleClick={() => isEditing && onEdit(i)}
             onKeyDown={(e) => handleRowKeyDown(e, i)}
           >
+            <td>{i+1}</td>
             <td>{p.productName}</td>
             <td>{p.base || "—"}</td>
             <td>{p.bucketSize || "—"}</td>

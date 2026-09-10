@@ -35,7 +35,9 @@ export const AddProductPanel = forwardRef(function AddProductPanel(
   const [query, setQuery] = useState(initial?.item?.productName ?? "");
   const [selectedProduct, setSelectedProduct] = useState(() =>
     initial?.item
-      ? products.find((p) => normalize(p.name) === normalize(initial.item.productName)) ?? null
+      ? (products.find(
+          (p) => normalize(p.name) === normalize(initial.item.productName),
+        ) ?? null)
       : null,
   );
 
@@ -48,7 +50,7 @@ export const AddProductPanel = forwardRef(function AddProductPanel(
   const isEdit = initial?.editIndex != null;
   const bases = selectedProduct?.bases ?? [];
   const sizes = selectedProduct?.variants ?? [];
-  const [checkQuantity,setCheckQuantity] = useState(form.quantity);
+  const [checkQuantity, setCheckQuantity] = useState(form.quantity);
   // Focus the search for a fresh add, or Quantity when prefilled (edit/clone).
   useEffect(() => {
     if (initial?.item) qtyRef.current?.focus();
@@ -65,7 +67,13 @@ export const AddProductPanel = forwardRef(function AddProductPanel(
     return seq;
   }
   function focusName(name) {
-    const map = { search: searchRef, base: baseRef, size: sizeRef, qty: qtyRef, price: priceRef };
+    const map = {
+      search: searchRef,
+      base: baseRef,
+      size: sizeRef,
+      qty: qtyRef,
+      price: priceRef,
+    };
     map[name]?.current?.focus?.();
   }
   function navigate(fromName, dir) {
@@ -104,7 +112,13 @@ export const AddProductPanel = forwardRef(function AddProductPanel(
 
     setSelectedProduct(product);
     setQuery(product.name);
-    setForm((f) => ({ ...f, productName: product.name, base, bucketSize, quantity: f.quantity || "1" }));
+    setForm((f) => ({
+      ...f,
+      productName: product.name,
+      base,
+      bucketSize,
+      quantity: f.quantity || "1",
+    }));
 
     requestAnimationFrame(() => {
       if (pBases.length > 1) baseRef.current?.focus();
@@ -193,11 +207,13 @@ export const AddProductPanel = forwardRef(function AddProductPanel(
   }
 
   // Optional read-only stock hint for the chosen base + size.
-  const selectedVariant = sizes.find((v) => String(v.bucket_size) === String(form.bucketSize));
+  const selectedVariant = sizes.find(
+    (v) => String(v.bucket_size) === String(form.bucketSize),
+  );
   const selectedBase = bases.find((b) => b.name === form.base);
   const stock =
     selectedBase && selectedVariant
-      ? selectedBase.stockMap?.[selectedVariant.id] ?? null
+      ? (selectedBase.stockMap?.[selectedVariant.id] ?? null)
       : null;
 
   return (
@@ -208,14 +224,28 @@ export const AddProductPanel = forwardRef(function AddProductPanel(
         onClose?.();
       }}
     >
-      <div className="product-popup add-product-panel" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="product-popup add-product-panel"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="add-product-head">
-          <p className="section-label">{isEdit ? "Edit Product" : "Add Product"}</p>
+          <p className="section-label">
+            {isEdit ? "Edit Product" : "Add Product"}
+          </p>
           <div className="kbd-hint-bar">
-            <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
-            <span><kbd>Enter</kbd> select</span>
-            <span><kbd>Shift</kbd>+<kbd>Enter</kbd> add &amp; next</span>
-            <span><kbd>Esc</kbd> close</span>
+            <span>
+              <kbd>↑</kbd>
+              <kbd>↓</kbd> navigate
+            </span>
+            <span>
+              <kbd>Enter</kbd> select
+            </span>
+            <span>
+              <kbd>Shift</kbd>+<kbd>Enter</kbd> add &amp; next
+            </span>
+            <span>
+              <kbd>Esc</kbd> close
+            </span>
           </div>
         </div>
 
@@ -240,12 +270,17 @@ export const AddProductPanel = forwardRef(function AddProductPanel(
             >
               <option value="">Select a Base…</option>
               {bases.map((b) => (
-                <option key={b.id} value={b.name}>{b.name}</option>
+                <option key={b.id} value={b.name}>
+                  {b.name}
+                </option>
               ))}
             </select>
           </>
         ) : bases.length === 1 ? (
-          <div className="auto-field">Base: <strong>{bases[0].name}</strong> <span className="auto-tag">auto</span></div>
+          <div className="auto-field">
+            Base: <strong>{bases[0].name}</strong>{" "}
+            <span className="auto-tag">auto</span>
+          </div>
         ) : null}
 
         {sizes.length > 1 ? (
@@ -254,17 +289,24 @@ export const AddProductPanel = forwardRef(function AddProductPanel(
             <select
               ref={sizeRef}
               value={form.bucketSize}
-              onChange={(e) => setForm((f) => ({ ...f, bucketSize: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, bucketSize: e.target.value }))
+              }
               onKeyDown={selectKeyDown("size")}
             >
               <option value="">Select a Size…</option>
               {sizes.map((v) => (
-                <option key={v.id} value={String(v.bucket_size)}>{v.bucket_size}</option>
+                <option key={v.id} value={String(v.bucket_size)}>
+                  {v.bucket_size}
+                </option>
               ))}
             </select>
           </>
         ) : sizes.length === 1 ? (
-          <div className="auto-field">Size: <strong>{sizes[0].bucket_size}</strong> <span className="auto-tag">auto</span></div>
+          <div className="auto-field">
+            Size: <strong>{sizes[0].bucket_size}</strong>{" "}
+            <span className="auto-tag">auto</span>
+          </div>
         ) : null}
 
         <label className="panel-field-label">Quantity</label>
@@ -272,8 +314,9 @@ export const AddProductPanel = forwardRef(function AddProductPanel(
           ref={qtyRef}
           value={form.quantity}
           onChange={(v) => {
-            setCheckQuantity(v)
-            setForm((f) => ({ ...f, quantity: v }))}}
+            setCheckQuantity(v);
+            setForm((f) => ({ ...f, quantity: v }));
+          }}
           onEnter={() => navigate("qty", "next")}
           onNavigate={(dir) => navigate("qty", dir)}
           stepper
@@ -291,15 +334,21 @@ export const AddProductPanel = forwardRef(function AddProductPanel(
           placeholder="Price (e.g. 5*100)"
         />
 
-        {stock != null && (
-          <p className="stock-hint">In stock: {stock}</p>
-        )}
+        {stock != null && <p className="stock-hint">In stock: {stock}</p>}
 
         <div className="product-popup-actions">
           <button type="button" className="btn-secondary" onClick={onClose}>
             Cancel
           </button>
-          <button type="button" className="btn-primary" onClick={() => stock === "null" || stock < checkQuantity ? showToast(`Stocks too low: ${stock} item remaining`,'error') :  addItem(false)}>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() =>
+              stock === "null" || stock < checkQuantity
+                ? showToast(`Stocks too low: ${stock} item remaining`, "error")
+                : addItem(false)
+            }
+          >
             {isEdit ? "Save Item" : "Add"}
           </button>
         </div>
