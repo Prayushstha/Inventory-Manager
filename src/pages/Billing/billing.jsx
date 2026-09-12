@@ -68,6 +68,8 @@ export function Billing() {
     })),
   );
 
+
+  
   const filtered = rows.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||

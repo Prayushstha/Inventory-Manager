@@ -733,3 +733,7 @@ kbd {
 .bill-item-row:focus-visible {
   background: rgba(251, 129, 53, 0.16);
 }
+
+.bill-item-row-total {
+  border-top: 5px solid var(--border-color);
+}

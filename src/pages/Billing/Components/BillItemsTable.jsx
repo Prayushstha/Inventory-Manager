@@ -11,6 +11,7 @@ export function BillItemsTable({
   onEdit,
   onDelete,
   onChangeQty,
+  totalPurchased
 }) {
   const rowRefs = useRef([]);
 
@@ -81,40 +82,53 @@ export function BillItemsTable({
       </thead>
       <tbody>
         {items.map((p, i) => (
-          <tr
-            key={i}
-            ref={(el) => (rowRefs.current[i] = el)}
-            tabIndex={i === selectedIndex ? 0 : -1}
-            className={`bill-item-row ${i === selectedIndex ? "selected" : ""}`}
-            onClick={() => setSelectedIndex(i)}
-            onDoubleClick={() => isEditing && onEdit(i)}
-            onKeyDown={(e) => handleRowKeyDown(e, i)}
-          >
-            <td>{i+1}</td>
-            <td>{p.productName}</td>
-            <td>{p.base || "—"}</td>
-            <td>{p.bucketSize || "—"}</td>
-            <td>{p.quantity}</td>
-            <td>Rs {p.priceAtSale}</td>
-            <td>
-              Rs {(parseFloat(p.quantity) || 0) * (parseFloat(p.priceAtSale) || 0)}
-            </td>
-            {isEditing && (
+            <tr
+              key={i}
+              ref={(el) => (rowRefs.current[i] = el)}
+              tabIndex={i === selectedIndex ? 0 : -1}
+              className={`bill-item-row ${i === selectedIndex ? "selected" : ""}`}
+              onClick={() => setSelectedIndex(i)}
+              onDoubleClick={() => isEditing && onEdit(i)}
+              onKeyDown={(e) => handleRowKeyDown(e, i)}
+            >
+              <td>{i + 1}</td>
+              <td>{p.productName}</td>
+              <td>{p.base || "—"}</td>
+              <td>{p.bucketSize || "—"}</td>
+              <td>{p.quantity}</td>
+              <td>Rs {p.priceAtSale}</td>
               <td>
-                <button
-                  type="button"
-                  className="btn-remove-row"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(i);
-                  }}
-                >
-                  ×
-                </button>
+                Rs{" "}
+                {(parseFloat(p.quantity) || 0) *
+                  (parseFloat(p.priceAtSale) || 0)}
               </td>
-            )}
-          </tr>
+              {isEditing && (
+                <td>
+                  <button
+                    type="button"
+                    className="btn-remove-row"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(i);
+                    }}
+                  >
+                    ×
+                  </button>
+                </td>
+              )}
+              </tr>
         ))}
+        <tr className="bill-item-row-total ">
+          <td>Total:</td>
+          <td>{items.length}</td>
+          <td>-</td>
+          <td>-</td>
+          <td>{
+  7   }</td>
+          <td>5</td>
+          <td>{totalPurchased}</td>
+        </tr>
+
       </tbody>
     </table>
   );

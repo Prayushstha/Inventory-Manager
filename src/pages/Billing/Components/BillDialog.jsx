@@ -29,6 +29,7 @@ export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }
   });
   const [isEditing, setIsEditing] = useState(isNew);
 
+  const [totalQuantity,setTotalQuantity] = useState(0);
   const [customerNotes,setCustomerNotes] = useState("");
 
   const [showPanel, setShowPanel] = useState(false);
@@ -283,6 +284,7 @@ export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }
               items={form.products}
               isEditing={isEditing}
               selectedIndex={selectedRow}
+              totalPurchased={totalPurchased}
               setSelectedIndex={setSelectedIndex}
               onEdit={handleEditRow}
               onDelete={handleRemoveProduct}
