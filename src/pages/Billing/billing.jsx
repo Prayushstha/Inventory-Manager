@@ -142,6 +142,7 @@ export function Billing() {
           usageMap={usageMap}
           onClose={closeDialog}
           onSaved={handleSaved}
+          customers={customers}
         />
       )}
       {ConfirmDialogComponent}

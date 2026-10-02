@@ -196,7 +196,7 @@
 4. **Product Search** - Full-text search in inventory ✅ DONE
 5. **Export to Excel** - Export bills, products, customers 
 6. **Print Templates** - Better invoice printing
-7. **Duplicate Customer Detection** - Prevent duplicates
+7. **Duplicate Customer Detection** - Prevent duplicates ✅ DONE
 8. **Bulk Delete** - Delete multiple records at once
 9. **Customer Notes** - Add notes field to customers ✅ DONE
 10. **Quick Filters** - Pre-built filter buttons

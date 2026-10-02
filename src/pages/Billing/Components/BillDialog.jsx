@@ -20,7 +20,15 @@ function computeStatus(totalPurchased, amountPaid) {
   return "Due";
 }
 
-export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }) {
+export function BillDialog({
+  bill,
+  products,
+  usageMap,
+  isNew,
+  onClose,
+  customers,
+  onSaved,
+}) {
   const showToast = useToast();
 
   const [form, setForm] = useState({
@@ -29,8 +37,8 @@ export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }
   });
   const [isEditing, setIsEditing] = useState(isNew);
 
-  const [totalQuantity,setTotalQuantity] = useState(0);
-  const [customerNotes,setCustomerNotes] = useState("");
+  const [totalQuantity, setTotalQuantity] = useState(0);
+  const [customerNotes, setCustomerNotes] = useState("");
 
   const [showPanel, setShowPanel] = useState(false);
   const [panelInitial, setPanelInitial] = useState(null); // { item, editIndex }
@@ -44,7 +52,8 @@ export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const totalPurchased = form.products.reduce(
-    (sum, p) => sum + (parseFloat(p.quantity) || 0) * (parseFloat(p.priceAtSale) || 0),
+    (sum, p) =>
+      sum + (parseFloat(p.quantity) || 0) * (parseFloat(p.priceAtSale) || 0),
     0,
   );
   const amountPaidNum = parseFloat(form.amountPaid) || 0;
@@ -66,7 +75,10 @@ export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }
     }));
   }
   function handleRemoveProduct(index) {
-    setForm((f) => ({ ...f, products: f.products.filter((_, i) => i !== index) }));
+    setForm((f) => ({
+      ...f,
+      products: f.products.filter((_, i) => i !== index),
+    }));
   }
   function handleChangeQty(index, delta) {
     setForm((f) => ({
@@ -89,7 +101,10 @@ export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }
       selectedRow >= 0 && selectedRow < form.products.length
         ? selectedRow
         : form.products.length - 1;
-    setForm((f) => ({ ...f, products: [...f.products, { ...f.products[idx] }] }));
+    setForm((f) => ({
+      ...f,
+      products: [...f.products, { ...f.products[idx] }],
+    }));
   }
   function cloneItem() {
     if (!isEditing || form.products.length === 0) return;
@@ -108,6 +123,13 @@ export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }
   async function handleSave() {
     const customerName = form.name.trim() || "Unknown";
     const customerPhone = form.phone.trim() || "0";
+
+    if (
+      customers.find((customer) => customer.name === customerName && customer.phone === customerPhone) 
+    ) {
+      showToast("The user already exists!");
+      return;
+    }
 
     if (form.products.length === 0) {
       showToast("Please add at least one product.", "error");
@@ -171,7 +193,11 @@ export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }
     function onKey(e) {
       const a = actionsRef.current;
       // Ctrl/Cmd+S → save
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "s") {
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        !e.shiftKey &&
+        e.key.toLowerCase() === "s"
+      ) {
         e.preventDefault();
         if (a.isEditing) a.save();
         return;
@@ -201,7 +227,11 @@ export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }
         return;
       }
       // Ctrl+Shift+D → clone selected/last item into the panel
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "d") {
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        e.shiftKey &&
+        e.key.toLowerCase() === "d"
+      ) {
         e.preventDefault();
         a.clone();
         return;
@@ -220,7 +250,9 @@ export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-header">
-          <h2 className="dialog-title">{isNew ? "New Bill" : `Bill — ${bill.name}`}</h2>
+          <h2 className="dialog-title">
+            {isNew ? "New Bill" : `Bill — ${bill.name}`}
+          </h2>
           <button className="dialog-close" onClick={onClose}>
             ✕
           </button>
@@ -232,31 +264,64 @@ export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }
             <div className="field-grid">
               <div className="field">
                 <label>Customer Name</label>
-                <input type="text" value={form.name} onChange={set("name")} disabled={locked} placeholder="Full name" />
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={set("name")}
+                  disabled={locked}
+                  placeholder="Full name"
+                />
               </div>
               <div className="field">
                 <label>Phone Number</label>
-                <input type="text" value={form.phone} onChange={set("phone")} disabled={locked} placeholder="98XXXXXXXX" />
+                <input
+                  type="text"
+                  value={form.phone}
+                  onChange={set("phone")}
+                  disabled={locked}
+                  placeholder="98XXXXXXXX"
+                />
               </div>
               <div className="field field-full">
                 <label>Address</label>
-                <input type="text" value={form.address} onChange={set("address")} disabled={locked} placeholder="Street, City" />
+                <input
+                  type="text"
+                  value={form.address}
+                  onChange={set("address")}
+                  disabled={locked}
+                  placeholder="Street, City"
+                />
               </div>
               <div className="field">
                 <label>Date</label>
-                <input type="date" value={form.date} onChange={set("date")} disabled={locked} />
+                <input
+                  type="date"
+                  value={form.date}
+                  onChange={set("date")}
+                  disabled={locked}
+                />
               </div>
               <div className="field">
                 <label>Payment Method</label>
-                <select value={form.paymentMethod} onChange={set("paymentMethod")} disabled={locked}>
+                <select
+                  value={form.paymentMethod}
+                  onChange={set("paymentMethod")}
+                  disabled={locked}
+                >
                   <option>Cash</option>
                   <option>UPI</option>
                   <option>Card</option>
                   <option>Credit</option>
                 </select>
               </div>
-                <div className="field field-full">
-                <input type="textarea" value={form.notes ? form.notes : ""} onChange={set("notes")} placeholder="Customer Notes" disabled={locked} />
+              <div className="field field-full">
+                <input
+                  type="textarea"
+                  value={form.notes ? form.notes : ""}
+                  onChange={set("notes")}
+                  placeholder="Customer Notes"
+                  disabled={locked}
+                />
               </div>
             </div>
           </section>
@@ -266,16 +331,33 @@ export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }
               <p className="section-label">Products</p>
               {isEditing && form.products.length > 0 && (
                 <span className="kbd-hint-bar">
-                  <span><kbd>↑</kbd><kbd>↓</kbd> row</span>
-                  <span><kbd>Enter</kbd> edit</span>
-                  <span><kbd>+</kbd><kbd>−</kbd> qty</span>
-                  <span><kbd>Del</kbd> remove</span>
-                  <span><kbd>Ctrl</kbd>+<kbd>D</kbd> duplicate</span>
+                  <span>
+                    <kbd>↑</kbd>
+                    <kbd>↓</kbd> row
+                  </span>
+                  <span>
+                    <kbd>Enter</kbd> edit
+                  </span>
+                  <span>
+                    <kbd>+</kbd>
+                    <kbd>−</kbd> qty
+                  </span>
+                  <span>
+                    <kbd>Del</kbd> remove
+                  </span>
+                  <span>
+                    <kbd>Ctrl</kbd>+<kbd>D</kbd> duplicate
+                  </span>
                 </span>
               )}
             </div>
 
-            <button className="product-dropzone" disabled={locked} type="button" onClick={openAddPanel}>
+            <button
+              className="product-dropzone"
+              disabled={locked}
+              type="button"
+              onClick={openAddPanel}
+            >
               <span className="dropzone-icon">+</span>
               <span>Add Product</span>
             </button>
@@ -321,12 +403,20 @@ export function BillDialog({ bill, products, usageMap, isNew, onClose, onSaved }
         </div>
 
         <div className="dialog-footer">
-          <button className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button className="btn-secondary" onClick={handlePrint}>Print Bill</button>
+          <button className="btn-secondary" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="btn-secondary" onClick={handlePrint}>
+            Print Bill
+          </button>
           {isEditing ? (
-            <button className="btn-primary" onClick={handleSave}>Save Bill</button>
+            <button className="btn-primary" onClick={handleSave}>
+              Save Bill
+            </button>
           ) : (
-            <button className="btn-primary" onClick={() => setIsEditing(true)}>Edit Bill</button>
+            <button className="btn-primary" onClick={() => setIsEditing(true)}>
+              Edit Bill
+            </button>
           )}
         </div>
       </div>
