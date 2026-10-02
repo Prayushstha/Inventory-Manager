@@ -4,6 +4,10 @@ export function BillTable({ filtered, statusMeta, openExisting, onDelete }) {
   const [sortOrder, setSortOrder] = useState(true);
 
   const sortedFiltered = [...filtered].sort((a, b) => {
+    if(typeof a[sortKey] === 'string' || typeof b[sortKey] === 'string') {
+      if(sortOrder) return a[sortKey].localeCompare(b[sortKey]);
+      else return b[sortKey].localeCompare(a[sortKey]);
+    }
     if (sortOrder) return a[sortKey] - b[sortKey];
     else return b[sortKey] - a[sortKey];
   });
@@ -21,7 +25,10 @@ export function BillTable({ filtered, statusMeta, openExisting, onDelete }) {
             >
               SN
             </th>
-            <th className="th-data">Customer Name</th>
+            <th className="th-data"  onClick={() => {
+                setSortKey("name");
+                setSortOrder(!sortOrder);
+              }}>Customer Name</th>
             <th
               className="th-data"
               onClick={() => {
@@ -36,7 +43,6 @@ export function BillTable({ filtered, statusMeta, openExisting, onDelete }) {
               onClick={() => {
                 setSortKey("totalPurchased");
                 setSortOrder(!sortOrder);
-                console.log(sortedFiltered)
               }}
             >
               Total Purchased
@@ -45,21 +51,18 @@ export function BillTable({ filtered, statusMeta, openExisting, onDelete }) {
               onClick={() => {
                 setSortKey("totalDue");
                 setSortOrder(!sortOrder);
-                console.log(sortedFiltered)
               }}
             >Total Due</th>
             <th className="th-data"
               onClick={() => {
                 setSortKey("date");
                 setSortOrder(!sortOrder);
-                console.log(sortedFiltered)
               }}
             >Date</th>
             <th className="th-data"
             onClick={() => {
                 setSortKey("status");
                 setSortOrder(!sortOrder);
-                console.log(sortedFiltered)
               }}
             >Status</th>
             <th className="th-actions">Actions</th>

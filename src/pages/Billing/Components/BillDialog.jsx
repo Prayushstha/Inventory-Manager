@@ -123,13 +123,12 @@ export function BillDialog({
   async function handleSave() {
     const customerName = form.name.trim() || "Unknown";
     const customerPhone = form.phone.trim() || "0";
-
-    if (
-      customers.find((customer) => customer.name === customerName && customer.phone === customerPhone) 
-    ) {
+    if(isNew && customers.find((customer) => customer.name === customerName && customer.phone === customerPhone) ){
       showToast("The user already exists!");
       return;
     }
+    
+    
 
     if (form.products.length === 0) {
       showToast("Please add at least one product.", "error");

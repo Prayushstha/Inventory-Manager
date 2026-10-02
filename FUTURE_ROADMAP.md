@@ -152,7 +152,7 @@
 - [ ] **Bulk Import**: Import customers/products from CSV
 - [ ] **Advanced Search**: Full-text search with filters
 - [ ] **Favorites/Bookmarks**: Quick access to frequent items
-- [ ] **Customizable Views**: Save filter/sort preferences
+- [ ] **Customizable Views**: Save filter/sort preferences 
 - [ ] **Drag & Drop**: Reorder items, drag to move between bases
 - [ ] **Context Menu**: Right-click menus for quick actions
 - [ ] **Notifications**: In-app and browser notifications
