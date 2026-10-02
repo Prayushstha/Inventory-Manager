@@ -1,17 +1,68 @@
+import { useState } from "react";
 export function BillTable({ filtered, statusMeta, openExisting, onDelete }) {
+  const [sortKey, setSortKey] = useState("id");
+  const [sortOrder, setSortOrder] = useState(true);
+
+  const sortedFiltered = [...filtered].sort((a, b) => {
+    if (sortOrder) return a[sortKey] - b[sortKey];
+    else return b[sortKey] - a[sortKey];
+  });
   return (
     <div className="table-wrapper">
       <table className="billing-table">
         <thead>
           <tr>
-            <th>SN</th>
-            <th>Customer Name</th>
-            <th>Phone Number</th>
-            <th>Total Purchased</th>
-            <th>Total Due</th>
-            <th>Date</th>
-            <th>Status</th>
-            <th>Actions</th>
+            <th
+              className="th-data"
+              onClick={() => {
+                setSortKey("id");
+                setSortOrder(!sortOrder);
+              }}
+            >
+              SN
+            </th>
+            <th className="th-data">Customer Name</th>
+            <th
+              className="th-data"
+              onClick={() => {
+                setSortKey("phone");
+                setSortOrder(!sortOrder);
+              }}
+            >
+              Phone Number
+            </th>
+            <th
+              className="th-data"
+              onClick={() => {
+                setSortKey("totalPurchased");
+                setSortOrder(!sortOrder);
+                console.log(sortedFiltered)
+              }}
+            >
+              Total Purchased
+            </th>
+            <th className="th-data"
+              onClick={() => {
+                setSortKey("totalDue");
+                setSortOrder(!sortOrder);
+                console.log(sortedFiltered)
+              }}
+            >Total Due</th>
+            <th className="th-data"
+              onClick={() => {
+                setSortKey("date");
+                setSortOrder(!sortOrder);
+                console.log(sortedFiltered)
+              }}
+            >Date</th>
+            <th className="th-data"
+            onClick={() => {
+                setSortKey("status");
+                setSortOrder(!sortOrder);
+                console.log(sortedFiltered)
+              }}
+            >Status</th>
+            <th className="th-actions">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -22,13 +73,13 @@ export function BillTable({ filtered, statusMeta, openExisting, onDelete }) {
               </td>
             </tr>
           ) : (
-            filtered.map((c, i) => (
+            sortedFiltered.map((c, i) => (
               <tr
                 key={c.id}
                 className="table-row"
                 onClick={() => openExisting(c)}
               >
-                <td>{i + 1}</td>
+                <td>{c.id}</td>
                 <td className="name-cell">{c.name}</td>
                 <td>{c.phone}</td>
                 <td>Rs {c.totalPurchased.toLocaleString()}</td>
