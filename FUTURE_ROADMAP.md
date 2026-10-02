@@ -218,8 +218,8 @@
 
 1. **Keyboard Shortcuts** ✅ DONE
 2. **Analytics Backend** ✅ DONE
-3. **Low Stock Warnings** - Add alerts when stock < threshold 
-4. **Product Search** - Full-text search in inventory
+3. **Low Stock Warnings** - Add alerts when stock < threshold ✅ DONE
+4. **Product Search** - Full-text search in inventory 
 5. **Export to Excel** - Export bills, products, customers
 6. **Print Templates** - Better invoice printing
 7. **Duplicate Customer Detection** - Prevent duplicates
