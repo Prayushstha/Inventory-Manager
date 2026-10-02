@@ -3,39 +3,25 @@
 ## 🎯 Priority 1: Core Business Features (High Impact)
 
 ### 1.1 Inventory Management Enhancements
-- [ ] **Low Stock Alerts**: Notify when product stock falls below threshold
-- [ ] **Stock Transfer**: Move stock between bases/variants
+- [x] **Low Stock Alerts**: Notify when product stock falls below threshold
 - [ ] **Batch Operations**: Edit multiple products at once
 - [ ] **Inventory Audit**: Count verification and reconciliation
 - [ ] **Stock Valuation**: Calculate inventory value at cost price
 - [ ] **Expiry Tracking**: Track product batch expiry dates
-- [ ] **Barcode/QR Code**: Generate and scan product codes
 
 ### 1.2 Advanced Billing Features
 - [ ] **Invoice Templates**: Multiple layout/branding options
-- [ ] **Payment Reminders**: Auto-send reminders for overdue payments
 - [ ] **Partial Payments**: Track multiple payments per bill
-- [ ] **Bill Discounts**: Apply percentage or fixed discounts
-- [ ] **Tax Calculation**: GST/VAT per product or bill-level
-- [ ] **Recurring Bills**: Auto-generate for subscription customers
-- [ ] **Bill Sequences**: Auto-numbering and date tracking
-- [ ] **Bulk SMS/Email**: Send invoices to customers
+- [x] **Bill Sequences**: Auto-numbering and date tracking
 
 ### 1.3 Financial Management
 - [ ] **Profit & Loss Statement**: Detailed P&L reports
 - [ ] **Cash Flow Analysis**: Money in/out tracking
-- [ ] **Budget Planning**: Set and track budgets
 - [ ] **Financial Ratios**: Margin, ROI, turnover calculations
-- [ ] **Tax Reports**: Income tax, GST filings
-- [ ] **Bank Reconciliation**: Match transactions with bank statements
-- [ ] **Multi-currency Support**: Handle international transactions
 
 ### 1.4 Customer Management
 - [ ] **Customer Segments**: Classify by type, value, region
-- [ ] **Credit Limits**: Set max credit per customer
 - [ ] **Customer History**: Full transaction history
-- [ ] **Loyalty Programs**: Points, discounts, rewards
-- [ ] **Customer Portal**: Self-service invoice/payment view
 - [ ] **Dunning Management**: Automated collection workflows
 - [ ] **Customer Analytics**: Lifetime value, churn prediction
 
@@ -199,18 +185,6 @@
 - [ ] Error boundary components
 - [ ] Performance profiling
 - [ ] Accessibility audit
-
----
-
-## 💬 User Feedback to Collect
-
-- [ ] Most-used features
-- [ ] Pain points in workflow
-- [ ] Desired reports
-- [ ] Missing calculations
-- [ ] Integration requests
-- [ ] Mobile needs
-- [ ] Performance issues
 
 ---
 
