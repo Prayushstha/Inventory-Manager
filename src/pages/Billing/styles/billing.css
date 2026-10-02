@@ -118,8 +118,12 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   white-space: nowrap;
+  cursor: pointer;
+  border-radius: 10px;
 }
-
+.billing-table th:hover{
+  background: var(--background-tertiary);
+}
 .billing-table td {
   padding: 13px 14px;
   border-bottom: 1px solid var(--border-color);
