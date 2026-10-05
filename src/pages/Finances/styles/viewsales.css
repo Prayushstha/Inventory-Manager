@@ -42,7 +42,7 @@
 
 .switch-viewing-btn-active {
   background: var(--button-primary);
-  color: #ffffff;
+  color: var(--primary-foreground);
 }
 
 .switch-viewing-btn-active:hover {

@@ -6,7 +6,7 @@
   border-radius: 8px;
   border: none;
   background: var(--button-primary);
-  color: #fff;
+  color: var(--primary-foreground);
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
@@ -203,7 +203,7 @@
 }
 
 .btn-remove-row:hover {
-  color: #c73a3a;
+  color: var(--destructive);
 }
 
 /* ── Confirm Button ── */

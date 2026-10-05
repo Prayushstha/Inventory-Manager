@@ -93,14 +93,14 @@
 }
 
 .nav-link.active {
-  background: var(--background-primary);
-  color: #0F6E56;
+  background: var(--sidebar-accent);
+  color: var(--sidebar-primary);
   font-weight: 600;
   border: 1px solid var(--border-color);
 }
 
 .nav-link.active i {
-  color: #1D9E75;
+  color: var(--sidebar-primary);
 }
 
 .link-label {

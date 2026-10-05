@@ -95,7 +95,7 @@ dialog.edit-console::backdrop {
 .btn-add {
   height: 38px;
   background: var(--button-primary);
-  color: #ffffff;
+  color: var(--primary-foreground);
   border: none;
   border-radius: 6px;
   font-weight: 500;
@@ -124,7 +124,7 @@ dialog.edit-console::backdrop {
   flex: 1;
   padding: 8px 12px;
   background-color: var(--button-primary);
-  color: var(--color-primary);
+  color: var(--primary-foreground);
   border: none;
   border-radius: 6px;
   font-weight: 500;
@@ -148,7 +148,7 @@ dialog.edit-console::backdrop {
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
-  background: var(--color-secondary, #333);
+  background: var(--secondary);
   border-radius: 6px;
   font-size: 13px;
 }

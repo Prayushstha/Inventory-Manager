@@ -309,7 +309,7 @@
 
 .tab-btn.tab-active {
   background: var(--button-primary);
-  color: #ffffff;
+  color: var(--primary-foreground);
 }
 
 .tab-btn.tab-active:hover {
@@ -330,8 +330,8 @@
 }
 
 .card {
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background-color: var(--card);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 24px 28px;
 }
@@ -340,36 +340,20 @@
   margin: 12px 0 4px;
   font-size: 18px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .card-subtitle {
   margin: 0;
   font-size: 13px;
-  color: var(--text-muted);
-}
-:root {
-  --bg-color: #0d0d0d;
-  --card-bg: #151515;
-  --card-border: #222222;
-  --divider-color: #242422;
-  --text-primary: #ffffff;
-  --text-secondary: #9e9e9e;
-  --text-muted: #666666;
-  --primary: #f26522;
-  --primary-dim: rgba(242, 101, 34, 0.12);
-  --success: #1d9e75;
-  --warning: #e6a817;
-  --danger: #e24b4a;
-  --info: #378add;
-  --blue-accent: #2e8bfe;
+  color: var(--muted-foreground);
 }
 
 .dashboard-container {
-  background-color: var(--bg-color);
+  background-color: var(--background);
   min-height: 100vh;
   padding: 32px 40px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans);
   box-sizing: border-box;
 }
 
@@ -384,7 +368,7 @@
   margin: 10px 0 0;
   font-size: 28px;
   font-weight: 800;
-  color: var(--text-primary);
+  color: var(--foreground);
   letter-spacing: -0.02em;
 }
 
@@ -403,7 +387,7 @@
 
 .time-toggle-group {
   display: flex;
-  background-color: #1a1a1a;
+  background-color: var(--secondary);
   border-radius: 8px;
   padding: 4px;
   gap: 2px;
@@ -417,18 +401,18 @@
   font-size: 13px;
   font-weight: 500;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--muted-foreground);
   transition: all 0.2s ease;
 }
 
 .toggle-btn.active {
-  background-color: #2a2a2a;
-  color: var(--text-primary);
+  background-color: var(--accent);
+  color: var(--foreground);
 }
 
 .toggle-btn.active-primary {
   background-color: var(--primary);
-  color: #000000;
+  color: var(--primary-foreground);
   font-weight: 700;
 }
 
@@ -447,8 +431,8 @@
 }
 
 .card {
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background-color: var(--card);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 24px 28px;
 }
@@ -457,13 +441,13 @@
   margin: 12px 0 4px;
   font-size: 18px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .card-subtitle {
   margin: 0;
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
 }
 
 .chart-header {
@@ -479,7 +463,7 @@
 
 .chart-total-label {
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 600;
@@ -488,7 +472,7 @@
 .chart-total-value {
   font-size: 24px;
   font-weight: 800;
-  color: var(--text-primary);
+  color: var(--foreground);
   margin-top: 4px;
 }
 
@@ -498,17 +482,17 @@
 }
 
 .chart-tooltip {
-  background-color: #1a1a1a;
-  border: 1px solid var(--card-border);
+  background-color: var(--popover);
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 8px 12px;
   font-size: 12px;
-  color: var(--text-primary);
+  color: var(--popover-foreground);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 .chart-tooltip-label {
-  color: var(--text-secondary);
+  color: var(--muted-foreground);
   margin-bottom: 2px;
 }
 
@@ -542,31 +526,31 @@
 .product-index {
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   width: 18px;
 }
 
 .product-analytics-name {
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--foreground);
   font-weight: 600;
 }
 
 .product-units {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--muted-foreground);
 }
 
 .progress-track {
   height: 4px;
-  background-color: #222222;
+  background-color: var(--muted);
   border-radius: 2px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background-color: var(--blue-accent);
+  background-color: var(--chart-2);
   border-radius: 2px;
 }
 
@@ -580,7 +564,7 @@
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background-color: #221c18;
+  background-color: color-mix(in srgb, var(--primary) 12%, var(--card));
   color: var(--primary);
   display: flex;
   align-items: center;
@@ -603,13 +587,13 @@
 
 .customer-name {
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--foreground);
   font-weight: 600;
 }
 
 .customer-spend {
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--foreground);
   font-weight: 700;
 }
 
@@ -622,13 +606,13 @@
 
 .customer-orders {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
 }
 
 .customer-progress-track {
   width: 100px;
   height: 4px;
-  background-color: #222222;
+  background-color: var(--muted);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -652,26 +636,26 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
 }
 
 .tx-row {
   padding: 14px 4px;
-  border-top: 1px solid var(--card-border);
+  border-top: 1px solid var(--border);
   font-size: 13px;
 }
 
 .tx-item {
-  color: var(--text-primary);
+  color: var(--foreground);
   font-weight: 500;
 }
 
 .tx-secondary {
-  color: var(--text-secondary);
+  color: var(--muted-foreground);
 }
 
 .tx-amount {
-  color: var(--text-primary);
+  color: var(--foreground);
   text-align: right;
   font-weight: 600;
 }
@@ -689,17 +673,17 @@
 
 .status-badge.paid {
   color: var(--success);
-  background-color: rgba(29, 158, 117, 0.15);
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
 }
 
 .status-badge.pending {
   color: var(--warning);
-  background-color: rgba(230, 168, 23, 0.15);
+  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
 }
 
 .status-badge.refunded {
   color: var(--danger);
-  background-color: rgba(226, 75, 74, 0.15);
+  background-color: color-mix(in srgb, var(--danger) 15%, transparent);
 }
 
 .align-right {

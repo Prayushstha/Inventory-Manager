@@ -12,7 +12,7 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--button-primary);
-  background: rgba(251, 129, 53, 0.1);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
   border-radius: 4px;
   padding: 3px 8px;
   margin-bottom: 14px;

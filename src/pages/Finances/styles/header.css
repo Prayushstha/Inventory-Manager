@@ -56,7 +56,7 @@
   flex: 1;
   padding: 8px 12px;
   background-color: var(--button-primary);
-  color: var(--color-primary);
+  color: var(--primary-foreground);
   border: none;
   border-radius: 6px;
   font-weight: 500;
@@ -115,7 +115,7 @@
 
 .tab-btn.tab-active {
   background: var(--button-primary);
-  color: #ffffff;
+  color: var(--primary-foreground);
 }
 
 .tab-btn.tab-active:hover {

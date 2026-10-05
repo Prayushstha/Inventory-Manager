@@ -17,25 +17,26 @@
   max-width: 360px;
   padding: 12px 14px;
   border-radius: 8px;
-  background: var(--surface-color, #1c1c1c);
-  border-left: 4px solid var(--info-color, #5b8def);
+  background: var(--popover);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--info);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-  color: var(--text-color, #f0f0f0);
+  color: var(--popover-foreground);
   font-size: 14px;
   pointer-events: auto;
   animation: toast-in 0.2s ease-out;
 }
 
 .toast-success {
-  border-left-color: var(--success-color, #3ecf8e);
+  border-left-color: var(--success);
 }
 
 .toast-error {
-  border-left-color: var(--danger-color, #e5484d);
+  border-left-color: var(--danger);
 }
 
 .toast-info {
-  border-left-color: var(--info-color, #5b8def);
+  border-left-color: var(--info);
 }
 
 .toast-message {
