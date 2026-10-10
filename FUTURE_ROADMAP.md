@@ -1,223 +1,109 @@
-# StockWise - Future Features & Improvements Roadmap
+# StockWise Roadmap
 
-## 🎯 Priority 1: Core Business Features (High Impact)
+This roadmap is intentionally focused on improvements that matter most for a small-business desktop inventory app. The goal is to improve usability, stability, operational control, and business readiness before expanding into broader platform features.
 
-### 1.1 Inventory Management Enhancements
-- [x] **Low Stock Alerts**: Notify when product stock falls below threshold
-- [ ] **Batch Operations**: Edit multiple products at once
-- [ ] **Inventory Audit**: Count verification and reconciliation
-- [ ] **Stock Valuation**: Calculate inventory value at cost price
-- [ ] **Expiry Tracking**: Track product batch expiry dates
+## Priority 1: Stability and data reliability
 
-### 1.2 Advanced Billing Features
-- [ ] **Invoice Templates**: Multiple layout/branding options
-- [ ] **Partial Payments**: Track multiple payments per bill
-- [x] **Bill Sequences**: Auto-numbering and date tracking
+### Must do next
+- [ ] Add data validation and safer CRUD flows for products, bills, expenses, and customers
+- [ ] Add DB migration/versioning so schema changes are safe and repeatable
+- [ ] Add backup and restore flow for local SQLite data
+- [ ] Review and harden error handling around failed database or import actions
+- [ ] Add test coverage for core business flows: product add/edit/delete, bill creation, expense import
+- [ ] Improve settings and configuration handling for app defaults and local storage paths
 
-### 1.3 Financial Management
-- [ ] **Profit & Loss Statement**: Detailed P&L reports
-- [ ] **Cash Flow Analysis**: Money in/out tracking
-- [ ] **Financial Ratios**: Margin, ROI, turnover calculations
-
-### 1.4 Customer Management
-- [ ] **Customer Segments**: Classify by type, value, region
-- [ ] **Customer History**: Full transaction history
-- [ ] **Dunning Management**: Automated collection workflows
-- [ ] **Customer Analytics**: Lifetime value, churn prediction
+### Why it matters
+This app is already feature-rich enough to be useful, but reliability is the main factor that determines whether it becomes trusted business software.
 
 ---
 
-## 📊 Priority 2: Analytics & Reporting (Better Insights)
+## Priority 2: Operational business workflow
 
-### 2.1 Advanced Analytics
-- [ ] **Sales Trends**: Month-over-month, year-over-year comparisons
-- [ ] **Product Performance**: Sales velocity, profitability by product
-- [ ] **Customer Analytics**: Purchase patterns, RFM analysis
-- [ ] **Forecasting**: Predict future sales/demand
-- [ ] **Cohort Analysis**: Group customers by signup period
-- [ ] **Custom Reports**: User-defined report builder
-- [ ] **Report Scheduling**: Auto-generate and email reports
-- [ ] **Data Export**: CSV, Excel, PDF formats
+### High-value features
+- [ ] Batch product updates and bulk delete operations
+- [ ] Inventory audit / stock count reconciliation
+- [ ] Stock valuation report based on cost and current inventory value
+- [ ] Better customer payment tracking with partial payments and outstanding aging
+- [ ] Tax-aware billing calculations and invoice totals
+- [ ] Export options for sales, products, customers, and expenses (CSV / Excel)
+- [ ] Printable invoice and receipt templates
+- [ ] Search and filter improvements for products, bills, and customers
 
-### 2.2 Dashboard Customization
-- [ ] **Widgets**: Draggable, customizable dashboard tiles
-- [ ] **KPI Tracking**: Monitor key metrics in real-time
-- [ ] **Performance Alerts**: Auto-alert on thresholds
-- [ ] **Executive Dashboard**: High-level business overview
-- [ ] **Role-Based Views**: Different dashboards for different users
+### Outcomes
+These features improve day-to-day reliability and help local businesses use the app as an operational tool instead of just a product list.
 
 ---
 
-## 🔐 Priority 3: User & Access Management
+## Priority 3: Reporting and decision support
 
-### 3.1 Multi-User Support
-- [ ] **User Roles**: Admin, Manager, Sales, Accountant roles
-- [ ] **Permissions Matrix**: Granular access control
-- [ ] **Activity Audit Log**: Track all user actions
-- [ ] **User Management**: Add/edit/disable users
-- [ ] **Two-Factor Authentication**: Enhanced security
-- [ ] **Session Management**: Idle timeout, concurrent logins
+### Important next layer
+- [ ] Profit and loss summaries by time period
+- [ ] Top-selling products and slow-moving inventory insights
+- [ ] Customer purchase history and payment performance summaries
+- [ ] Supplier / import cost analysis
+- [ ] Dashboard customization with key business KPIs
+- [ ] Better comparison views for monthly and yearly performance
 
-### 3.2 Data Security
-- [ ] **Data Backup**: Automated daily backups
-- [ ] **Cloud Sync**: Optional cloud backup
-- [ ] **Data Encryption**: Encrypt sensitive data
-- [ ] **Password Policies**: Strength requirements, expiry
-- [ ] **Compliance**: GDPR, data retention policies
+### Goal
+Move from simple transaction recording to actionable business reporting.
 
 ---
 
-## 🛒 Priority 4: E-Commerce & Integration
+## Priority 4: User workflow and UX
 
-### 4.1 Online Sales Channel
-- [ ] **E-commerce Integration**: Connect Shopify, WooCommerce
-- [ ] **Order Sync**: Auto-sync orders to billing
-- [ ] **Payment Gateway**: Stripe, PayPal, local payment methods
-- [ ] **Order Tracking**: Customer order status updates
-- [ ] **Return Management**: Handle returns and refunds
+### Recommended improvements
+- [ ] Better onboarding and first-run setup for new users
+- [ ] Standardized dialogs and validation messages
+- [ ] Quick actions for frequent tasks: duplicate, restore, export, delete
+- [ ] Theme and layout polish for desktop usability
+- [ ] Keyboard shortcut documentation and better accessibility for form-heavy screens
 
-### 4.2 Third-Party Integrations
-- [ ] **Accounting Software**: QuickBooks, Xero sync
-- [ ] **CRM**: HubSpot, Salesforce integration
-- [ ] **Email**: Mailchimp campaigns for promotions
-- [ ] **SMS Gateway**: Twilio for notifications
-- [ ] **Shipping**: FedEx, UPS, DHL rate calculation
-- [ ] **API**: REST API for third-party apps
+### Goal
+Streamline repetitive actions and reduce mistakes during daily usage.
 
 ---
 
-## 📱 Priority 5: Mobile & Accessibility
+## Priority 5: Expansion only after foundation is strong
 
-### 5.1 Mobile App
-- [ ] **Mobile Web**: Responsive design for tablets/phones
-- [ ] **Native Apps**: iOS/Android mobile apps
-- [ ] **Offline Mode**: Work without internet, sync later
-- [ ] **Mobile Selling**: Take orders on mobile
-- [ ] **Mobile Payments**: Accept card payments on phone
+### Optional later
+- [ ] Multi-user roles and permissions for shared store setups
+- [ ] Optional cloud sync or encrypted backup
+- [ ] API for external integrations
+- [ ] E-commerce/order sync integrations
+- [ ] Mobile-responsive or companion mobile views
+- [ ] Supplier and purchase-order workflows
 
-### 5.2 Accessibility
-- [ ] **Multi-Language**: Support multiple languages
-- [ ] **Accessibility**: WCAG compliance
-- [ ] **Voice Commands**: Hands-free operation
-- [ ] **Dark Mode**: Already supported, enhance it
-- [ ] **Keyboard Navigation**: Improve keyboard-only usage
+### Recommendation
+These are valid long-term ideas, but they should come after the app is stable, tested, and trusted for daily local operations.
 
 ---
 
-## 🚀 Priority 6: Performance & DevOps
+## Suggested execution order
 
-### 6.1 Performance Optimization
-- [ ] **Caching Layer**: Redis for faster queries
-- [ ] **Database Indexing**: Optimize slow queries
-- [ ] **Lazy Loading**: Load data as needed
-- [ ] **Code Splitting**: Reduce initial bundle size
-- [ ] **Image Optimization**: Compress product images
+### Phase 1: 0-2 months
+- Data validation
+- Backups and restore
+- Migration support
+- Better reporting basics
+- Test coverage
 
-### 6.2 Infrastructure
-- [ ] **Cloud Deployment**: AWS, Azure, Google Cloud
-- [ ] **CI/CD Pipeline**: Automated testing and deployment
-- [ ] **Docker**: Containerize the app
-- [ ] **Monitoring**: Application performance monitoring
-- [ ] **Logging**: Centralized error/event logging
+### Phase 2: 2-4 months
+- Bulk operations
+- Tax and partial payment support
+- Export and print improvements
+- Customer aging and payment insights
 
----
+### Phase 3: 4-6 months
+- Multi-user readiness
+- Advanced reports and dashboard customization
+- Backup security and sync options
 
-## 💡 Priority 7: Advanced Features
-
-### 7.1 Supply Chain
-- [ ] **Vendor Management**: Track suppliers
-- [ ] **Purchase Orders**: PO creation and tracking
-- [ ] **Supplier Performance**: On-time delivery, quality tracking
-- [ ] **Inventory Forecasting**: Automated reorder suggestions
-- [ ] **Multi-Warehouse**: Support multiple locations
-
-### 7.2 Manufacturing (if applicable)
-- [ ] **Bill of Materials**: Recipe/formula tracking
-- [ ] **Production Planning**: Manufacturing schedules
-- [ ] **Quality Control**: Defect tracking
-- [ ] **Batch Tracking**: Track batch numbers
-
-### 7.3 Subscription & SaaS
-- [ ] **Subscription Plans**: Tiered pricing
-- [ ] **Usage Tracking**: Track feature usage
-- [ ] **Auto-Billing**: Recurring payment processing
-- [ ] **Customer Self-Service**: Upgrade/downgrade plans
+### Phase 4: 6+ months
+- External integrations and API support
+- Mobile or web companion workflows
 
 ---
 
-## 🎨 Priority 8: UI/UX Improvements
+## Current status
 
-### 8.1 User Experience
-- [ ] **Onboarding Flow**: Tutorial for new users
-- [ ] **Bulk Import**: Import customers/products from CSV
-- [ ] **Advanced Search**: Full-text search with filters
-- [ ] **Favorites/Bookmarks**: Quick access to frequent items
-- [ ] **Customizable Views**: Save filter/sort preferences 
-- [ ] **Drag & Drop**: Reorder items, drag to move between bases
-- [ ] **Context Menu**: Right-click menus for quick actions
-- [ ] **Notifications**: In-app and browser notifications
-
-### 8.2 Design
-- [ ] **Design System**: Comprehensive component library
-- [ ] **Typography**: Font improvements
-- [ ] **Spacing**: Consistent padding/margins
-- [ ] **Animations**: Smooth transitions
-- [ ] **Icons**: Professional icon set
-
----
-
-## 📋 Suggested Implementation Order
-
-**Phase 1 (Months 1-2)**: Multi-user + permissions, Low stock alerts, Better reports
-**Phase 2 (Months 3-4)**: Payment tracking, Tax calculations, Customer segments
-**Phase 3 (Months 5-6)**: Mobile responsive, E-commerce sync, API
-**Phase 4 (Months 7+)**: Cloud deployment, Advanced analytics, Native apps
-
----
-
-## 🔧 Technical Debt to Address
-
-- [ ] Add unit tests (currently none)
-- [ ] Add integration tests
-- [ ] Set up CI/CD pipeline
-- [ ] Documentation for developers
-- [ ] TypeScript migration (currently vanilla JS)
-- [ ] Error boundary components
-- [ ] Performance profiling
-- [ ] Accessibility audit
-
----
-
-## 🎯 Quick Wins (Can implement quickly)
-
-1. **Keyboard Shortcuts** ✅ DONE
-2. **Analytics Backend** ✅ DONE
-3. **Low Stock Warnings** - Add alerts when stock < threshold ✅ DONE
-4. **Product Search** - Full-text search in inventory ✅ DONE
-5. **Export to Excel** - Export bills, products, customers 
-6. **Print Templates** - Better invoice printing
-7. **Duplicate Customer Detection** - Prevent duplicates ✅ DONE
-8. **Bulk Delete** - Delete multiple records at once
-9. **Customer Notes** - Add notes field to customers ✅ DONE
-10. **Quick Filters** - Pre-built filter buttons
-
----
-
-## 🌟 Most Impactful (Best ROI)
-
-1. **Multi-User & Permissions** - Enable team use
-2. **Tax Calculations** - Required for compliance
-3. **Payment Tracking** - Critical for cash flow
-4. **Custom Reports** - Every business needs different reports
-5. **Low Stock Alerts** - Prevents stockouts
-6. **E-commerce Sync** - Expand sales channels
-7. **API** - Enable integrations
-8. **Mobile Responsive** - Access from anywhere
-9. **Backup/Restore** - Data safety
-10. **Accounting Integration** - Streamline finances
-
----
-
-**Last Updated**: 2026-08-27
-**Current Version**: 1.6.4
-**Status**: Production Ready with planned expansions
+The project already has a solid base: a desktop app, local database storage, inventory management, billing, expenses, and analytics. The most important next step is not building a large SaaS product, but turning this into a dependable business tool with stable data handling and practical reporting.
