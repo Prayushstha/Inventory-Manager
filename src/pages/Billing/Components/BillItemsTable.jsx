@@ -97,7 +97,12 @@ export function BillItemsTable({
               onKeyDown={(e) => handleRowKeyDown(e, i)}
             >
               <td>{i + 1}</td>
-              <td>{new Date(purchaseDate).toLocaleDateString()}</td>
+              <td>
+                {new Date(`${purchaseDate}T00:00:00`).toLocaleDateString(undefined, {
+                  day: "numeric",
+                  month: "short",
+                })}
+              </td>
               <td>{p.productName}</td>
               <td>{p.base || "—"}</td>
               <td>{p.bucketSize || "—"}</td>

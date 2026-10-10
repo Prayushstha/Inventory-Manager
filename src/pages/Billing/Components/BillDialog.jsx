@@ -357,12 +357,14 @@ export function BillDialog({
                 </select>
               </div>
               <div className="field field-full">
-                <input
-                  type="textarea"
+                <label htmlFor="bill-customer-notes">Customer Notes</label>
+                <textarea
+                  id="bill-customer-notes"
                   value={form.notes ? form.notes : ""}
                   onChange={set("notes")}
-                  placeholder="Customer Notes"
+                  placeholder="Optional notes about this customer"
                   disabled={locked}
+                  rows={3}
                 />
               </div>
             </div>
@@ -419,27 +421,34 @@ export function BillDialog({
 
           <section className="dialog-section">
             <p className="section-label">Payment Details</p>
-            <div className="field-grid">
-              <div className="field">
-                <label>Total Purchased (Rs)</label>
-                <input type="number" value={totalPurchased} disabled />
+            <div className="payment-summary-card">
+              <div className="payment-summary-metric">
+                <span className="payment-summary-label">Total Purchased</span>
+                <strong className="payment-summary-value">
+                  Rs {Number(totalPurchased).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                </strong>
               </div>
-              <div className="field">
-                <label>Amount Paid (Rs)</label>
+              <div className="payment-summary-metric payment-summary-paid">
+                <label className="payment-summary-label" htmlFor="bill-amount-paid">
+                  Amount Paid
+                </label>
                 <NumericMathInput
+                  id="bill-amount-paid"
+                  className="payment-summary-input"
                   value={form.amountPaid ?? ""}
                   onChange={(v) => setForm((f) => ({ ...f, amountPaid: v }))}
                   disabled={locked}
                   placeholder="0 (supports 500+120)"
                 />
               </div>
-              <div className="field">
-                <label>Amount Due (Rs)</label>
-                <input type="number" value={amountDue} disabled />
-              </div>
-              <div className="field">
-                <label>Status</label>
-                <input type="text" value={status} disabled />
+              <div className="payment-summary-metric payment-summary-due">
+                <span className="payment-summary-label">Amount Due</span>
+                <strong className="payment-summary-value">
+                  Rs {Number(amountDue).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                </strong>
+                <span className={`status-badge status-${status.toLowerCase()}`}>
+                  {status}
+                </span>
               </div>
             </div>
           </section>
@@ -464,18 +473,18 @@ export function BillDialog({
         </div>
 
         <div className="dialog-footer">
-          <button className="btn-secondary" onClick={onClose}>
+          <button className="btn-secondary bill-action-cancel" onClick={onClose}>
             Cancel
           </button>
           <button className="btn-secondary" onClick={handlePrint}>
             Print Bill
           </button>
           {isEditing ? (
-            <button className="btn-primary" onClick={handleSave}>
+            <button className="btn-primary bill-action-primary" onClick={handleSave}>
               Save Bill
             </button>
           ) : (
-            <button className="btn-primary" onClick={() => setIsEditing(true)}>
+            <button className="btn-primary bill-action-primary" onClick={() => setIsEditing(true)}>
               Edit Bill
             </button>
           )}

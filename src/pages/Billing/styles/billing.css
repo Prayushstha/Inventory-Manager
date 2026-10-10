@@ -15,6 +15,12 @@
   flex-shrink: 0;
 }
 
+.billing-detail-topbar .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .bill-page-shell {
   flex: 1;
   overflow-y: auto;
@@ -374,6 +380,152 @@ select::-webkit-scrollbar {
   cursor: not-allowed;
 }
 
+.bill-page-card .section-label {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--color-primary);
+  font-size: 0.82rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+}
+
+.bill-page-card .field input,
+.bill-page-card .field select,
+.bill-page-card .field textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 1px solid color-mix(in srgb, var(--foreground) 30%, var(--border));
+  border-radius: 7px;
+  background: var(--background-primary);
+  color: var(--color-primary);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.bill-page-card .field textarea {
+  min-height: 82px;
+  resize: vertical;
+}
+
+.bill-page-card .field input:focus,
+.bill-page-card .field select:focus,
+.bill-page-card .field textarea:focus {
+  border-color: var(--ring);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 20%, transparent);
+}
+
+.bill-page-card .field input:disabled,
+.bill-page-card .field select:disabled,
+.bill-page-card .field textarea:disabled {
+  border-color: var(--border-color);
+  background: var(--background-secondary);
+  opacity: 0.8;
+}
+
+.payment-summary-card {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--background-secondary);
+}
+
+.payment-summary-metric {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 18px;
+}
+
+.payment-summary-metric + .payment-summary-metric {
+  border-left: 1px solid var(--border-color);
+}
+
+.payment-summary-label {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+
+.payment-summary-value {
+  color: var(--color-primary);
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.payment-summary-input {
+  width: 100%;
+  max-width: 240px;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 1px solid color-mix(in srgb, var(--foreground) 30%, var(--border));
+  border-radius: 7px;
+  background: var(--background-primary);
+  color: var(--color-primary);
+  font-size: 1rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.payment-summary-input:focus {
+  border-color: var(--ring);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 20%, transparent);
+}
+
+.payment-summary-input:disabled {
+  border-color: var(--border-color);
+  background: var(--background-primary);
+  opacity: 0.8;
+}
+
+.payment-summary-due .status-badge {
+  margin-top: 2px;
+}
+
+.bill-page-card .btn-primary.bill-action-primary {
+  border: 1px solid var(--border-color);
+  background: var(--background-secondary);
+  color: var(--color-primary);
+}
+
+.bill-page-card .btn-primary.bill-action-primary:hover {
+  border-color: var(--border-color);
+  background: var(--button-secondary-hover);
+}
+
+.bill-page-card .btn-secondary.bill-action-cancel {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: var(--destructive-foreground);
+}
+
+.bill-page-card .btn-secondary.bill-action-cancel:hover {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 86%, black);
+}
+
+.bill-page-card .product-dropzone {
+  border-color: var(--border-color);
+}
+
+.bill-page-card .product-dropzone:hover:not(:disabled) {
+  border-color: var(--border-color);
+}
+
+.bill-page-card .dropzone-icon {
+  color: var(--color-secondary);
+}
+
 .product-dropzone {
   display: flex;
   align-items: center;
@@ -462,6 +614,15 @@ select::-webkit-scrollbar {
     grid-column: 1;
   }
 
+  .payment-summary-card {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-summary-metric + .payment-summary-metric {
+    border-top: 1px solid var(--border-color);
+    border-left: 0;
+  }
+
   .dialog {
     max-height: 95vh;
   }
@@ -485,6 +646,14 @@ select::-webkit-scrollbar {
   color: var(--foreground);
   font-weight: 500;
   border-bottom: 1px solid var(--border);
+}
+
+.bill-products-table th:nth-child(2),
+.bill-products-table td:nth-child(2) {
+  width: 76px;
+  min-width: 76px;
+  max-width: 76px;
+  white-space: nowrap;
 }
 
 .bill-products-table td {

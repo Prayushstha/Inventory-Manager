@@ -139,7 +139,8 @@ export function Billing() {
           <>
             <div className="billing-detail-topbar">
               <button className="btn-secondary" type="button" onClick={closeDialog}>
-                ← Back to bills
+                <i className="ti ti-arrow-left" aria-hidden="true" />
+                <span>Back to Bills</span>
               </button>
             </div>
 
