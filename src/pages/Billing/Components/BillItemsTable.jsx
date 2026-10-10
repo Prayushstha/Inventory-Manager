@@ -11,7 +11,8 @@ export function BillItemsTable({
   onEdit,
   onDelete,
   onChangeQty,
-  totalPurchased
+  totalPurchased,
+  billDate,
 }) {
   const rowRefs = useRef([]);
 
@@ -71,6 +72,7 @@ export function BillItemsTable({
       <thead>
         <tr>
           <th></th>
+          <th>Date</th>
           <th>Product</th>
           <th>Base</th>
           <th>Size</th>
@@ -81,7 +83,10 @@ export function BillItemsTable({
         </tr>
       </thead>
       <tbody>
-        {items.map((p, i) => (
+        {items.map((p, i) => {
+          const purchaseDate = p.purchaseDate || p.date || billDate || new Date().toISOString().slice(0, 10);
+
+          return (
             <tr
               key={i}
               ref={(el) => (rowRefs.current[i] = el)}
@@ -92,13 +97,14 @@ export function BillItemsTable({
               onKeyDown={(e) => handleRowKeyDown(e, i)}
             >
               <td>{i + 1}</td>
+              <td>{new Date(purchaseDate).toLocaleDateString()}</td>
               <td>{p.productName}</td>
               <td>{p.base || "—"}</td>
               <td>{p.bucketSize || "—"}</td>
               <td>{p.quantity}</td>
               <td>Rs {p.priceAtSale}</td>
               <td>
-                Rs{" "}
+                Rs {" "}
                 {(parseFloat(p.quantity) || 0) *
                   (parseFloat(p.priceAtSale) || 0)}
               </td>
@@ -116,19 +122,9 @@ export function BillItemsTable({
                   </button>
                 </td>
               )}
-              </tr>
-        ))}
-        <tr className="bill-item-row-total ">
-          <td>Total:</td>
-          <td>{items.length}</td>
-          <td>-</td>
-          <td>-</td>
-          <td>{
-  7   }</td>
-          <td>5</td>
-          <td>{totalPurchased}</td>
-        </tr>
-
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );

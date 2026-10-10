@@ -26,6 +26,8 @@ import {
   resolveImagePath,
   addCustomer,
   addBill,
+  addBillActivity,
+  getBillActivity,
   getCustomers,
   deleteCustomer,
   getBaseByName,
@@ -112,6 +114,10 @@ app.whenReady().then(() => {
   ipcMain.handle("db:addBill", (_, customerId, bill) =>
     addBill(customerId, bill),
   );
+  ipcMain.handle("db:addBillActivity", (_, billId, activity) =>
+    addBillActivity(billId, activity),
+  );
+  ipcMain.handle("db:getBillActivity", (_, billId) => getBillActivity(billId));
   ipcMain.handle("db:editCustomer", (_, id, customer) =>
     editCustomer(id, customer),
   );

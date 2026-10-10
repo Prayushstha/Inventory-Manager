@@ -45,12 +45,14 @@ test("validateBillPayload checks totals and payment consistency", () => {
 });
 
 test("validateExpensePayload accepts valid data and rejects invalid type", () => {
-  const ok = validateExpensePayload({ date: "2026-10-10", nameOfExpense: "Rent", amountOfExpense: 500, typeOfExpense: "General" });
-  assert.equal(ok.amountOfExpense, 500);
+  const general = validateExpensePayload({ date: "2026-10-10", nameOfExpense: "Rent", amountOfExpense: 500, typeOfExpense: "General" });
+  const taxes = validateExpensePayload({ date: "2026-10-10", nameOfExpense: "Tax", amountOfExpense: 250, typeOfExpense: "Taxes" });
+  assert.equal(general.amountOfExpense, 500);
+  assert.equal(taxes.typeOfExpense, "Taxes");
 
   assert.throws(
     () => validateExpensePayload({ date: "2026-10-10", nameOfExpense: "Rent", amountOfExpense: 0, typeOfExpense: "Other" }),
-    /Expense type must be General or Import/,
+    /Expense type must be General, Import, or Taxes/,
   );
 });
 

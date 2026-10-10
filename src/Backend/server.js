@@ -13,6 +13,7 @@ import {
   validateBillPayload,
   validateExpensePayload,
   validateImportItems,
+  normalizeText,
 } from "./validation.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -80,6 +81,18 @@ db.exec(`
     amount_due REAL NOT NULL,
     status TEXT NOT NULL,
     FOREIGN KEY (customer_id) REFERENCES customers(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS bill_activity (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    bill_id INTEGER NOT NULL,
+    type TEXT NOT NULL,
+    date TEXT NOT NULL,
+    amount REAL NOT NULL DEFAULT 0,
+    payment_method TEXT,
+    note TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (bill_id) REFERENCES bills(id)
   );
 
   CREATE TABLE IF NOT EXISTS bill_items (
@@ -406,6 +419,28 @@ export function addCustomer(customer) {
   return result.lastInsertRowid;
 }
 
+export function addBillActivity(billId, activity) {
+  if (!billId) {
+    throw new Error("Bill id is required.");
+  }
+
+  const type = normalizeText(activity?.type ?? "adjustment");
+  const date = normalizeText(activity?.date ?? new Date().toISOString().slice(0, 10));
+  const amount = Number(activity?.amount ?? 0);
+  const paymentMethod = normalizeText(activity?.paymentMethod ?? "");
+  const note = normalizeText(activity?.note ?? "");
+
+  db.prepare(
+    `INSERT INTO bill_activity (bill_id, type, date, amount, payment_method, note) VALUES (?, ?, ?, ?, ?, ?)`,
+  ).run(billId, type, date, amount, paymentMethod, note);
+}
+
+export function getBillActivity(billId) {
+  return db
+    .prepare(`SELECT * FROM bill_activity WHERE bill_id = ? ORDER BY date ASC, id ASC`)
+    .all(billId);
+}
+
 export function addBill(customerId, bill) {
   const normalizedBill = validateBillPayload(customerId, bill);
   const customer = db.prepare(`SELECT id FROM customers WHERE id = ?`).get(normalizedBill.customerId);
@@ -433,6 +468,14 @@ export function addBill(customerId, bill) {
 
     const billId = result.lastInsertRowid;
 
+    addBillActivity(billId, {
+      type: "sale",
+      date: normalizedBill.date,
+      amount: normalizedBill.totalPurchased,
+      paymentMethod: normalizedBill.paymentMethod,
+      note: "Initial bill entry",
+    });
+
     for (const item of normalizedBill.products) {
       const costPrice = getLandingPrice(item.productName, item.bucketSize);
 
@@ -452,6 +495,16 @@ export function addBill(customerId, bill) {
       );
 
       adjustStock(item.productName, item.base, item.bucketSize, -item.quantity);
+    }
+
+    if (normalizedBill.amountPaid > 0) {
+      addBillActivity(billId, {
+        type: "payment",
+        date: normalizedBill.date,
+        amount: normalizedBill.amountPaid,
+        paymentMethod: normalizedBill.paymentMethod,
+        note: "Payment recorded on bill creation",
+      });
     }
 
     return billId;
@@ -542,21 +595,23 @@ export function editCustomer(id, customer) {
 }
 
 export function editBill(billId, bill) {
-  const normalizedBill = validateBillPayload(
-    db.prepare(`SELECT customer_id FROM bills WHERE id = ?`).get(billId)?.customer_id,
-    bill,
-  );
-
-  const billExists = db.prepare(`SELECT id FROM bills WHERE id = ?`).get(billId);
-  if (!billExists) {
+  const billRecord = db.prepare(`SELECT * FROM bills WHERE id = ?`).get(billId);
+  if (!billRecord) {
     throw new Error("Bill not found.");
   }
+
+  const normalizedBill = validateBillPayload(billRecord.customer_id, bill);
 
   const run = db.transaction(() => {
     const oldItems = db.prepare(`SELECT * FROM bill_items WHERE bill_id = ?`).all(billId);
     for (const item of oldItems) {
       adjustStock(item.product_name, item.base, item.bucket_size, item.quantity);
     }
+
+    const previousTotal = Number(billRecord.total_purchased || 0);
+    const previousPaid = Number(billRecord.amount_paid || 0);
+    const totalDelta = normalizedBill.totalPurchased - previousTotal;
+    const paidDelta = normalizedBill.amountPaid - previousPaid;
 
     db.prepare(
       `
@@ -594,6 +649,26 @@ export function editBill(billId, bill) {
       );
 
       adjustStock(item.productName, item.base, item.bucketSize, -item.quantity);
+    }
+
+    if (Math.abs(totalDelta) > 0.01) {
+      addBillActivity(billId, {
+        type: "adjustment",
+        date: normalizedBill.date,
+        amount: totalDelta,
+        paymentMethod: normalizedBill.paymentMethod,
+        note: totalDelta >= 0 ? "Additional products added to bill" : "Bill value reduced",
+      });
+    }
+
+    if (Math.abs(paidDelta) > 0.01) {
+      addBillActivity(billId, {
+        type: "payment",
+        date: normalizedBill.date,
+        amount: paidDelta,
+        paymentMethod: normalizedBill.paymentMethod,
+        note: paidDelta >= 0 ? "Customer payment recorded" : "Payment adjusted",
+      });
     }
   });
 

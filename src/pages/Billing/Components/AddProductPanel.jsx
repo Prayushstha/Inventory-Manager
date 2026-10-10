@@ -150,6 +150,7 @@ export const AddProductPanel = forwardRef(function AddProductPanel(
       bucketSize: form.bucketSize,
       quantity: commitMath(form.quantity),
       priceAtSale: commitMath(form.priceAtSale),
+      purchaseDate: new Date().toISOString().slice(0, 10),
     };
 
     if (sessionMemory?.current) {

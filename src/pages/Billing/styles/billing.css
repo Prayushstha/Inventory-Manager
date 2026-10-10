@@ -465,7 +465,7 @@ select::-webkit-scrollbar {
 .bill-products-table td {
   color: var(--muted-foreground);
   padding: 6px 8px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: none;
 }
 
 .btn-remove-row {
@@ -728,6 +728,3 @@ kbd {
   background: color-mix(in srgb, var(--primary) 16%, transparent);
 }
 
-.bill-item-row-total {
-  border-top: 5px solid var(--border-color);
-}

@@ -143,6 +143,7 @@ export function Billing() {
           onClose={closeDialog}
           onSaved={handleSaved}
           customers={customers}
+          asPage
         />
       )}
       {ConfirmDialogComponent}

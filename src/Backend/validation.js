@@ -173,7 +173,7 @@ export function validateExpensePayload(expense) {
   assert(nameOfExpense.length > 0, "Expense label is required.");
 
   const typeOfExpense = normalizeText(expense.typeOfExpense ?? expense.type ?? "General");
-  assert(["General", "Import"].includes(typeOfExpense), "Expense type must be General or Import.");
+  assert(["General", "Import", "Taxes"].includes(typeOfExpense), "Expense type must be General, Import, or Taxes.");
 
   const amountOfExpense = parseRequiredNumber(expense.amountOfExpense ?? expense.amount ?? 0, "Expense amount", { min: 0.0001, allowZero: false });
 

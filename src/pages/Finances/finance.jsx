@@ -93,6 +93,7 @@ export function FinancePage() {
             setShowAddExpense(false);
             fetchSummary();
           }}
+          asPage
         />
       )}
     </>

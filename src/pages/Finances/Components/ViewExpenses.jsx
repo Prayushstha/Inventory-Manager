@@ -101,6 +101,7 @@ export function ViewExpenses() {
               "Failed to refresh expenses"
             );
           }}
+          asPage
         />
       )}
       {ConfirmDialogComponent}

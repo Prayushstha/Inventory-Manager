@@ -28,12 +28,16 @@ export function BillDialog({
   onClose,
   customers,
   onSaved,
+  asPage = false,
 }) {
   const showToast = useToast();
 
   const [form, setForm] = useState({
     ...bill,
-    products: (bill.products || []).map(normalizeProduct),
+    products: (bill.products || []).map((p) => ({
+      ...normalizeProduct(p),
+      purchaseDate: p?.purchaseDate || p?.date || bill.date || new Date().toISOString().slice(0, 10),
+    })),
   });
   const [isEditing, setIsEditing] = useState(isNew);
 
@@ -43,6 +47,7 @@ export function BillDialog({
   const [showPanel, setShowPanel] = useState(false);
   const [panelInitial, setPanelInitial] = useState(null); // { item, editIndex }
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [activity, setActivity] = useState([]);
 
   const panelRef = useRef(null);
   // Remembers last-used base/size per product for this dialog session.
@@ -66,7 +71,10 @@ export function BillDialog({
 
   // ── line-item mutations ───────────────────────────────────────────
   function handleAddItem(item) {
-    setForm((f) => ({ ...f, products: [...f.products, item] }));
+    setForm((f) => ({
+      ...f,
+      products: [...f.products, { ...item, purchaseDate: item.purchaseDate || f.date || new Date().toISOString().slice(0, 10) }],
+    }));
   }
   function handleReplaceItem(index, item) {
     setForm((f) => ({
@@ -142,7 +150,10 @@ export function BillDialog({
       amountPaid: amountPaidNum,
       amountDue,
       status,
-      products: form.products,
+      products: form.products.map((item) => ({
+        ...item,
+        purchaseDate: item.purchaseDate || form.date,
+      })),
     };
 
     if (isNew) {
@@ -187,6 +198,15 @@ export function BillDialog({
       clone: cloneItem,
     };
   });
+
+  useEffect(() => {
+    if (!form.id) return;
+    async function loadActivity() {
+      const rows = await window.db.getBillActivity(form.id);
+      setActivity(rows || []);
+    }
+    loadActivity();
+  }, [form.id]);
 
   useEffect(() => {
     function onKey(e) {
@@ -245,9 +265,30 @@ export function BillDialog({
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
+  const overlayStyle = asPage
+    ? {
+        position: "fixed",
+        inset: 0,
+        background: "rgba(7, 10, 18, 0.7)",
+        zIndex: 30,
+        overflowY: "auto",
+        padding: "24px 16px",
+      }
+    : undefined;
+
+  const dialogStyle = asPage
+    ? {
+        width: "min(1200px, 100%)",
+        maxWidth: "1200px",
+        margin: "32px auto",
+        maxHeight: "calc(100vh - 64px)",
+        overflowY: "auto",
+      }
+    : undefined;
+
   return (
-    <div className="dialog-overlay" onClick={onClose}>
-      <div className="dialog" onClick={(e) => e.stopPropagation()}>
+    <div className="dialog-overlay" onClick={onClose} style={overlayStyle}>
+      <div className="dialog" onClick={(e) => e.stopPropagation()} style={dialogStyle}>
         <div className="dialog-header">
           <h2 className="dialog-title">
             {isNew ? "New Bill" : `Bill — ${bill.name}`}
@@ -366,6 +407,7 @@ export function BillDialog({
               isEditing={isEditing}
               selectedIndex={selectedRow}
               totalPurchased={totalPurchased}
+              billDate={form.date}
               setSelectedIndex={setSelectedIndex}
               onEdit={handleEditRow}
               onDelete={handleRemoveProduct}
@@ -399,6 +441,24 @@ export function BillDialog({
               </div>
             </div>
           </section>
+
+          {activity.length > 0 && (
+            <section className="dialog-section">
+              <p className="section-label">Transaction Timeline</p>
+              <div className="field-grid">
+                {activity.map((item) => (
+                  <div key={item.id} className="field field-full">
+                    <label>{new Date(item.date).toLocaleDateString()} — {item.type}</label>
+                    <input
+                      type="text"
+                      value={`${item.note || item.type} • NPR ${Number(item.amount || 0).toLocaleString()}${item.payment_method ? ` • ${item.payment_method}` : ""}`}
+                      disabled
+                    />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
 
         <div className="dialog-footer">
