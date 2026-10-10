@@ -5,7 +5,7 @@ This roadmap is intentionally focused on improvements that matter most for a sma
 ## Priority 1: Stability and data reliability
 
 ### Must do next
-- [ ] Add data validation and safer CRUD flows for products, bills, expenses, and customers
+- [x] Add data validation and safer CRUD flows for products, bills, expenses, and customers
 - [ ] Add DB migration/versioning so schema changes are safe and repeatable
 - [ ] Add backup and restore flow for local SQLite data
 - [ ] Review and harden error handling around failed database or import actions
