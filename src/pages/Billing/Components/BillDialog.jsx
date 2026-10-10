@@ -267,35 +267,37 @@ export function BillDialog({
 
   const overlayStyle = asPage
     ? {
-        position: "fixed",
-        inset: 0,
-        background: "rgba(7, 10, 18, 0.7)",
-        zIndex: 30,
-        overflowY: "auto",
-        padding: "24px 16px",
+        padding: "0",
+        background: "transparent",
       }
     : undefined;
 
   const dialogStyle = asPage
     ? {
-        width: "min(1200px, 100%)",
+        width: "100%",
         maxWidth: "1200px",
-        margin: "32px auto",
-        maxHeight: "calc(100vh - 64px)",
-        overflowY: "auto",
+        maxHeight: "none",
+        margin: "0 auto",
+        overflow: "visible",
+        borderRadius: "16px",
       }
     : undefined;
 
+  const rootClassName = asPage ? "bill-page-shell" : "dialog-overlay";
+  const contentClassName = asPage ? "bill-page-card" : "dialog";
+
   return (
-    <div className="dialog-overlay" onClick={onClose} style={overlayStyle}>
-      <div className="dialog" onClick={(e) => e.stopPropagation()} style={dialogStyle}>
+    <div className={rootClassName} onClick={asPage ? undefined : onClose} style={overlayStyle}>
+      <div className={contentClassName} onClick={asPage ? undefined : (e) => e.stopPropagation()} style={dialogStyle}>
         <div className="dialog-header">
           <h2 className="dialog-title">
             {isNew ? "New Bill" : `Bill — ${bill.name}`}
           </h2>
-          <button className="dialog-close" onClick={onClose}>
-            ✕
-          </button>
+          {!asPage && (
+            <button className="dialog-close" onClick={onClose}>
+              ✕
+            </button>
+          )}
         </div>
 
         <div className="dialog-body">

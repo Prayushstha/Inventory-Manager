@@ -125,27 +125,38 @@ export function Billing() {
   return (
     <>
       <div className="billing-page">
-        <BillHeader search={search} setSearch={setSearch} openNew={openNew} />
-        <BillTable
-          filtered={filtered}
-          statusMeta={statusMeta}
-          openExisting={openExisting}
-          onDelete={handleDelete}
-        />
+        {!selectedBill ? (
+          <>
+            <BillHeader search={search} setSearch={setSearch} openNew={openNew} />
+            <BillTable
+              filtered={filtered}
+              statusMeta={statusMeta}
+              openExisting={openExisting}
+              onDelete={handleDelete}
+            />
+          </>
+        ) : (
+          <>
+            <div className="billing-detail-topbar">
+              <button className="btn-secondary" type="button" onClick={closeDialog}>
+                ← Back to bills
+              </button>
+            </div>
+
+            <BillDialog
+              bill={selectedBill}
+              isNew={isNewBill}
+              products={products}
+              usageMap={usageMap}
+              onClose={closeDialog}
+              onSaved={handleSaved}
+              customers={customers}
+              asPage
+            />
+          </>
+        )}
       </div>
 
-      {selectedBill && (
-        <BillDialog
-          bill={selectedBill}
-          isNew={isNewBill}
-          products={products}
-          usageMap={usageMap}
-          onClose={closeDialog}
-          onSaved={handleSaved}
-          customers={customers}
-          asPage
-        />
-      )}
       {ConfirmDialogComponent}
     </>
   );
