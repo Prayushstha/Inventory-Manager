@@ -1,56 +1,113 @@
-import { createRequire as e } from "node:module";
-import { BrowserWindow as t, app as n, dialog as r, ipcMain as i, net as a, protocol as o } from "electron";
-import { fileURLToPath as s, pathToFileURL as c } from "url";
-import l from "path";
-import u from "fs";
-import { createRequire as d } from "module";
-import { randomUUID as f } from "crypto";
+import { createRequire } from "node:module";
+import { BrowserWindow, app, dialog, ipcMain, net, protocol } from "electron";
+import { fileURLToPath, pathToFileURL } from "url";
+import path from "path";
+import fs from "fs";
+import { createRequire as createRequire$1 } from "module";
+import { randomUUID } from "crypto";
 //#region \0rolldown/runtime.js
-var p = Object.create, m = Object.defineProperty, h = Object.getOwnPropertyDescriptor, g = Object.getOwnPropertyNames, _ = Object.getPrototypeOf, ee = Object.prototype.hasOwnProperty, v = (e, t) => () => (t || (e((t = { exports: {} }).exports, t), e = null), t.exports), te = (e, t, n, r) => {
-	if (t && typeof t == "object" || typeof t == "function") for (var i = g(t), a = 0, o = i.length, s; a < o; a++) s = i[a], !ee.call(e, s) && s !== n && m(e, s, {
-		get: ((e) => t[e]).bind(null, s),
-		enumerable: !(r = h(t, s)) || r.enumerable
-	});
-	return e;
-}, ne = (e, t, n) => (n = e == null ? {} : p(_(e)), te(t || !e || !e.__esModule ? m(n, "default", {
-	value: e,
-	enumerable: !0
-}) : n, e)), y = /* @__PURE__ */ e(import.meta.url), b = /* @__PURE__ */ v(((e) => {
-	e.getBooleanOption = (e, t) => {
-		let n = !1;
-		if (t in e && typeof (n = e[t]) != "boolean") throw TypeError(`Expected the "${t}" option to be a boolean`);
-		return n;
-	}, e.cppdb = Symbol(), e.inspect = Symbol.for("nodejs.util.inspect.custom");
-})), x = /* @__PURE__ */ v(((e, t) => {
-	var n = {
-		value: "SqliteError",
-		writable: !0,
-		enumerable: !1,
-		configurable: !0
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).exports, mod), cb = null), mod.exports);
+var __copyProps = (to, from, except, desc) => {
+	if (from && typeof from === "object" || typeof from === "function") for (var keys = __getOwnPropNames(from), i = 0, n = keys.length, key; i < n; i++) {
+		key = keys[i];
+		if (!__hasOwnProp.call(to, key) && key !== except) __defProp(to, key, {
+			get: ((k) => from[k]).bind(null, key),
+			enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+		});
+	}
+	return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", {
+	value: mod,
+	enumerable: true
+}) : target, mod));
+var __require = /* @__PURE__ */ createRequire(import.meta.url);
+//#endregion
+//#region node_modules/better-sqlite3/lib/util.js
+var require_util = /* @__PURE__ */ __commonJSMin(((exports) => {
+	exports.getBooleanOption = (options, key) => {
+		let value = false;
+		if (key in options && typeof (value = options[key]) !== "boolean") throw new TypeError(`Expected the "${key}" option to be a boolean`);
+		return value;
 	};
-	function r(e, t) {
-		if (new.target !== r) return new r(e, t);
-		if (typeof t != "string") throw TypeError("Expected second argument to be a string");
-		Error.call(this, e), n.value = "" + e, Object.defineProperty(this, "message", n), Error.captureStackTrace(this, r), this.code = t;
+	exports.cppdb = Symbol();
+	exports.inspect = Symbol.for("nodejs.util.inspect.custom");
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/sqlite-error.js
+var require_sqlite_error = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var descriptor = {
+		value: "SqliteError",
+		writable: true,
+		enumerable: false,
+		configurable: true
+	};
+	function SqliteError(message, code) {
+		if (new.target !== SqliteError) return new SqliteError(message, code);
+		if (typeof code !== "string") throw new TypeError("Expected second argument to be a string");
+		Error.call(this, message);
+		descriptor.value = "" + message;
+		Object.defineProperty(this, "message", descriptor);
+		Error.captureStackTrace(this, SqliteError);
+		this.code = code;
 	}
-	Object.setPrototypeOf(r, Error), Object.setPrototypeOf(r.prototype, Error.prototype), Object.defineProperty(r.prototype, "name", n), t.exports = r;
-})), S = /* @__PURE__ */ v(((e, t) => {
-	var n = y("path").sep || "/";
-	t.exports = r;
-	function r(e) {
-		if (typeof e != "string" || e.length <= 7 || e.substring(0, 7) != "file://") throw TypeError("must pass in a file:// URI to convert to a file path");
-		var t = decodeURI(e.substring(7)), r = t.indexOf("/"), i = t.substring(0, r), a = t.substring(r + 1);
-		return i == "localhost" && (i = ""), i &&= n + n + i, a = a.replace(/^(.+)\|/, "$1:"), n == "\\" && (a = a.replace(/\//g, "\\")), /^.+\:/.test(a) || (a = n + a), i + a;
+	Object.setPrototypeOf(SqliteError, Error);
+	Object.setPrototypeOf(SqliteError.prototype, Error.prototype);
+	Object.defineProperty(SqliteError.prototype, "name", descriptor);
+	module.exports = SqliteError;
+}));
+//#endregion
+//#region node_modules/file-uri-to-path/index.js
+var require_file_uri_to_path = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	/**
+	* Module dependencies.
+	*/
+	var sep = __require("path").sep || "/";
+	/**
+	* Module exports.
+	*/
+	module.exports = fileUriToPath;
+	/**
+	* File URI to Path function.
+	*
+	* @param {String} uri
+	* @return {String} path
+	* @api public
+	*/
+	function fileUriToPath(uri) {
+		if ("string" != typeof uri || uri.length <= 7 || "file://" != uri.substring(0, 7)) throw new TypeError("must pass in a file:// URI to convert to a file path");
+		var rest = decodeURI(uri.substring(7));
+		var firstSlash = rest.indexOf("/");
+		var host = rest.substring(0, firstSlash);
+		var path = rest.substring(firstSlash + 1);
+		if ("localhost" == host) host = "";
+		if (host) host = sep + sep + host;
+		path = path.replace(/^(.+)\|/, "$1:");
+		if (sep == "\\") path = path.replace(/\//g, "\\");
+		if (/^.+\:/.test(path)) {} else path = sep + path;
+		return host + path;
 	}
-})), re = /* @__PURE__ */ v(((e, t) => {
-	var n = y("fs"), r = y("path"), i = S(), a = r.join, o = r.dirname, s = n.accessSync && function(e) {
+}));
+//#endregion
+//#region node_modules/bindings/bindings.js
+var require_bindings = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	/**
+	* Module dependencies.
+	*/
+	var fs$3 = __require("fs"), path$3 = __require("path"), fileURLToPath$1 = require_file_uri_to_path(), join = path$3.join, dirname = path$3.dirname, exists = fs$3.accessSync && function(path) {
 		try {
-			n.accessSync(e);
-		} catch {
-			return !1;
+			fs$3.accessSync(path);
+		} catch (e) {
+			return false;
 		}
-		return !0;
-	} || n.existsSync || r.existsSync, c = {
+		return true;
+	} || fs$3.existsSync || path$3.existsSync, defaults = {
 		arrow: process.env.NODE_BINDINGS_ARROW || " → ",
 		compiled: process.env.NODE_BINDINGS_COMPILED_DIR || "compiled",
 		platform: process.platform,
@@ -142,1023 +199,1573 @@ var p = Object.create, m = Object.defineProperty, h = Object.getOwnPropertyDescr
 			]
 		]
 	};
-	function l(t) {
-		typeof t == "string" ? t = { bindings: t } : t ||= {}, Object.keys(c).map(function(e) {
-			e in t || (t[e] = c[e]);
-		}), t.module_root ||= e.getRoot(e.getFileName()), r.extname(t.bindings) != ".node" && (t.bindings += ".node");
-		for (var n = typeof __webpack_require__ == "function" ? __non_webpack_require__ : y, i = [], o = 0, s = t.try.length, l, u, d; o < s; o++) {
-			l = a.apply(null, t.try[o].map(function(e) {
-				return t[e] || e;
-			})), i.push(l);
+	/**
+	* The main `bindings()` function loads the compiled bindings for a given module.
+	* It uses V8's Error API to determine the parent filename that this function is
+	* being invoked from, which is then used to find the root directory.
+	*/
+	function bindings(opts) {
+		if (typeof opts == "string") opts = { bindings: opts };
+		else if (!opts) opts = {};
+		Object.keys(defaults).map(function(i) {
+			if (!(i in opts)) opts[i] = defaults[i];
+		});
+		if (!opts.module_root) opts.module_root = exports.getRoot(exports.getFileName());
+		if (path$3.extname(opts.bindings) != ".node") opts.bindings += ".node";
+		var requireFunc = typeof __webpack_require__ === "function" ? __non_webpack_require__ : __require;
+		var tries = [], i = 0, l = opts.try.length, n, b, err;
+		for (; i < l; i++) {
+			n = join.apply(null, opts.try[i].map(function(p) {
+				return opts[p] || p;
+			}));
+			tries.push(n);
 			try {
-				return u = t.path ? n.resolve(l) : n(l), t.path || (u.path = l), u;
+				b = opts.path ? requireFunc.resolve(n) : requireFunc(n);
+				if (!opts.path) b.path = n;
+				return b;
 			} catch (e) {
 				if (e.code !== "MODULE_NOT_FOUND" && e.code !== "QUALIFIED_PATH_RESOLUTION_FAILED" && !/not find/i.test(e.message)) throw e;
 			}
 		}
-		throw d = /* @__PURE__ */ Error("Could not locate the bindings file. Tried:\n" + i.map(function(e) {
-			return t.arrow + e;
-		}).join("\n")), d.tries = i, d;
+		err = /* @__PURE__ */ new Error("Could not locate the bindings file. Tried:\n" + tries.map(function(a) {
+			return opts.arrow + a;
+		}).join("\n"));
+		err.tries = tries;
+		throw err;
 	}
-	t.exports = e = l, e.getFileName = function(e) {
-		var t = Error.prepareStackTrace, n = Error.stackTraceLimit, r = {}, a;
-		return Error.stackTraceLimit = 10, Error.prepareStackTrace = function(t, n) {
-			for (var r = 0, i = n.length; r < i; r++) if (a = n[r].getFileName(), a !== __filename) if (e) {
-				if (a !== e) return;
-			} else return;
-		}, Error.captureStackTrace(r), r.stack, Error.prepareStackTrace = t, Error.stackTraceLimit = n, a.indexOf("file://") === 0 && (a = i(a)), a;
-	}, e.getRoot = function(e) {
-		for (var t = o(e), n;;) {
-			if (t === "." && (t = process.cwd()), s(a(t, "package.json")) || s(a(t, "node_modules"))) return t;
-			if (n === t) throw Error("Could not find module root given file: \"" + e + "\". Do you have a `package.json` file? ");
-			n = t, t = a(t, "..");
-		}
-	};
-})), ie = /* @__PURE__ */ v(((e) => {
-	var { cppdb: t } = b();
-	e.prepare = function(e) {
-		return this[t].prepare(e, this, !1);
-	}, e.exec = function(e) {
-		return this[t].exec(e), this;
-	}, e.close = function() {
-		return this[t].close(), this;
-	}, e.loadExtension = function(...e) {
-		return this[t].loadExtension(...e), this;
-	}, e.defaultSafeIntegers = function(...e) {
-		return this[t].defaultSafeIntegers(...e), this;
-	}, e.unsafeMode = function(...e) {
-		return this[t].unsafeMode(...e), this;
-	}, e.getters = {
-		name: {
-			get: function() {
-				return this[t].name;
-			},
-			enumerable: !0
-		},
-		open: {
-			get: function() {
-				return this[t].open;
-			},
-			enumerable: !0
-		},
-		inTransaction: {
-			get: function() {
-				return this[t].inTransaction;
-			},
-			enumerable: !0
-		},
-		readonly: {
-			get: function() {
-				return this[t].readonly;
-			},
-			enumerable: !0
-		},
-		memory: {
-			get: function() {
-				return this[t].memory;
-			},
-			enumerable: !0
-		}
-	};
-})), ae = /* @__PURE__ */ v(((e, t) => {
-	var { cppdb: n } = b(), r = /* @__PURE__ */ new WeakMap();
-	t.exports = function(e) {
-		if (typeof e != "function") throw TypeError("Expected first argument to be a function");
-		let t = this[n], r = i(t, this), { apply: o } = Function.prototype, s = {
-			default: { value: a(o, e, t, r.default) },
-			deferred: { value: a(o, e, t, r.deferred) },
-			immediate: { value: a(o, e, t, r.immediate) },
-			exclusive: { value: a(o, e, t, r.exclusive) },
-			database: {
-				value: this,
-				enumerable: !0
+	module.exports = exports = bindings;
+	/**
+	* Gets the filename of the JavaScript file that invokes this function.
+	* Used to help find the root directory of a module.
+	* Optionally accepts an filename argument to skip when searching for the invoking filename
+	*/
+	exports.getFileName = function getFileName(calling_file) {
+		var origPST = Error.prepareStackTrace, origSTL = Error.stackTraceLimit, dummy = {}, fileName;
+		Error.stackTraceLimit = 10;
+		Error.prepareStackTrace = function(e, st) {
+			for (var i = 0, l = st.length; i < l; i++) {
+				fileName = st[i].getFileName();
+				if (fileName !== __filename) if (calling_file) {
+					if (fileName !== calling_file) return;
+				} else return;
 			}
 		};
-		return Object.defineProperties(s.default.value, s), Object.defineProperties(s.deferred.value, s), Object.defineProperties(s.immediate.value, s), Object.defineProperties(s.exclusive.value, s), s.default.value;
+		Error.captureStackTrace(dummy);
+		dummy.stack;
+		Error.prepareStackTrace = origPST;
+		Error.stackTraceLimit = origSTL;
+		if (fileName.indexOf("file://") === 0) fileName = fileURLToPath$1(fileName);
+		return fileName;
 	};
-	var i = (e, t) => {
-		let n = r.get(e);
-		if (!n) {
-			let i = {
-				commit: e.prepare("COMMIT", t, !1),
-				rollback: e.prepare("ROLLBACK", t, !1),
-				savepoint: e.prepare("SAVEPOINT `	_bs3.	`", t, !1),
-				release: e.prepare("RELEASE `	_bs3.	`", t, !1),
-				rollbackTo: e.prepare("ROLLBACK TO `	_bs3.	`", t, !1)
+	/**
+	* Gets the root directory of a module, given an arbitrary filename
+	* somewhere in the module tree. The "root directory" is the directory
+	* containing the `package.json` file.
+	*
+	*   In:  /home/nate/node-native-module/lib/index.js
+	*   Out: /home/nate/node-native-module
+	*/
+	exports.getRoot = function getRoot(file) {
+		var dir = dirname(file), prev;
+		while (true) {
+			if (dir === ".") dir = process.cwd();
+			if (exists(join(dir, "package.json")) || exists(join(dir, "node_modules"))) return dir;
+			if (prev === dir) throw new Error("Could not find module root given file: \"" + file + "\". Do you have a `package.json` file? ");
+			prev = dir;
+			dir = join(dir, "..");
+		}
+	};
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/methods/wrappers.js
+var require_wrappers = /* @__PURE__ */ __commonJSMin(((exports) => {
+	var { cppdb } = require_util();
+	exports.prepare = function prepare(sql) {
+		return this[cppdb].prepare(sql, this, false);
+	};
+	exports.exec = function exec(sql) {
+		this[cppdb].exec(sql);
+		return this;
+	};
+	exports.close = function close() {
+		this[cppdb].close();
+		return this;
+	};
+	exports.loadExtension = function loadExtension(...args) {
+		this[cppdb].loadExtension(...args);
+		return this;
+	};
+	exports.defaultSafeIntegers = function defaultSafeIntegers(...args) {
+		this[cppdb].defaultSafeIntegers(...args);
+		return this;
+	};
+	exports.unsafeMode = function unsafeMode(...args) {
+		this[cppdb].unsafeMode(...args);
+		return this;
+	};
+	exports.getters = {
+		name: {
+			get: function name() {
+				return this[cppdb].name;
+			},
+			enumerable: true
+		},
+		open: {
+			get: function open() {
+				return this[cppdb].open;
+			},
+			enumerable: true
+		},
+		inTransaction: {
+			get: function inTransaction() {
+				return this[cppdb].inTransaction;
+			},
+			enumerable: true
+		},
+		readonly: {
+			get: function readonly() {
+				return this[cppdb].readonly;
+			},
+			enumerable: true
+		},
+		memory: {
+			get: function memory() {
+				return this[cppdb].memory;
+			},
+			enumerable: true
+		}
+	};
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/methods/transaction.js
+var require_transaction = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var { cppdb } = require_util();
+	var controllers = /* @__PURE__ */ new WeakMap();
+	module.exports = function transaction(fn) {
+		if (typeof fn !== "function") throw new TypeError("Expected first argument to be a function");
+		const db = this[cppdb];
+		const controller = getController(db, this);
+		const { apply } = Function.prototype;
+		const properties = {
+			default: { value: wrapTransaction(apply, fn, db, controller.default) },
+			deferred: { value: wrapTransaction(apply, fn, db, controller.deferred) },
+			immediate: { value: wrapTransaction(apply, fn, db, controller.immediate) },
+			exclusive: { value: wrapTransaction(apply, fn, db, controller.exclusive) },
+			database: {
+				value: this,
+				enumerable: true
+			}
+		};
+		Object.defineProperties(properties.default.value, properties);
+		Object.defineProperties(properties.deferred.value, properties);
+		Object.defineProperties(properties.immediate.value, properties);
+		Object.defineProperties(properties.exclusive.value, properties);
+		return properties.default.value;
+	};
+	var getController = (db, self) => {
+		let controller = controllers.get(db);
+		if (!controller) {
+			const shared = {
+				commit: db.prepare("COMMIT", self, false),
+				rollback: db.prepare("ROLLBACK", self, false),
+				savepoint: db.prepare("SAVEPOINT `	_bs3.	`", self, false),
+				release: db.prepare("RELEASE `	_bs3.	`", self, false),
+				rollbackTo: db.prepare("ROLLBACK TO `	_bs3.	`", self, false)
 			};
-			r.set(e, n = {
-				default: Object.assign({ begin: e.prepare("BEGIN", t, !1) }, i),
-				deferred: Object.assign({ begin: e.prepare("BEGIN DEFERRED", t, !1) }, i),
-				immediate: Object.assign({ begin: e.prepare("BEGIN IMMEDIATE", t, !1) }, i),
-				exclusive: Object.assign({ begin: e.prepare("BEGIN EXCLUSIVE", t, !1) }, i)
+			controllers.set(db, controller = {
+				default: Object.assign({ begin: db.prepare("BEGIN", self, false) }, shared),
+				deferred: Object.assign({ begin: db.prepare("BEGIN DEFERRED", self, false) }, shared),
+				immediate: Object.assign({ begin: db.prepare("BEGIN IMMEDIATE", self, false) }, shared),
+				exclusive: Object.assign({ begin: db.prepare("BEGIN EXCLUSIVE", self, false) }, shared)
 			});
 		}
-		return n;
-	}, a = (e, t, n, { begin: r, commit: i, rollback: a, savepoint: o, release: s, rollbackTo: c }) => function() {
-		let l, u, d;
-		n.inTransaction ? (l = o, u = s, d = c) : (l = r, u = i, d = a), l.run();
+		return controller;
+	};
+	var wrapTransaction = (apply, fn, db, { begin, commit, rollback, savepoint, release, rollbackTo }) => function sqliteTransaction() {
+		let before, after, undo;
+		if (db.inTransaction) {
+			before = savepoint;
+			after = release;
+			undo = rollbackTo;
+		} else {
+			before = begin;
+			after = commit;
+			undo = rollback;
+		}
+		before.run();
 		try {
-			let n = e.call(t, this, arguments);
-			if (n && typeof n.then == "function") throw TypeError("Transaction function cannot return a promise");
-			return u.run(), n;
-		} catch (e) {
-			throw n.inTransaction && (d.run(), d !== a && u.run()), e;
+			const result = apply.call(fn, this, arguments);
+			if (result && typeof result.then === "function") throw new TypeError("Transaction function cannot return a promise");
+			after.run();
+			return result;
+		} catch (ex) {
+			if (db.inTransaction) {
+				undo.run();
+				if (undo !== rollback) after.run();
+			}
+			throw ex;
 		}
 	};
-})), oe = /* @__PURE__ */ v(((e, t) => {
-	var { getBooleanOption: n, cppdb: r } = b();
-	t.exports = function(e, t) {
-		if (t ??= {}, typeof e != "string") throw TypeError("Expected first argument to be a string");
-		if (typeof t != "object") throw TypeError("Expected second argument to be an options object");
-		let i = n(t, "simple"), a = this[r].prepare(`PRAGMA ${e}`, this, !0);
-		return i ? a.pluck().get() : a.all();
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/methods/pragma.js
+var require_pragma = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var { getBooleanOption, cppdb } = require_util();
+	module.exports = function pragma(source, options) {
+		if (options == null) options = {};
+		if (typeof source !== "string") throw new TypeError("Expected first argument to be a string");
+		if (typeof options !== "object") throw new TypeError("Expected second argument to be an options object");
+		const simple = getBooleanOption(options, "simple");
+		const stmt = this[cppdb].prepare(`PRAGMA ${source}`, this, true);
+		return simple ? stmt.pluck().get() : stmt.all();
 	};
-})), se = /* @__PURE__ */ v(((e, t) => {
-	var n = y("fs"), r = y("path"), { promisify: i } = y("util"), { cppdb: a } = b(), o = i(n.access);
-	t.exports = async function(e, t) {
-		if (t ??= {}, typeof e != "string") throw TypeError("Expected first argument to be a string");
-		if (typeof t != "object") throw TypeError("Expected second argument to be an options object");
-		e = e.trim();
-		let n = "attached" in t ? t.attached : "main", i = "progress" in t ? t.progress : null;
-		if (!e) throw TypeError("Backup filename cannot be an empty string");
-		if (e === ":memory:") throw TypeError("Invalid backup filename \":memory:\"");
-		if (typeof n != "string") throw TypeError("Expected the \"attached\" option to be a string");
-		if (!n) throw TypeError("The \"attached\" option cannot be an empty string");
-		if (i != null && typeof i != "function") throw TypeError("Expected the \"progress\" option to be a function");
-		await o(r.dirname(e)).catch(() => {
-			throw TypeError("Cannot save backup because the directory does not exist");
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/methods/backup.js
+var require_backup = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var fs$2 = __require("fs");
+	var path$2 = __require("path");
+	var { promisify } = __require("util");
+	var { cppdb } = require_util();
+	var fsAccess = promisify(fs$2.access);
+	module.exports = async function backup(filename, options) {
+		if (options == null) options = {};
+		if (typeof filename !== "string") throw new TypeError("Expected first argument to be a string");
+		if (typeof options !== "object") throw new TypeError("Expected second argument to be an options object");
+		filename = filename.trim();
+		const attachedName = "attached" in options ? options.attached : "main";
+		const handler = "progress" in options ? options.progress : null;
+		if (!filename) throw new TypeError("Backup filename cannot be an empty string");
+		if (filename === ":memory:") throw new TypeError("Invalid backup filename \":memory:\"");
+		if (typeof attachedName !== "string") throw new TypeError("Expected the \"attached\" option to be a string");
+		if (!attachedName) throw new TypeError("The \"attached\" option cannot be an empty string");
+		if (handler != null && typeof handler !== "function") throw new TypeError("Expected the \"progress\" option to be a function");
+		await fsAccess(path$2.dirname(filename)).catch(() => {
+			throw new TypeError("Cannot save backup because the directory does not exist");
 		});
-		let c = await o(e).then(() => !1, () => !0);
-		return s(this[a].backup(this, n, e, c), i || null);
+		const isNewFile = await fsAccess(filename).then(() => false, () => true);
+		return runBackup(this[cppdb].backup(this, attachedName, filename, isNewFile), handler || null);
 	};
-	var s = (e, t) => {
-		let n = 0, r = !0;
-		return new Promise((i, a) => {
-			setImmediate(function o() {
+	var runBackup = (backup, handler) => {
+		let rate = 0;
+		let useDefault = true;
+		return new Promise((resolve, reject) => {
+			setImmediate(function step() {
 				try {
-					let a = e.transfer(n);
-					if (!a.remainingPages) {
-						e.close(), i(a);
+					const progress = backup.transfer(rate);
+					if (!progress.remainingPages) {
+						backup.close();
+						resolve(progress);
 						return;
 					}
-					if (r && (r = !1, n = 100), t) {
-						let e = t(a);
-						if (e !== void 0) if (typeof e == "number" && e === e) n = Math.max(0, Math.min(2147483647, Math.round(e)));
-						else throw TypeError("Expected progress callback to return a number or undefined");
+					if (useDefault) {
+						useDefault = false;
+						rate = 100;
 					}
-					setImmediate(o);
-				} catch (t) {
-					e.close(), a(t);
+					if (handler) {
+						const ret = handler(progress);
+						if (ret !== void 0) if (typeof ret === "number" && ret === ret) rate = Math.max(0, Math.min(2147483647, Math.round(ret)));
+						else throw new TypeError("Expected progress callback to return a number or undefined");
+					}
+					setImmediate(step);
+				} catch (err) {
+					backup.close();
+					reject(err);
 				}
 			});
 		});
 	};
-})), C = /* @__PURE__ */ v(((e, t) => {
-	var { cppdb: n } = b();
-	t.exports = function(e) {
-		if (e ??= {}, typeof e != "object") throw TypeError("Expected first argument to be an options object");
-		let t = "attached" in e ? e.attached : "main";
-		if (typeof t != "string") throw TypeError("Expected the \"attached\" option to be a string");
-		if (!t) throw TypeError("The \"attached\" option cannot be an empty string");
-		return this[n].serialize(t);
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/methods/serialize.js
+var require_serialize = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var { cppdb } = require_util();
+	module.exports = function serialize(options) {
+		if (options == null) options = {};
+		if (typeof options !== "object") throw new TypeError("Expected first argument to be an options object");
+		const attachedName = "attached" in options ? options.attached : "main";
+		if (typeof attachedName !== "string") throw new TypeError("Expected the \"attached\" option to be a string");
+		if (!attachedName) throw new TypeError("The \"attached\" option cannot be an empty string");
+		return this[cppdb].serialize(attachedName);
 	};
-})), w = /* @__PURE__ */ v(((e, t) => {
-	var { getBooleanOption: n, cppdb: r } = b();
-	t.exports = function(e, t, i) {
-		if (t ??= {}, typeof t == "function" && (i = t, t = {}), typeof e != "string") throw TypeError("Expected first argument to be a string");
-		if (typeof i != "function") throw TypeError("Expected last argument to be a function");
-		if (typeof t != "object") throw TypeError("Expected second argument to be an options object");
-		if (!e) throw TypeError("User-defined function name cannot be an empty string");
-		let a = "safeIntegers" in t ? +n(t, "safeIntegers") : 2, o = n(t, "deterministic"), s = n(t, "directOnly"), c = n(t, "varargs"), l = -1;
-		if (!c) {
-			if (l = i.length, !Number.isInteger(l) || l < 0) throw TypeError("Expected function.length to be a positive integer");
-			if (l > 100) throw RangeError("User-defined functions cannot have more than 100 arguments");
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/methods/function.js
+var require_function = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var { getBooleanOption, cppdb } = require_util();
+	module.exports = function defineFunction(name, options, fn) {
+		if (options == null) options = {};
+		if (typeof options === "function") {
+			fn = options;
+			options = {};
 		}
-		return this[r].function(i, e, l, a, o, s), this;
+		if (typeof name !== "string") throw new TypeError("Expected first argument to be a string");
+		if (typeof fn !== "function") throw new TypeError("Expected last argument to be a function");
+		if (typeof options !== "object") throw new TypeError("Expected second argument to be an options object");
+		if (!name) throw new TypeError("User-defined function name cannot be an empty string");
+		const safeIntegers = "safeIntegers" in options ? +getBooleanOption(options, "safeIntegers") : 2;
+		const deterministic = getBooleanOption(options, "deterministic");
+		const directOnly = getBooleanOption(options, "directOnly");
+		const varargs = getBooleanOption(options, "varargs");
+		let argCount = -1;
+		if (!varargs) {
+			argCount = fn.length;
+			if (!Number.isInteger(argCount) || argCount < 0) throw new TypeError("Expected function.length to be a positive integer");
+			if (argCount > 100) throw new RangeError("User-defined functions cannot have more than 100 arguments");
+		}
+		this[cppdb].function(fn, name, argCount, safeIntegers, deterministic, directOnly);
+		return this;
 	};
-})), T = /* @__PURE__ */ v(((e, t) => {
-	var { getBooleanOption: n, cppdb: r } = b();
-	t.exports = function(e, t) {
-		if (typeof e != "string") throw TypeError("Expected first argument to be a string");
-		if (typeof t != "object" || !t) throw TypeError("Expected second argument to be an options object");
-		if (!e) throw TypeError("User-defined function name cannot be an empty string");
-		let o = "start" in t ? t.start : null, s = i(t, "step", !0), c = i(t, "inverse", !1), l = i(t, "result", !1), u = "safeIntegers" in t ? +n(t, "safeIntegers") : 2, d = n(t, "deterministic"), f = n(t, "directOnly"), p = n(t, "varargs"), m = -1;
-		if (!p && (m = Math.max(a(s), c ? a(c) : 0), m > 0 && --m, m > 100)) throw RangeError("User-defined functions cannot have more than 100 arguments");
-		return this[r].aggregate(o, s, c, l, e, m, u, d, f), this;
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/methods/aggregate.js
+var require_aggregate = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var { getBooleanOption, cppdb } = require_util();
+	module.exports = function defineAggregate(name, options) {
+		if (typeof name !== "string") throw new TypeError("Expected first argument to be a string");
+		if (typeof options !== "object" || options === null) throw new TypeError("Expected second argument to be an options object");
+		if (!name) throw new TypeError("User-defined function name cannot be an empty string");
+		const start = "start" in options ? options.start : null;
+		const step = getFunctionOption(options, "step", true);
+		const inverse = getFunctionOption(options, "inverse", false);
+		const result = getFunctionOption(options, "result", false);
+		const safeIntegers = "safeIntegers" in options ? +getBooleanOption(options, "safeIntegers") : 2;
+		const deterministic = getBooleanOption(options, "deterministic");
+		const directOnly = getBooleanOption(options, "directOnly");
+		const varargs = getBooleanOption(options, "varargs");
+		let argCount = -1;
+		if (!varargs) {
+			argCount = Math.max(getLength(step), inverse ? getLength(inverse) : 0);
+			if (argCount > 0) argCount -= 1;
+			if (argCount > 100) throw new RangeError("User-defined functions cannot have more than 100 arguments");
+		}
+		this[cppdb].aggregate(start, step, inverse, result, name, argCount, safeIntegers, deterministic, directOnly);
+		return this;
 	};
-	var i = (e, t, n) => {
-		let r = t in e ? e[t] : null;
-		if (typeof r == "function") return r;
-		if (r != null) throw TypeError(`Expected the "${t}" option to be a function`);
-		if (n) throw TypeError(`Missing required option "${t}"`);
+	var getFunctionOption = (options, key, required) => {
+		const value = key in options ? options[key] : null;
+		if (typeof value === "function") return value;
+		if (value != null) throw new TypeError(`Expected the "${key}" option to be a function`);
+		if (required) throw new TypeError(`Missing required option "${key}"`);
 		return null;
-	}, a = ({ length: e }) => {
-		if (Number.isInteger(e) && e >= 0) return e;
-		throw TypeError("Expected function.length to be a positive integer");
 	};
-})), E = /* @__PURE__ */ v(((e, t) => {
-	var { cppdb: n } = b();
-	t.exports = function(e, t) {
-		if (typeof e != "string") throw TypeError("Expected first argument to be a string");
-		if (!e) throw TypeError("Virtual table module name cannot be an empty string");
-		let a = !1;
-		if (typeof t == "object" && t) a = !0, t = p(i(t, "used", e));
-		else {
-			if (typeof t != "function") throw TypeError("Expected second argument to be a function or a table definition object");
-			t = r(t);
+	var getLength = ({ length }) => {
+		if (Number.isInteger(length) && length >= 0) return length;
+		throw new TypeError("Expected function.length to be a positive integer");
+	};
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/methods/table.js
+var require_table = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var { cppdb } = require_util();
+	module.exports = function defineTable(name, factory) {
+		if (typeof name !== "string") throw new TypeError("Expected first argument to be a string");
+		if (!name) throw new TypeError("Virtual table module name cannot be an empty string");
+		let eponymous = false;
+		if (typeof factory === "object" && factory !== null) {
+			eponymous = true;
+			factory = defer(parseTableDefinition(factory, "used", name));
+		} else {
+			if (typeof factory !== "function") throw new TypeError("Expected second argument to be a function or a table definition object");
+			factory = wrapFactory(factory);
 		}
-		return this[n].table(t, e, a), this;
+		this[cppdb].table(factory, name, eponymous);
+		return this;
 	};
-	function r(e) {
-		return function(t, n, r, ...a) {
-			let o = {
-				module: t,
-				database: n,
-				table: r
-			}, s = u.call(e, o, a);
-			if (typeof s != "object" || !s) throw TypeError(`Virtual table module "${t}" did not return a table definition object`);
-			return i(s, "returned", t);
+	function wrapFactory(factory) {
+		return function virtualTableFactory(moduleName, databaseName, tableName, ...args) {
+			const thisObject = {
+				module: moduleName,
+				database: databaseName,
+				table: tableName
+			};
+			const def = apply.call(factory, thisObject, args);
+			if (typeof def !== "object" || def === null) throw new TypeError(`Virtual table module "${moduleName}" did not return a table definition object`);
+			return parseTableDefinition(def, "returned", moduleName);
 		};
 	}
-	function i(e, t, n) {
-		if (!l.call(e, "rows")) throw TypeError(`Virtual table module "${n}" ${t} a table definition without a "rows" property`);
-		if (!l.call(e, "columns")) throw TypeError(`Virtual table module "${n}" ${t} a table definition without a "columns" property`);
-		let r = e.rows;
-		if (typeof r != "function" || Object.getPrototypeOf(r) !== d) throw TypeError(`Virtual table module "${n}" ${t} a table definition with an invalid "rows" property (should be a generator function)`);
-		let i = e.columns;
-		if (!Array.isArray(i) || !(i = [...i]).every((e) => typeof e == "string")) throw TypeError(`Virtual table module "${n}" ${t} a table definition with an invalid "columns" property (should be an array of strings)`);
-		if (i.length !== new Set(i).size) throw TypeError(`Virtual table module "${n}" ${t} a table definition with duplicate column names`);
-		if (!i.length) throw RangeError(`Virtual table module "${n}" ${t} a table definition with zero columns`);
-		let o;
-		if (l.call(e, "parameters")) {
-			if (o = e.parameters, !Array.isArray(o) || !(o = [...o]).every((e) => typeof e == "string")) throw TypeError(`Virtual table module "${n}" ${t} a table definition with an invalid "parameters" property (should be an array of strings)`);
-		} else o = c(r);
-		if (o.length !== new Set(o).size) throw TypeError(`Virtual table module "${n}" ${t} a table definition with duplicate parameter names`);
-		if (o.length > 32) throw RangeError(`Virtual table module "${n}" ${t} a table definition with more than the maximum number of 32 parameters`);
-		for (let e of o) if (i.includes(e)) throw TypeError(`Virtual table module "${n}" ${t} a table definition with column "${e}" which was ambiguously defined as both a column and parameter`);
-		let s = 2;
-		if (l.call(e, "safeIntegers")) {
-			let r = e.safeIntegers;
-			if (typeof r != "boolean") throw TypeError(`Virtual table module "${n}" ${t} a table definition with an invalid "safeIntegers" property (should be a boolean)`);
-			s = +r;
+	function parseTableDefinition(def, verb, moduleName) {
+		if (!hasOwnProperty.call(def, "rows")) throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition without a "rows" property`);
+		if (!hasOwnProperty.call(def, "columns")) throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition without a "columns" property`);
+		const rows = def.rows;
+		if (typeof rows !== "function" || Object.getPrototypeOf(rows) !== GeneratorFunctionPrototype) throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition with an invalid "rows" property (should be a generator function)`);
+		let columns = def.columns;
+		if (!Array.isArray(columns) || !(columns = [...columns]).every((x) => typeof x === "string")) throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition with an invalid "columns" property (should be an array of strings)`);
+		if (columns.length !== new Set(columns).size) throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition with duplicate column names`);
+		if (!columns.length) throw new RangeError(`Virtual table module "${moduleName}" ${verb} a table definition with zero columns`);
+		let parameters;
+		if (hasOwnProperty.call(def, "parameters")) {
+			parameters = def.parameters;
+			if (!Array.isArray(parameters) || !(parameters = [...parameters]).every((x) => typeof x === "string")) throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition with an invalid "parameters" property (should be an array of strings)`);
+		} else parameters = inferParameters(rows);
+		if (parameters.length !== new Set(parameters).size) throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition with duplicate parameter names`);
+		if (parameters.length > 32) throw new RangeError(`Virtual table module "${moduleName}" ${verb} a table definition with more than the maximum number of 32 parameters`);
+		for (const parameter of parameters) if (columns.includes(parameter)) throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition with column "${parameter}" which was ambiguously defined as both a column and parameter`);
+		let safeIntegers = 2;
+		if (hasOwnProperty.call(def, "safeIntegers")) {
+			const bool = def.safeIntegers;
+			if (typeof bool !== "boolean") throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition with an invalid "safeIntegers" property (should be a boolean)`);
+			safeIntegers = +bool;
 		}
-		let u = !1;
-		if (l.call(e, "directOnly") && (u = e.directOnly, typeof u != "boolean")) throw TypeError(`Virtual table module "${n}" ${t} a table definition with an invalid "directOnly" property (should be a boolean)`);
+		let directOnly = false;
+		if (hasOwnProperty.call(def, "directOnly")) {
+			directOnly = def.directOnly;
+			if (typeof directOnly !== "boolean") throw new TypeError(`Virtual table module "${moduleName}" ${verb} a table definition with an invalid "directOnly" property (should be a boolean)`);
+		}
 		return [
-			`CREATE TABLE x(${[...o.map(f).map((e) => `${e} HIDDEN`), ...i.map(f)].join(", ")});`,
-			a(r, new Map(i.map((e, t) => [e, o.length + t])), n),
-			o,
-			s,
-			u
+			`CREATE TABLE x(${[...parameters.map(identifier).map((str) => `${str} HIDDEN`), ...columns.map(identifier)].join(", ")});`,
+			wrapGenerator(rows, new Map(columns.map((x, i) => [x, parameters.length + i])), moduleName),
+			parameters,
+			safeIntegers,
+			directOnly
 		];
 	}
-	function a(e, t, n) {
-		return function* (...r) {
-			let i = r.map((e) => Buffer.isBuffer(e) ? Buffer.from(e) : e);
-			for (let e = 0; e < t.size; ++e) i.push(null);
-			for (let a of e(...r)) if (Array.isArray(a)) o(a, i, t.size, n), yield i;
-			else if (typeof a == "object" && a) s(a, i, t, n), yield i;
-			else throw TypeError(`Virtual table module "${n}" yielded something that isn't a valid row object`);
+	function wrapGenerator(generator, columnMap, moduleName) {
+		return function* virtualTable(...args) {
+			const output = args.map((x) => Buffer.isBuffer(x) ? Buffer.from(x) : x);
+			for (let i = 0; i < columnMap.size; ++i) output.push(null);
+			for (const row of generator(...args)) if (Array.isArray(row)) {
+				extractRowArray(row, output, columnMap.size, moduleName);
+				yield output;
+			} else if (typeof row === "object" && row !== null) {
+				extractRowObject(row, output, columnMap, moduleName);
+				yield output;
+			} else throw new TypeError(`Virtual table module "${moduleName}" yielded something that isn't a valid row object`);
 		};
 	}
-	function o(e, t, n, r) {
-		if (e.length !== n) throw TypeError(`Virtual table module "${r}" yielded a row with an incorrect number of columns`);
-		let i = t.length - n;
-		for (let r = 0; r < n; ++r) t[r + i] = e[r];
+	function extractRowArray(row, output, columnCount, moduleName) {
+		if (row.length !== columnCount) throw new TypeError(`Virtual table module "${moduleName}" yielded a row with an incorrect number of columns`);
+		const offset = output.length - columnCount;
+		for (let i = 0; i < columnCount; ++i) output[i + offset] = row[i];
 	}
-	function s(e, t, n, r) {
-		let i = 0;
-		for (let a of Object.keys(e)) {
-			let o = n.get(a);
-			if (o === void 0) throw TypeError(`Virtual table module "${r}" yielded a row with an undeclared column "${a}"`);
-			t[o] = e[a], i += 1;
+	function extractRowObject(row, output, columnMap, moduleName) {
+		let count = 0;
+		for (const key of Object.keys(row)) {
+			const index = columnMap.get(key);
+			if (index === void 0) throw new TypeError(`Virtual table module "${moduleName}" yielded a row with an undeclared column "${key}"`);
+			output[index] = row[key];
+			count += 1;
 		}
-		if (i !== n.size) throw TypeError(`Virtual table module "${r}" yielded a row with missing columns`);
+		if (count !== columnMap.size) throw new TypeError(`Virtual table module "${moduleName}" yielded a row with missing columns`);
 	}
-	function c({ length: e }) {
-		if (!Number.isInteger(e) || e < 0) throw TypeError("Expected function.length to be a positive integer");
-		let t = [];
-		for (let n = 0; n < e; ++n) t.push(`$${n + 1}`);
-		return t;
+	function inferParameters({ length }) {
+		if (!Number.isInteger(length) || length < 0) throw new TypeError("Expected function.length to be a positive integer");
+		const params = [];
+		for (let i = 0; i < length; ++i) params.push(`$${i + 1}`);
+		return params;
 	}
-	var { hasOwnProperty: l } = Object.prototype, { apply: u } = Function.prototype, d = Object.getPrototypeOf(function* () {}), f = (e) => `"${e.replace(/"/g, "\"\"")}"`, p = (e) => () => e;
-})), D = /* @__PURE__ */ v(((e, t) => {
-	var n = function() {};
-	t.exports = function(e, t) {
-		return Object.assign(new n(), this);
+	var { hasOwnProperty } = Object.prototype;
+	var { apply } = Function.prototype;
+	var GeneratorFunctionPrototype = Object.getPrototypeOf(function* () {});
+	var identifier = (str) => `"${str.replace(/"/g, "\"\"")}"`;
+	var defer = (x) => () => x;
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/methods/inspect.js
+var require_inspect = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var DatabaseInspection = function Database() {};
+	module.exports = function inspect(depth, opts) {
+		return Object.assign(new DatabaseInspection(), this);
 	};
-})), O = /* @__PURE__ */ v(((e, t) => {
-	var n = y("fs"), r = y("path"), i = b(), a = x(), o;
-	function s(e, t) {
-		if (new.target == null) return new s(e, t);
-		let l;
-		if (Buffer.isBuffer(e) && (l = e, e = ":memory:"), e ??= "", t ??= {}, typeof e != "string") throw TypeError("Expected first argument to be a string");
-		if (typeof t != "object") throw TypeError("Expected second argument to be an options object");
-		if ("readOnly" in t) throw TypeError("Misspelled option \"readOnly\" should be \"readonly\"");
-		if ("memory" in t) throw TypeError("Option \"memory\" was removed in v7.0.0 (use \":memory:\" filename instead)");
-		let u = e.trim(), d = u === "" || u === ":memory:", f = i.getBooleanOption(t, "readonly"), p = i.getBooleanOption(t, "fileMustExist"), m = "timeout" in t ? t.timeout : 5e3, h = "verbose" in t ? t.verbose : null, g = "nativeBinding" in t ? t.nativeBinding : null;
-		if (f && d && !l) throw TypeError("In-memory/temporary databases cannot be readonly");
-		if (!Number.isInteger(m) || m < 0) throw TypeError("Expected the \"timeout\" option to be a positive integer");
-		if (m > 2147483647) throw RangeError("Option \"timeout\" cannot be greater than 2147483647");
-		if (h != null && typeof h != "function") throw TypeError("Expected the \"verbose\" option to be a function");
-		if (g != null && typeof g != "string" && typeof g != "object") throw TypeError("Expected the \"nativeBinding\" option to be a string or addon object");
-		let _;
-		if (_ = g == null ? o ||= re()("better_sqlite3.node") : typeof g == "string" ? (typeof __non_webpack_require__ == "function" ? __non_webpack_require__ : y)(r.resolve(g).replace(/(\.node)?$/, ".node")) : g, _.isInitialized || (_.setErrorConstructor(a), _.isInitialized = !0), !d && !u.startsWith("file:") && !n.existsSync(r.dirname(u))) throw TypeError("Cannot open database because the directory does not exist");
+}));
+//#endregion
+//#region node_modules/better-sqlite3/lib/database.js
+var require_database = /* @__PURE__ */ __commonJSMin(((exports, module) => {
+	var fs$1 = __require("fs");
+	var path$1 = __require("path");
+	var util = require_util();
+	var SqliteError = require_sqlite_error();
+	var DEFAULT_ADDON;
+	function Database(filenameGiven, options) {
+		if (new.target == null) return new Database(filenameGiven, options);
+		let buffer;
+		if (Buffer.isBuffer(filenameGiven)) {
+			buffer = filenameGiven;
+			filenameGiven = ":memory:";
+		}
+		if (filenameGiven == null) filenameGiven = "";
+		if (options == null) options = {};
+		if (typeof filenameGiven !== "string") throw new TypeError("Expected first argument to be a string");
+		if (typeof options !== "object") throw new TypeError("Expected second argument to be an options object");
+		if ("readOnly" in options) throw new TypeError("Misspelled option \"readOnly\" should be \"readonly\"");
+		if ("memory" in options) throw new TypeError("Option \"memory\" was removed in v7.0.0 (use \":memory:\" filename instead)");
+		const filename = filenameGiven.trim();
+		const anonymous = filename === "" || filename === ":memory:";
+		const readonly = util.getBooleanOption(options, "readonly");
+		const fileMustExist = util.getBooleanOption(options, "fileMustExist");
+		const timeout = "timeout" in options ? options.timeout : 5e3;
+		const verbose = "verbose" in options ? options.verbose : null;
+		const nativeBinding = "nativeBinding" in options ? options.nativeBinding : null;
+		if (readonly && anonymous && !buffer) throw new TypeError("In-memory/temporary databases cannot be readonly");
+		if (!Number.isInteger(timeout) || timeout < 0) throw new TypeError("Expected the \"timeout\" option to be a positive integer");
+		if (timeout > 2147483647) throw new RangeError("Option \"timeout\" cannot be greater than 2147483647");
+		if (verbose != null && typeof verbose !== "function") throw new TypeError("Expected the \"verbose\" option to be a function");
+		if (nativeBinding != null && typeof nativeBinding !== "string" && typeof nativeBinding !== "object") throw new TypeError("Expected the \"nativeBinding\" option to be a string or addon object");
+		let addon;
+		if (nativeBinding == null) addon = DEFAULT_ADDON || (DEFAULT_ADDON = require_bindings()("better_sqlite3.node"));
+		else if (typeof nativeBinding === "string") addon = (typeof __non_webpack_require__ === "function" ? __non_webpack_require__ : __require)(path$1.resolve(nativeBinding).replace(/(\.node)?$/, ".node"));
+		else addon = nativeBinding;
+		if (!addon.isInitialized) {
+			addon.setErrorConstructor(SqliteError);
+			addon.isInitialized = true;
+		}
+		if (!anonymous && !filename.startsWith("file:") && !fs$1.existsSync(path$1.dirname(filename))) throw new TypeError("Cannot open database because the directory does not exist");
 		Object.defineProperties(this, {
-			[i.cppdb]: { value: new _.Database(u, e, d, f, p, m, h || null, l || null) },
-			...c.getters
+			[util.cppdb]: { value: new addon.Database(filename, filenameGiven, anonymous, readonly, fileMustExist, timeout, verbose || null, buffer || null) },
+			...wrappers.getters
 		});
 	}
-	var c = ie();
-	s.prototype.prepare = c.prepare, s.prototype.transaction = ae(), s.prototype.pragma = oe(), s.prototype.backup = se(), s.prototype.serialize = C(), s.prototype.function = w(), s.prototype.aggregate = T(), s.prototype.table = E(), s.prototype.loadExtension = c.loadExtension, s.prototype.exec = c.exec, s.prototype.close = c.close, s.prototype.defaultSafeIntegers = c.defaultSafeIntegers, s.prototype.unsafeMode = c.unsafeMode, s.prototype[i.inspect] = D(), t.exports = s;
-})), ce = /* @__PURE__ */ ne((/* @__PURE__ */ v(((e, t) => {
-	t.exports = O(), t.exports.SqliteError = x();
+	var wrappers = require_wrappers();
+	Database.prototype.prepare = wrappers.prepare;
+	Database.prototype.transaction = require_transaction();
+	Database.prototype.pragma = require_pragma();
+	Database.prototype.backup = require_backup();
+	Database.prototype.serialize = require_serialize();
+	Database.prototype.function = require_function();
+	Database.prototype.aggregate = require_aggregate();
+	Database.prototype.table = require_table();
+	Database.prototype.loadExtension = wrappers.loadExtension;
+	Database.prototype.exec = wrappers.exec;
+	Database.prototype.close = wrappers.close;
+	Database.prototype.defaultSafeIntegers = wrappers.defaultSafeIntegers;
+	Database.prototype.unsafeMode = wrappers.unsafeMode;
+	Database.prototype[util.inspect] = require_inspect();
+	module.exports = Database;
+}));
+//#endregion
+//#region src/Backend/validation.js
+var import_lib = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
+	module.exports = require_database();
+	module.exports.SqliteError = require_sqlite_error();
 })))(), 1);
-function k(e, t) {
-	if (!e) throw Error(t);
+function assert(condition, message) {
+	if (!condition) throw new Error(message);
 }
-function A(e, t = "") {
-	return e == null ? t : String(e).trim();
+function normalizeText(value, fallback = "") {
+	if (value === null || value === void 0) return fallback;
+	return String(value).trim();
 }
-function j(e, t, { min: n = -Infinity, allowZero: r = !0 } = {}) {
-	let i = Number(e);
-	if (!Number.isFinite(i)) throw Error(`${t} must be a valid number.`);
-	if (i < n) throw Error(`${t} must be at least ${n}.`);
-	if (!r && i === 0) throw Error(`${t} cannot be zero.`);
-	return i;
+function parseRequiredNumber(value, label, { min = Number.NEGATIVE_INFINITY, allowZero = true } = {}) {
+	const parsed = Number(value);
+	if (!Number.isFinite(parsed)) throw new Error(`${label} must be a valid number.`);
+	if (parsed < min) throw new Error(`${label} must be at least ${min}.`);
+	if (!allowZero && parsed === 0) throw new Error(`${label} cannot be zero.`);
+	return parsed;
 }
-function M(e) {
-	if (!e || typeof e != "object") throw Error("Invalid product payload.");
-	let t = A(e.name);
-	k(t.length > 0, "Product name is required.");
-	let n = Array.isArray(e.variants) ? e.variants : [], r = Array.isArray(e.bases) ? e.bases : [];
-	k(n.length > 0 || r.length > 0, "Product must include at least one variant or base.");
-	let i = n.map((e, t) => {
-		let n = j(e?.bucket_size ?? e?.bucketSize, `Variant ${t + 1} size`, {
+function validateProduct(product) {
+	if (!product || typeof product !== "object") throw new Error("Invalid product payload.");
+	const name = normalizeText(product.name);
+	assert(name.length > 0, "Product name is required.");
+	const variants = Array.isArray(product.variants) ? product.variants : [];
+	const bases = Array.isArray(product.bases) ? product.bases : [];
+	assert(variants.length > 0 || bases.length > 0, "Product must include at least one variant or base.");
+	const nextVariants = variants.map((variant, index) => {
+		const bucketSize = parseRequiredNumber(variant?.bucket_size ?? variant?.bucketSize, `Variant ${index + 1} size`, {
 			min: 1e-4,
-			allowZero: !1
+			allowZero: false
 		});
 		return {
-			...e,
-			bucket_size: n,
-			landing: j(e?.landing ?? 0, `Variant ${t + 1} landing`, { min: 0 }),
-			sales: j(e?.sales ?? 0, `Variant ${t + 1} sales`, { min: 0 }),
-			mp: j(e?.mp ?? 0, `Variant ${t + 1} market price`, { min: 0 })
+			...variant,
+			bucket_size: bucketSize,
+			landing: parseRequiredNumber(variant?.landing ?? 0, `Variant ${index + 1} landing`, { min: 0 }),
+			sales: parseRequiredNumber(variant?.sales ?? 0, `Variant ${index + 1} sales`, { min: 0 }),
+			mp: parseRequiredNumber(variant?.mp ?? 0, `Variant ${index + 1} market price`, { min: 0 })
 		};
-	}), a = r.map((e, t) => {
-		let n = A(e?.name ?? e?.baseName);
-		k(n.length > 0, `Base ${t + 1} name is required.`);
-		let r = Array.isArray(e?.stocks) ? e.stocks : [];
-		return i.length > 0 && k(r.length === i.length, `Base "${n}" must contain stock values for every variant.`), {
-			...e,
-			name: n,
-			stocks: r.map((e, t) => j(e, `Base "${n}" stock for variant ${t + 1}`, { min: 0 }))
+	});
+	const nextBases = bases.map((base, index) => {
+		const baseName = normalizeText(base?.name ?? base?.baseName);
+		assert(baseName.length > 0, `Base ${index + 1} name is required.`);
+		const stocks = Array.isArray(base?.stocks) ? base.stocks : [];
+		if (nextVariants.length > 0) assert(stocks.length === nextVariants.length, `Base "${baseName}" must contain stock values for every variant.`);
+		return {
+			...base,
+			name: baseName,
+			stocks: stocks.map((stock, stockIndex) => parseRequiredNumber(stock, `Base "${baseName}" stock for variant ${stockIndex + 1}`, { min: 0 }))
 		};
 	});
 	return {
-		...e,
-		id: A(e.id, ""),
-		name: t,
-		images: e.images ?? "",
-		variants: i,
-		bases: a
+		...product,
+		id: normalizeText(product.id, ""),
+		name,
+		images: product.images ?? "",
+		variants: nextVariants,
+		bases: nextBases
 	};
 }
-function N(e) {
-	if (!e || typeof e != "object") throw Error("Invalid customer payload.");
-	let t = A(e.name);
-	return k(t.length > 0, "Customer name is required."), {
-		...e,
-		name: t,
-		phone: A(e.phone, ""),
-		address: A(e.address, ""),
-		notes: A(e.notes, "")
+function validateCustomer(customer) {
+	if (!customer || typeof customer !== "object") throw new Error("Invalid customer payload.");
+	const name = normalizeText(customer.name);
+	assert(name.length > 0, "Customer name is required.");
+	return {
+		...customer,
+		name,
+		phone: normalizeText(customer.phone, ""),
+		address: normalizeText(customer.address, ""),
+		notes: normalizeText(customer.notes, "")
 	};
 }
-function P(e, t) {
-	if (!t || typeof t != "object") throw Error("Invalid bill payload.");
-	let n = Number(e);
-	k(Number.isInteger(n) && n > 0, "A valid customer is required.");
-	let r = A(t.date);
-	k(r.length > 0, "Bill date is required.");
-	let i = j(t.totalPurchased, "Total purchased", { min: 0 }), a = j(t.amountPaid, "Amount paid", { min: 0 }), o = j(t.amountDue, "Amount due", { min: 0 });
-	k(Array.isArray(t.products) && t.products.length > 0, "Bill must contain at least one product.");
-	let s = 0, c = t.products.map((e, t) => {
-		let n = A(e?.productName ?? e?.product_name), r = A(e?.base), i = j(e?.bucketSize ?? e?.bucket_size, `Item ${t + 1} bucket size`, {
+function validateBillPayload(customerId, bill) {
+	if (!bill || typeof bill !== "object") throw new Error("Invalid bill payload.");
+	const normalizedCustomerId = Number(customerId);
+	assert(Number.isInteger(normalizedCustomerId) && normalizedCustomerId > 0, "A valid customer is required.");
+	const date = normalizeText(bill.date);
+	assert(date.length > 0, "Bill date is required.");
+	const totalPurchased = parseRequiredNumber(bill.totalPurchased, "Total purchased", { min: 0 });
+	const amountPaid = parseRequiredNumber(bill.amountPaid, "Amount paid", { min: 0 });
+	const amountDue = parseRequiredNumber(bill.amountDue, "Amount due", { min: 0 });
+	assert(Array.isArray(bill.products) && bill.products.length > 0, "Bill must contain at least one product.");
+	let computedTotal = 0;
+	const items = bill.products.map((item, index) => {
+		const productName = normalizeText(item?.productName ?? item?.product_name);
+		const base = normalizeText(item?.base);
+		const bucketSize = parseRequiredNumber(item?.bucketSize ?? item?.bucket_size, `Item ${index + 1} bucket size`, {
 			min: 1e-4,
-			allowZero: !1
-		}), a = j(e?.quantity, `Item ${t + 1} quantity`, {
+			allowZero: false
+		});
+		const quantity = parseRequiredNumber(item?.quantity, `Item ${index + 1} quantity`, {
 			min: 1e-4,
-			allowZero: !1
-		}), o = j(e?.priceAtSale ?? e?.price_at_sale ?? 0, `Item ${t + 1} price`, { min: 0 });
-		return k(n.length > 0, `Item ${t + 1} product name is required.`), k(r.length > 0, `Item ${t + 1} base is required.`), s += a * o, {
-			...e,
-			productName: n,
-			base: r,
-			bucketSize: i,
-			quantity: a,
-			priceAtSale: o
+			allowZero: false
+		});
+		const priceAtSale = parseRequiredNumber(item?.priceAtSale ?? item?.price_at_sale ?? 0, `Item ${index + 1} price`, { min: 0 });
+		assert(productName.length > 0, `Item ${index + 1} product name is required.`);
+		assert(base.length > 0, `Item ${index + 1} base is required.`);
+		computedTotal += quantity * priceAtSale;
+		return {
+			...item,
+			productName,
+			base,
+			bucketSize,
+			quantity,
+			priceAtSale
 		};
 	});
-	return k(Math.abs(s - i) < .01, "Bill total does not match the sum of item prices."), k(Math.abs(a + o - i) < .01, "Bill payment values must add up to the total purchased."), {
-		date: r,
-		paymentMethod: A(t.paymentMethod, ""),
-		totalPurchased: i,
-		amountPaid: a,
-		amountDue: o,
-		status: A(t.status, "Open"),
-		products: c,
-		customerId: n
+	assert(Math.abs(computedTotal - totalPurchased) < .01, "Bill total does not match the sum of item prices.");
+	assert(Math.abs(amountPaid + amountDue - totalPurchased) < .01, "Bill payment values must add up to the total purchased.");
+	return {
+		date,
+		paymentMethod: normalizeText(bill.paymentMethod, ""),
+		totalPurchased,
+		amountPaid,
+		amountDue,
+		status: normalizeText(bill.status, "Open"),
+		products: items,
+		customerId: normalizedCustomerId
 	};
 }
-function F(e) {
-	if (!e || typeof e != "object") throw Error("Invalid expense payload.");
-	let t = A(e.date);
-	k(t.length > 0, "Expense date is required.");
-	let n = A(e.nameOfExpense ?? e.label);
-	k(n.length > 0, "Expense label is required.");
-	let r = A(e.typeOfExpense ?? e.type ?? "General");
-	return k([
+function validateExpensePayload(expense) {
+	if (!expense || typeof expense !== "object") throw new Error("Invalid expense payload.");
+	const date = normalizeText(expense.date);
+	assert(date.length > 0, "Expense date is required.");
+	const nameOfExpense = normalizeText(expense.nameOfExpense ?? expense.label);
+	assert(nameOfExpense.length > 0, "Expense label is required.");
+	const typeOfExpense = normalizeText(expense.typeOfExpense ?? expense.type ?? "General");
+	assert([
 		"General",
 		"Import",
 		"Taxes"
-	].includes(r), "Expense type must be General, Import, or Taxes."), {
-		date: t,
-		nameOfExpense: n,
-		amountOfExpense: j(e.amountOfExpense ?? e.amount ?? 0, "Expense amount", {
+	].includes(typeOfExpense), "Expense type must be General, Import, or Taxes.");
+	return {
+		date,
+		nameOfExpense,
+		amountOfExpense: parseRequiredNumber(expense.amountOfExpense ?? expense.amount ?? 0, "Expense amount", {
 			min: 1e-4,
-			allowZero: !1
+			allowZero: false
 		}),
-		typeOfExpense: r
+		typeOfExpense
 	};
 }
-function I(e) {
-	if (!Array.isArray(e) || e.length === 0) throw Error("At least one import item is required.");
-	return e.map((e, t) => {
-		let n = A(e?.productName ?? e?.product_name), r = A(e?.base), i = j(e?.bucketSize ?? e?.bucket_size, `Item ${t + 1} bucket size`, {
+function validateImportItems(items) {
+	if (!Array.isArray(items) || items.length === 0) throw new Error("At least one import item is required.");
+	return items.map((item, index) => {
+		const productName = normalizeText(item?.productName ?? item?.product_name);
+		const base = normalizeText(item?.base);
+		const bucketSize = parseRequiredNumber(item?.bucketSize ?? item?.bucket_size, `Item ${index + 1} bucket size`, {
 			min: 1e-4,
-			allowZero: !1
-		}), a = j(e?.quantity, `Item ${t + 1} quantity`, {
+			allowZero: false
+		});
+		const quantity = parseRequiredNumber(item?.quantity, `Item ${index + 1} quantity`, {
 			min: 1e-4,
-			allowZero: !1
-		}), o = j(e?.costPrice ?? e?.cost_price ?? 0, `Item ${t + 1} cost price`, { min: 0 });
-		return k(n.length > 0, `Item ${t + 1} product name is required.`), k(r.length > 0, `Item ${t + 1} base is required.`), {
-			...e,
-			productName: n,
-			base: r,
-			bucketSize: i,
-			quantity: a,
-			costPrice: o
+			allowZero: false
+		});
+		const costPrice = parseRequiredNumber(item?.costPrice ?? item?.cost_price ?? 0, `Item ${index + 1} cost price`, { min: 0 });
+		assert(productName.length > 0, `Item ${index + 1} product name is required.`);
+		assert(base.length > 0, `Item ${index + 1} base is required.`);
+		return {
+			...item,
+			productName,
+			base,
+			bucketSize,
+			quantity,
+			costPrice
 		};
 	});
 }
 //#endregion
-//#region src/Backend/server.js
-var L = d(import.meta.url)("xlsx"), R = l.dirname(s(import.meta.url)), z = new ce.default(n.isPackaged ? l.join(n.getPath("userData"), "inventory.db") : l.join(R, "../", "Database", "inventory.db"));
-z.exec("\n  CREATE TABLE IF NOT EXISTS products (\n    id TEXT PRIMARY KEY,\n    name TEXT NOT NULL, \n    images TEXT\n  );\n\n  CREATE TABLE IF NOT EXISTS variants (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    product_id TEXT NOT NULL,\n    bucket_size REAL NOT NULL,\n    landing REAL,\n    sales REAL,\n    mp REAL,\n    FOREIGN KEY (product_id) REFERENCES products(id)\n  );\n\n  CREATE TABLE IF NOT EXISTS bases (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    product_id TEXT NOT NULL,\n    name TEXT NOT NULL,\n    FOREIGN KEY (product_id) REFERENCES products(id)\n  );\n\n  CREATE TABLE IF NOT EXISTS base_stock (\n    base_id INTEGER NOT NULL,\n    variant_id INTEGER NOT NULL,\n    stock REAL NOT NULL DEFAULT 0,\n    PRIMARY KEY (base_id, variant_id),\n    FOREIGN KEY (base_id) REFERENCES bases(id),\n    FOREIGN KEY (variant_id) REFERENCES variants(id)\n  );\n  CREATE TABLE IF NOT EXISTS customers (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    name TEXT NOT NULL,\n    phone TEXT,\n    address TEXT,\n    notes TEXT\n  );\n  CREATE TABLE IF NOT EXISTS expense_items (\n  id INTEGER PRIMARY KEY AUTOINCREMENT,\n  expense_id INTEGER NOT NULL,\n  product_name TEXT NOT NULL,\n  base TEXT,\n  bucket_size REAL,\n  quantity REAL NOT NULL,\n  cost_price REAL NOT NULL,\n  FOREIGN KEY (expense_id) REFERENCES expenses(id)\n);\n  CREATE TABLE IF NOT EXISTS bills (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    customer_id INTEGER NOT NULL,\n    date TEXT NOT NULL,\n    payment_method TEXT,\n    total_purchased REAL NOT NULL,\n    amount_paid REAL NOT NULL,\n    amount_due REAL NOT NULL,\n    status TEXT NOT NULL,\n    FOREIGN KEY (customer_id) REFERENCES customers(id)\n  );\n\n  CREATE TABLE IF NOT EXISTS bill_activity (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    bill_id INTEGER NOT NULL,\n    type TEXT NOT NULL,\n    date TEXT NOT NULL,\n    amount REAL NOT NULL DEFAULT 0,\n    payment_method TEXT,\n    note TEXT,\n    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n    FOREIGN KEY (bill_id) REFERENCES bills(id)\n  );\n\n  CREATE TABLE IF NOT EXISTS bill_items (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    bill_id INTEGER NOT NULL,\n    product_name TEXT NOT NULL,\n    base TEXT,\n    bucket_size REAL,\n    quantity REAL NOT NULL,\n    price_at_sale REAL NOT NULL,\n    FOREIGN KEY (bill_id) REFERENCES bills(id)\n  );\n"), z.prepare("PRAGMA table_info(bill_items)").all().some((e) => e.name === "cost_price") || z.exec("ALTER TABLE bill_items ADD COLUMN cost_price REAL DEFAULT 0"), z.exec("\n  CREATE TABLE IF NOT EXISTS expenses (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    date TEXT NOT NULL,\n    label TEXT NOT NULL,\n    amount REAL NOT NULL,\n    type TEXT DEFAULT 'General'\n  );\n");
-function B(e) {
-	let t = M(e), n = t.id || f();
-	if (z.prepare("SELECT 1 FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE").get(t.name)) throw Error(`Product "${t.name}" already exists.`);
-	return z.transaction(() => {
-		z.prepare("INSERT INTO products (id, name, images) VALUES (?, ?, ?)").run(n, t.name, t.images);
-		for (let e of t.variants) if (!z.prepare("INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)").run(n, e.bucket_size, e.landing, e.sales, e.mp).lastInsertRowid) throw Error("Failed to create a product variant.");
-		for (let e of t.bases) {
-			let t = z.prepare("INSERT INTO bases (product_id, name) VALUES (?, ?)").run(n, e.name).lastInsertRowid;
-			for (let r = 0; r < e.stocks.length; r++) {
-				let i = z.prepare("SELECT id FROM variants WHERE product_id = ? LIMIT 1 OFFSET ?").get(n, r);
-				if (!i) throw Error(`Variant lookup failed while saving base "${e.name}".`);
-				z.prepare("INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)").run(t, i.id, e.stocks[r]);
-			}
-		}
-	})(), n;
-}
-function V() {
-	let e = z.prepare("SELECT * FROM products").all();
-	for (let t of e) {
-		t.variants = z.prepare("SELECT * FROM variants WHERE product_id = ?").all(t.id);
-		let e = z.prepare("SELECT * FROM bases WHERE product_id = ?").all(t.id);
-		for (let n of e) {
-			let e = z.prepare("SELECT variant_id, stock FROM base_stock WHERE base_id = ?").all(n.id);
-			n.stockMap = {};
-			for (let t of e) n.stockMap[t.variant_id] = t.stock;
-			n.stocks = t.variants.map((e) => n.stockMap[e.id] ?? 0);
-		}
-		t.bases = e;
+//#region src/Backend/migrations.js
+var migrations = [{
+	version: 1,
+	up(db) {
+		db.exec(`
+        CREATE TABLE IF NOT EXISTS products (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          images TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS variants (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          product_id TEXT NOT NULL,
+          bucket_size REAL NOT NULL,
+          landing REAL,
+          sales REAL,
+          mp REAL,
+          FOREIGN KEY (product_id) REFERENCES products(id)
+        );
+
+        CREATE TABLE IF NOT EXISTS bases (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          product_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          FOREIGN KEY (product_id) REFERENCES products(id)
+        );
+
+        CREATE TABLE IF NOT EXISTS base_stock (
+          base_id INTEGER NOT NULL,
+          variant_id INTEGER NOT NULL,
+          stock REAL NOT NULL DEFAULT 0,
+          PRIMARY KEY (base_id, variant_id),
+          FOREIGN KEY (base_id) REFERENCES bases(id),
+          FOREIGN KEY (variant_id) REFERENCES variants(id)
+        );
+
+        CREATE TABLE IF NOT EXISTS customers (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          phone TEXT,
+          address TEXT,
+          notes TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS expenses (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          date TEXT NOT NULL,
+          label TEXT NOT NULL,
+          amount REAL NOT NULL,
+          type TEXT DEFAULT 'General'
+        );
+
+        CREATE TABLE IF NOT EXISTS expense_items (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          expense_id INTEGER NOT NULL,
+          product_name TEXT NOT NULL,
+          base TEXT,
+          bucket_size REAL,
+          quantity REAL NOT NULL,
+          cost_price REAL NOT NULL,
+          FOREIGN KEY (expense_id) REFERENCES expenses(id)
+        );
+
+        CREATE TABLE IF NOT EXISTS bills (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          customer_id INTEGER NOT NULL,
+          date TEXT NOT NULL,
+          payment_method TEXT,
+          total_purchased REAL NOT NULL,
+          amount_paid REAL NOT NULL,
+          amount_due REAL NOT NULL,
+          status TEXT NOT NULL,
+          FOREIGN KEY (customer_id) REFERENCES customers(id)
+        );
+
+        CREATE TABLE IF NOT EXISTS bill_activity (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          bill_id INTEGER NOT NULL,
+          type TEXT NOT NULL,
+          date TEXT NOT NULL,
+          amount REAL NOT NULL DEFAULT 0,
+          payment_method TEXT,
+          note TEXT,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (bill_id) REFERENCES bills(id)
+        );
+
+        CREATE TABLE IF NOT EXISTS bill_items (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          bill_id INTEGER NOT NULL,
+          product_name TEXT NOT NULL,
+          base TEXT,
+          bucket_size REAL,
+          quantity REAL NOT NULL,
+          price_at_sale REAL NOT NULL,
+          cost_price REAL DEFAULT 0,
+          FOREIGN KEY (bill_id) REFERENCES bills(id)
+        );
+      `);
+		if (!db.prepare("PRAGMA table_info(bill_items)").all().some((column) => column.name === "cost_price")) db.exec("ALTER TABLE bill_items ADD COLUMN cost_price REAL DEFAULT 0");
 	}
-	return e;
+}];
+function migrateDatabase(db) {
+	let currentVersion = db.pragma("user_version", { simple: true });
+	const latestVersion = migrations.at(-1)?.version ?? 0;
+	if (currentVersion > latestVersion) throw new Error(`Database schema version ${currentVersion} is newer than supported version ${latestVersion}.`);
+	for (const migration of migrations) {
+		if (migration.version <= currentVersion) continue;
+		if (migration.version !== currentVersion + 1) throw new Error(`Missing database migration for version ${currentVersion + 1}.`);
+		db.transaction(() => {
+			migration.up(db);
+			db.pragma(`user_version = ${migration.version}`);
+		})();
+		currentVersion = migration.version;
+	}
+	return currentVersion;
 }
-function H(e) {
-	if (!e) throw Error("Product id is required.");
-	if (!z.prepare("SELECT 1 FROM products WHERE id = ?").get(e)) throw Error("Product not found.");
-	z.transaction(() => {
-		let t = z.prepare("SELECT id FROM variants WHERE product_id = ?").all(e), n = z.prepare("SELECT id FROM bases WHERE product_id = ?").all(e);
-		for (let e of t) z.prepare("DELETE FROM base_stock WHERE variant_id = ?").run(e.id);
-		for (let e of n) z.prepare("DELETE FROM base_stock WHERE base_id = ?").run(e.id);
-		z.prepare("DELETE FROM variants WHERE product_id = ?").run(e), z.prepare("DELETE FROM bases WHERE product_id = ?").run(e), z.prepare("DELETE FROM products WHERE id = ?").run(e);
+//#endregion
+//#region src/Backend/server.js
+var XLSX = createRequire$1(import.meta.url)("xlsx");
+var __dirname$1 = path.dirname(fileURLToPath(import.meta.url));
+var db = new import_lib.default(app.isPackaged ? path.join(app.getPath("userData"), "inventory.db") : path.join(__dirname$1, "../", "Database", "inventory.db"));
+migrateDatabase(db);
+function addProduct(product) {
+	const validatedProduct = validateProduct(product);
+	const productId = validatedProduct.id || randomUUID();
+	if (db.prepare(`SELECT 1 FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE`).get(validatedProduct.name)) throw new Error(`Product "${validatedProduct.name}" already exists.`);
+	db.transaction(() => {
+		db.prepare(`INSERT INTO products (id, name, images) VALUES (?, ?, ?)`).run(productId, validatedProduct.name, validatedProduct.images);
+		for (const variant of validatedProduct.variants) if (!db.prepare(`INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`).run(productId, variant.bucket_size, variant.landing, variant.sales, variant.mp).lastInsertRowid) throw new Error("Failed to create a product variant.");
+		for (const base of validatedProduct.bases) {
+			const baseId = db.prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`).run(productId, base.name).lastInsertRowid;
+			for (let i = 0; i < base.stocks.length; i++) {
+				const variant = db.prepare(`SELECT id FROM variants WHERE product_id = ? LIMIT 1 OFFSET ?`).get(productId, i);
+				if (!variant) throw new Error(`Variant lookup failed while saving base "${base.name}".`);
+				db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`).run(baseId, variant.id, base.stocks[i]);
+			}
+		}
+	})();
+	return productId;
+}
+function getProducts() {
+	const products = db.prepare(`SELECT * FROM products`).all();
+	for (const product of products) {
+		product.variants = db.prepare(`SELECT * FROM variants WHERE product_id = ?`).all(product.id);
+		const bases = db.prepare(`SELECT * FROM bases WHERE product_id = ?`).all(product.id);
+		for (const base of bases) {
+			const stockRows = db.prepare(`SELECT variant_id, stock FROM base_stock WHERE base_id = ?`).all(base.id);
+			base.stockMap = {};
+			for (const row of stockRows) base.stockMap[row.variant_id] = row.stock;
+			base.stocks = product.variants.map((v) => base.stockMap[v.id] ?? 0);
+		}
+		product.bases = bases;
+	}
+	return products;
+}
+function deleteProduct(id) {
+	if (!id) throw new Error("Product id is required.");
+	if (!db.prepare(`SELECT 1 FROM products WHERE id = ?`).get(id)) throw new Error("Product not found.");
+	db.transaction(() => {
+		const variants = db.prepare(`SELECT id FROM variants WHERE product_id = ?`).all(id);
+		const bases = db.prepare(`SELECT id FROM bases WHERE product_id = ?`).all(id);
+		for (const variant of variants) db.prepare(`DELETE FROM base_stock WHERE variant_id = ?`).run(variant.id);
+		for (const base of bases) db.prepare(`DELETE FROM base_stock WHERE base_id = ?`).run(base.id);
+		db.prepare(`DELETE FROM variants WHERE product_id = ?`).run(id);
+		db.prepare(`DELETE FROM bases WHERE product_id = ?`).run(id);
+		db.prepare(`DELETE FROM products WHERE id = ?`).run(id);
 	})();
 }
-function U(e, t) {
-	if (!e) throw Error("Product id is required.");
-	if (!z.prepare("SELECT id FROM products WHERE id = ?").get(e)) throw Error("Product not found.");
-	let n = M(t), r = n.name;
-	if (z.prepare("SELECT id FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE AND id != ?").get(r, e)) throw Error(`Another product already uses the name "${r}".`);
-	z.transaction(() => {
-		z.prepare("UPDATE products SET name = ?, images = ? WHERE id = ?").run(r, n.images, e);
-		let t = z.prepare("SELECT id FROM variants WHERE product_id = ?").all(e);
-		for (let e of t) z.prepare("DELETE FROM base_stock WHERE variant_id = ?").run(e.id);
-		z.prepare("DELETE FROM variants WHERE product_id = ?").run(e);
-		let i = z.prepare("SELECT id FROM bases WHERE product_id = ?").all(e);
-		for (let e of i) z.prepare("DELETE FROM base_stock WHERE base_id = ?").run(e.id);
-		z.prepare("DELETE FROM bases WHERE product_id = ?").run(e);
-		for (let t of n.variants) z.prepare("INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)").run(e, t.bucket_size, t.landing, t.sales, t.mp);
-		for (let t of n.bases) {
-			let n = z.prepare("INSERT INTO bases (product_id, name) VALUES (?, ?)").run(e, t.name).lastInsertRowid;
-			for (let r = 0; r < t.stocks.length; r++) {
-				let i = z.prepare("SELECT id FROM variants WHERE product_id = ? LIMIT 1 OFFSET ?").get(e, r);
-				if (!i) throw Error(`Variant lookup failed while updating base "${t.name}".`);
-				z.prepare("INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)").run(n, i.id, t.stocks[r]);
+function editProduct(id, product) {
+	if (!id) throw new Error("Product id is required.");
+	if (!db.prepare(`SELECT id FROM products WHERE id = ?`).get(id)) throw new Error("Product not found.");
+	const validatedProduct = validateProduct(product);
+	const normalizedName = validatedProduct.name;
+	if (db.prepare(`SELECT id FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE AND id != ?`).get(normalizedName, id)) throw new Error(`Another product already uses the name "${normalizedName}".`);
+	db.transaction(() => {
+		db.prepare(`UPDATE products SET name = ?, images = ? WHERE id = ?`).run(normalizedName, validatedProduct.images, id);
+		const existingVariants = db.prepare(`SELECT id FROM variants WHERE product_id = ?`).all(id);
+		for (const variant of existingVariants) db.prepare(`DELETE FROM base_stock WHERE variant_id = ?`).run(variant.id);
+		db.prepare(`DELETE FROM variants WHERE product_id = ?`).run(id);
+		const oldBases = db.prepare(`SELECT id FROM bases WHERE product_id = ?`).all(id);
+		for (const base of oldBases) db.prepare(`DELETE FROM base_stock WHERE base_id = ?`).run(base.id);
+		db.prepare(`DELETE FROM bases WHERE product_id = ?`).run(id);
+		for (const variant of validatedProduct.variants) db.prepare(`INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`).run(id, variant.bucket_size, variant.landing, variant.sales, variant.mp);
+		for (const base of validatedProduct.bases) {
+			const baseId = db.prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`).run(id, base.name).lastInsertRowid;
+			for (let i = 0; i < base.stocks.length; i++) {
+				const variant = db.prepare(`SELECT id FROM variants WHERE product_id = ? LIMIT 1 OFFSET ?`).get(id, i);
+				if (!variant) throw new Error(`Variant lookup failed while updating base "${base.name}".`);
+				db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`).run(baseId, variant.id, base.stocks[i]);
 			}
 		}
 	})();
 }
-function W(e) {
-	return z.prepare("SELECT * FROM products WHERE name = ?").get(e);
+function getProductByName(name) {
+	return db.prepare(`SELECT * FROM products WHERE name = ?`).get(name);
 }
-function G(e, t) {
-	return z.prepare("SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?").get(e, t);
+function getVariantBySize(productId, bucketSize) {
+	return db.prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`).get(productId, bucketSize);
 }
-function le(e, t) {
-	return z.prepare("\n    INSERT INTO variants (product_id, bucket_size, landing, sales, mp)\n    VALUES (?, ?, ?, ?, ?)\n  ").run(e, t.bucket_size, t.landing, t.sales, t.mp).lastInsertRowid;
+function addVariant(productId, variant) {
+	return db.prepare(`
+    INSERT INTO variants (product_id, bucket_size, landing, sales, mp)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(productId, variant.bucket_size, variant.landing, variant.sales, variant.mp).lastInsertRowid;
 }
-function K(e, t) {
-	return z.prepare("INSERT INTO bases (product_id, name) VALUES (?, ?)").run(e, t).lastInsertRowid;
+function addBase(productId, baseName) {
+	return db.prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`).run(productId, baseName).lastInsertRowid;
 }
-function ue(e, t) {
-	return z.prepare("SELECT * FROM bases WHERE product_id = ? AND name = ?").get(e, t);
+function getBaseByName(productId, baseName) {
+	return db.prepare(`SELECT * FROM bases WHERE product_id = ? AND name = ?`).get(productId, baseName);
 }
-function de(e, t, n) {
-	z.prepare("INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)").run(e, t, n);
+function addBaseStock(baseId, variantId, stock) {
+	db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`).run(baseId, variantId, stock);
 }
-function fe(e) {
-	let t = l.basename(e), r = n.isPackaged ? l.join(n.getPath("userData"), "images", "product-images") : l.join(R, "../", "Database", "images", "product-images"), i = l.join(r, t);
-	return u.existsSync(r) || u.mkdirSync(r, { recursive: !0 }), u.existsSync(i) || u.copyFileSync(e, i), `images/product-images/${t}`;
+function copyImageToDatabase(sourcePath) {
+	const fileName = path.basename(sourcePath);
+	const destDir = app.isPackaged ? path.join(app.getPath("userData"), "images", "product-images") : path.join(__dirname$1, "../", "Database", "images", "product-images");
+	const destPath = path.join(destDir, fileName);
+	if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+	if (!fs.existsSync(destPath)) fs.copyFileSync(sourcePath, destPath);
+	return `images/product-images/${fileName}`;
 }
-function pe(e) {
-	if (!e) return null;
-	let t = n.isPackaged ? n.getPath("userData") : l.join(R, "../", "Database");
-	return l.join(t, e);
+function resolveImagePath(relativePath) {
+	if (!relativePath) return null;
+	const baseDir = app.isPackaged ? app.getPath("userData") : path.join(__dirname$1, "../", "Database");
+	return path.join(baseDir, relativePath);
 }
-function me(e) {
-	let t = N(e);
-	if (z.prepare("SELECT 1 FROM customers WHERE TRIM(name) = TRIM(?) COLLATE NOCASE").get(t.name)) throw Error(`Customer "${t.name}" already exists.`);
-	return z.prepare("\n    INSERT INTO customers (name, phone, address, notes) VALUES (?, ?, ?, ?)\n  ").run(t.name, t.phone, t.address, t.notes).lastInsertRowid;
+function addCustomer(customer) {
+	const validatedCustomer = validateCustomer(customer);
+	if (db.prepare(`SELECT 1 FROM customers WHERE TRIM(name) = TRIM(?) COLLATE NOCASE`).get(validatedCustomer.name)) throw new Error(`Customer "${validatedCustomer.name}" already exists.`);
+	return db.prepare(`
+    INSERT INTO customers (name, phone, address, notes) VALUES (?, ?, ?, ?)
+  `).run(validatedCustomer.name, validatedCustomer.phone, validatedCustomer.address, validatedCustomer.notes).lastInsertRowid;
 }
-function q(e, t) {
-	if (!e) throw Error("Bill id is required.");
-	let n = A(t?.type ?? "adjustment"), r = A(t?.date ?? (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)), i = Number(t?.amount ?? 0), a = A(t?.paymentMethod ?? ""), o = A(t?.note ?? "");
-	z.prepare("INSERT INTO bill_activity (bill_id, type, date, amount, payment_method, note) VALUES (?, ?, ?, ?, ?, ?)").run(e, n, r, i, a, o);
+function addBillActivity(billId, activity) {
+	if (!billId) throw new Error("Bill id is required.");
+	const type = normalizeText(activity?.type ?? "adjustment");
+	const date = normalizeText(activity?.date ?? (/* @__PURE__ */ new Date()).toISOString().slice(0, 10));
+	const amount = Number(activity?.amount ?? 0);
+	const paymentMethod = normalizeText(activity?.paymentMethod ?? "");
+	const note = normalizeText(activity?.note ?? "");
+	db.prepare(`INSERT INTO bill_activity (bill_id, type, date, amount, payment_method, note) VALUES (?, ?, ?, ?, ?, ?)`).run(billId, type, date, amount, paymentMethod, note);
 }
-function he(e) {
-	return z.prepare("SELECT * FROM bill_activity WHERE bill_id = ? ORDER BY date ASC, id ASC").all(e);
+function getBillActivity(billId) {
+	return db.prepare(`SELECT * FROM bill_activity WHERE bill_id = ? ORDER BY date ASC, id ASC`).all(billId);
 }
-function ge(e, t) {
-	let n = P(e, t);
-	if (!z.prepare("SELECT id FROM customers WHERE id = ?").get(n.customerId)) throw Error("Customer not found.");
-	return z.transaction(() => {
-		let e = z.prepare("\n      INSERT INTO bills (customer_id, date, payment_method, total_purchased, amount_paid, amount_due, status)\n      VALUES (?, ?, ?, ?, ?, ?, ?)\n    ").run(n.customerId, n.date, n.paymentMethod, n.totalPurchased, n.amountPaid, n.amountDue, n.status).lastInsertRowid;
-		q(e, {
+function addBill(customerId, bill) {
+	const normalizedBill = validateBillPayload(customerId, bill);
+	if (!db.prepare(`SELECT id FROM customers WHERE id = ?`).get(normalizedBill.customerId)) throw new Error("Customer not found.");
+	return db.transaction(() => {
+		const billId = db.prepare(`
+      INSERT INTO bills (customer_id, date, payment_method, total_purchased, amount_paid, amount_due, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(normalizedBill.customerId, normalizedBill.date, normalizedBill.paymentMethod, normalizedBill.totalPurchased, normalizedBill.amountPaid, normalizedBill.amountDue, normalizedBill.status).lastInsertRowid;
+		addBillActivity(billId, {
 			type: "sale",
-			date: n.date,
-			amount: n.totalPurchased,
-			paymentMethod: n.paymentMethod,
+			date: normalizedBill.date,
+			amount: normalizedBill.totalPurchased,
+			paymentMethod: normalizedBill.paymentMethod,
 			note: "Initial bill entry"
 		});
-		for (let t of n.products) {
-			let n = Z(t.productName, t.bucketSize);
-			z.prepare("\n      INSERT INTO bill_items (bill_id, product_name, base, bucket_size, quantity, price_at_sale, cost_price)\n      VALUES (?, ?, ?, ?, ?, ?, ?)\n    ").run(e, t.productName, t.base, t.bucketSize, t.quantity, t.priceAtSale, n), J(t.productName, t.base, t.bucketSize, -t.quantity);
+		for (const item of normalizedBill.products) {
+			const costPrice = getLandingPrice(item.productName, item.bucketSize);
+			db.prepare(`
+      INSERT INTO bill_items (bill_id, product_name, base, bucket_size, quantity, price_at_sale, cost_price)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(billId, item.productName, item.base, item.bucketSize, item.quantity, item.priceAtSale, costPrice);
+			adjustStock(item.productName, item.base, item.bucketSize, -item.quantity);
 		}
-		return n.amountPaid > 0 && q(e, {
+		if (normalizedBill.amountPaid > 0) addBillActivity(billId, {
 			type: "payment",
-			date: n.date,
-			amount: n.amountPaid,
-			paymentMethod: n.paymentMethod,
+			date: normalizedBill.date,
+			amount: normalizedBill.amountPaid,
+			paymentMethod: normalizedBill.paymentMethod,
 			note: "Payment recorded on bill creation"
-		}), e;
+		});
+		return billId;
 	})();
 }
-function _e() {
-	let e = z.prepare("SELECT * FROM customers").all();
-	for (let t of e) {
-		let e = z.prepare("SELECT * FROM bills WHERE customer_id = ?").all(t.id);
-		for (let t of e) t.products = z.prepare("SELECT * FROM bill_items WHERE bill_id = ?").all(t.id);
-		t.bills = e, t.totalDue = e.reduce((e, t) => e + t.amount_due, 0);
+function getCustomers() {
+	const customers = db.prepare(`SELECT * FROM customers`).all();
+	for (const customer of customers) {
+		const bills = db.prepare(`SELECT * FROM bills WHERE customer_id = ?`).all(customer.id);
+		for (const bill of bills) bill.products = db.prepare(`SELECT * FROM bill_items WHERE bill_id = ?`).all(bill.id);
+		customer.bills = bills;
+		customer.totalDue = bills.reduce((sum, b) => sum + b.amount_due, 0);
 	}
-	return e;
+	return customers;
 }
-function ve(e) {
-	if (!z.prepare("SELECT id FROM customers WHERE id = ?").get(e)) throw Error("Customer not found.");
-	z.transaction(() => {
-		let t = z.prepare("SELECT id FROM bills WHERE customer_id = ?").all(e);
-		for (let e of t) z.prepare("DELETE FROM bill_items WHERE bill_id = ?").run(e.id);
-		z.prepare("DELETE FROM bills WHERE customer_id = ?").run(e), z.prepare("DELETE FROM customers WHERE id = ?").run(e);
+function deleteCustomer(id) {
+	if (!db.prepare(`SELECT id FROM customers WHERE id = ?`).get(id)) throw new Error("Customer not found.");
+	db.transaction(() => {
+		const bills = db.prepare(`SELECT id FROM bills WHERE customer_id = ?`).all(id);
+		for (const bill of bills) db.prepare(`DELETE FROM bill_items WHERE bill_id = ?`).run(bill.id);
+		db.prepare(`DELETE FROM bills WHERE customer_id = ?`).run(id);
+		db.prepare(`DELETE FROM customers WHERE id = ?`).run(id);
 	})();
 }
-function ye(e) {
-	if (!z.prepare("SELECT id FROM bills WHERE id = ?").get(e)) throw Error("Bill not found.");
-	z.transaction(() => {
-		let t = z.prepare("SELECT * FROM bill_items WHERE bill_id = ?").all(e);
-		for (let e of t) J(e.product_name, e.base, e.bucket_size, e.quantity);
-		z.prepare("DELETE FROM bill_items WHERE bill_id = ?").run(e), z.prepare("DELETE FROM bills WHERE id = ?").run(e);
+function deleteBill(billId) {
+	if (!db.prepare(`SELECT id FROM bills WHERE id = ?`).get(billId)) throw new Error("Bill not found.");
+	db.transaction(() => {
+		const items = db.prepare(`SELECT * FROM bill_items WHERE bill_id = ?`).all(billId);
+		for (const item of items) adjustStock(item.product_name, item.base, item.bucket_size, item.quantity);
+		db.prepare(`DELETE FROM bill_items WHERE bill_id = ?`).run(billId);
+		db.prepare(`DELETE FROM bills WHERE id = ?`).run(billId);
 	})();
 }
-function be(e, t) {
-	let n = N(t);
-	if (!z.prepare("SELECT id FROM customers WHERE id = ?").get(e)) throw Error("Customer not found.");
-	z.prepare("\n    UPDATE customers SET name = ?, phone = ?, address = ?, notes = ? WHERE id = ?\n  ").run(n.name, n.phone, n.address, n.notes, e);
+function editCustomer(id, customer) {
+	const validatedCustomer = validateCustomer(customer);
+	if (!db.prepare(`SELECT id FROM customers WHERE id = ?`).get(id)) throw new Error("Customer not found.");
+	db.prepare(`
+    UPDATE customers SET name = ?, phone = ?, address = ?, notes = ? WHERE id = ?
+  `).run(validatedCustomer.name, validatedCustomer.phone, validatedCustomer.address, validatedCustomer.notes, id);
 }
-function xe(e, t) {
-	let n = z.prepare("SELECT * FROM bills WHERE id = ?").get(e);
-	if (!n) throw Error("Bill not found.");
-	let r = P(n.customer_id, t);
-	z.transaction(() => {
-		let t = z.prepare("SELECT * FROM bill_items WHERE bill_id = ?").all(e);
-		for (let e of t) J(e.product_name, e.base, e.bucket_size, e.quantity);
-		let i = Number(n.total_purchased || 0), a = Number(n.amount_paid || 0), o = r.totalPurchased - i, s = r.amountPaid - a;
-		z.prepare("\n      UPDATE bills SET date = ?, payment_method = ?, total_purchased = ?, amount_paid = ?, amount_due = ?, status = ?\n      WHERE id = ?\n    ").run(r.date, r.paymentMethod, r.totalPurchased, r.amountPaid, r.amountDue, r.status, e), z.prepare("DELETE FROM bill_items WHERE bill_id = ?").run(e);
-		for (let t of r.products) {
-			let n = Z(t.productName, t.bucketSize);
-			z.prepare("\n      INSERT INTO bill_items (bill_id, product_name, base, bucket_size, quantity, price_at_sale, cost_price)\n      VALUES (?, ?, ?, ?, ?, ?, ?)\n    ").run(e, t.productName, t.base, t.bucketSize, t.quantity, t.priceAtSale, n), J(t.productName, t.base, t.bucketSize, -t.quantity);
+function editBill(billId, bill) {
+	const billRecord = db.prepare(`SELECT * FROM bills WHERE id = ?`).get(billId);
+	if (!billRecord) throw new Error("Bill not found.");
+	const normalizedBill = validateBillPayload(billRecord.customer_id, bill);
+	db.transaction(() => {
+		const oldItems = db.prepare(`SELECT * FROM bill_items WHERE bill_id = ?`).all(billId);
+		for (const item of oldItems) adjustStock(item.product_name, item.base, item.bucket_size, item.quantity);
+		const previousTotal = Number(billRecord.total_purchased || 0);
+		const previousPaid = Number(billRecord.amount_paid || 0);
+		const totalDelta = normalizedBill.totalPurchased - previousTotal;
+		const paidDelta = normalizedBill.amountPaid - previousPaid;
+		db.prepare(`
+      UPDATE bills SET date = ?, payment_method = ?, total_purchased = ?, amount_paid = ?, amount_due = ?, status = ?
+      WHERE id = ?
+    `).run(normalizedBill.date, normalizedBill.paymentMethod, normalizedBill.totalPurchased, normalizedBill.amountPaid, normalizedBill.amountDue, normalizedBill.status, billId);
+		db.prepare(`DELETE FROM bill_items WHERE bill_id = ?`).run(billId);
+		for (const item of normalizedBill.products) {
+			const costPrice = getLandingPrice(item.productName, item.bucketSize);
+			db.prepare(`
+      INSERT INTO bill_items (bill_id, product_name, base, bucket_size, quantity, price_at_sale, cost_price)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(billId, item.productName, item.base, item.bucketSize, item.quantity, item.priceAtSale, costPrice);
+			adjustStock(item.productName, item.base, item.bucketSize, -item.quantity);
 		}
-		Math.abs(o) > .01 && q(e, {
+		if (Math.abs(totalDelta) > .01) addBillActivity(billId, {
 			type: "adjustment",
-			date: r.date,
-			amount: o,
-			paymentMethod: r.paymentMethod,
-			note: o >= 0 ? "Additional products added to bill" : "Bill value reduced"
-		}), Math.abs(s) > .01 && q(e, {
+			date: normalizedBill.date,
+			amount: totalDelta,
+			paymentMethod: normalizedBill.paymentMethod,
+			note: totalDelta >= 0 ? "Additional products added to bill" : "Bill value reduced"
+		});
+		if (Math.abs(paidDelta) > .01) addBillActivity(billId, {
 			type: "payment",
-			date: r.date,
-			amount: s,
-			paymentMethod: r.paymentMethod,
-			note: s >= 0 ? "Customer payment recorded" : "Payment adjusted"
+			date: normalizedBill.date,
+			amount: paidDelta,
+			paymentMethod: normalizedBill.paymentMethod,
+			note: paidDelta >= 0 ? "Customer payment recorded" : "Payment adjusted"
 		});
 	})();
 }
-function J(e, t, n, r) {
-	let i = e ? String(e).trim() : "", a = t ? String(t).trim() : "", o = parseFloat(n) || 0, s = z.prepare("SELECT * FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE").get(i);
-	if (!s) return;
-	let c = z.prepare("SELECT * FROM variants WHERE product_id = ? AND ABS(bucket_size - ?) < 0.001").get(s.id, o);
-	if (!c) return;
-	let l = z.prepare("SELECT * FROM bases WHERE product_id = ? AND TRIM(name) = TRIM(?) COLLATE NOCASE").get(s.id, a);
-	l && z.prepare("UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?").run(r, l.id, c.id);
+function adjustStock(productName, baseName, bucketSize, deltaQty) {
+	const pName = productName ? String(productName).trim() : "";
+	const bName = baseName ? String(baseName).trim() : "";
+	const bSize = parseFloat(bucketSize) || 0;
+	const product = db.prepare(`SELECT * FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE`).get(pName);
+	if (!product) return;
+	const variant = db.prepare(`SELECT * FROM variants WHERE product_id = ? AND ABS(bucket_size - ?) < 0.001`).get(product.id, bSize);
+	if (!variant) return;
+	const base = db.prepare(`SELECT * FROM bases WHERE product_id = ? AND TRIM(name) = TRIM(?) COLLATE NOCASE`).get(product.id, bName);
+	if (!base) return;
+	db.prepare(`UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?`).run(deltaQty, base.id, variant.id);
 }
-function Se(e) {
-	let t = F(e);
-	return z.prepare("INSERT INTO expenses (date, label, amount, type) VALUES (?, ?, ?, ?)").run(t.date, t.nameOfExpense, t.amountOfExpense, t.typeOfExpense).lastInsertRowid;
+function addExpense(expense) {
+	const validatedExpense = validateExpensePayload(expense);
+	return db.prepare(`INSERT INTO expenses (date, label, amount, type) VALUES (?, ?, ?, ?)`).run(validatedExpense.date, validatedExpense.nameOfExpense, validatedExpense.amountOfExpense, validatedExpense.typeOfExpense).lastInsertRowid;
 }
-function Ce() {
-	return z.prepare("SELECT * FROM expenses ORDER BY date DESC").all().map((e) => ({
-		id: e.id,
-		date: e.date,
-		nameOfExpense: e.label,
-		typeOfExpense: e.type,
-		amountOfExpense: e.amount
+function getExpenses() {
+	return db.prepare(`SELECT * FROM expenses ORDER BY date DESC`).all().map((r) => ({
+		id: r.id,
+		date: r.date,
+		nameOfExpense: r.label,
+		typeOfExpense: r.type,
+		amountOfExpense: r.amount
 	}));
 }
-function we(e) {
-	let t = z.prepare("SELECT * FROM expense_items WHERE expense_id = ?").all(e);
-	for (let e of t) X(e);
-	z.prepare("DELETE FROM expense_items WHERE expense_id = ?").run(e), z.prepare("DELETE FROM expenses WHERE id = ?").run(e);
+function deleteExpense(id) {
+	const items = db.prepare(`SELECT * FROM expense_items WHERE expense_id = ?`).all(id);
+	for (const item of items) reverseImportItemFromStock(item);
+	db.prepare(`DELETE FROM expense_items WHERE expense_id = ?`).run(id);
+	db.prepare(`DELETE FROM expenses WHERE id = ?`).run(id);
 }
-function Te() {
-	let e = z.prepare("SELECT * FROM bills").all(), t = {};
-	return e.map((e) => {
-		let n = z.prepare("SELECT * FROM customers WHERE id = ?").get(e.customer_id), r = z.prepare("SELECT * FROM bill_items WHERE bill_id = ?").all(e.id);
-		if (!(e.customer_id in t)) {
-			let n = z.prepare("SELECT amount_due FROM bills WHERE customer_id = ?").all(e.customer_id);
-			t[e.customer_id] = n.reduce((e, t) => e + t.amount_due, 0);
+function getSales() {
+	const bills = db.prepare(`SELECT * FROM bills`).all();
+	const customerTotalDue = {};
+	return bills.map((bill) => {
+		const customer = db.prepare(`SELECT * FROM customers WHERE id = ?`).get(bill.customer_id);
+		const items = db.prepare(`SELECT * FROM bill_items WHERE bill_id = ?`).all(bill.id);
+		if (!(bill.customer_id in customerTotalDue)) {
+			const allBills = db.prepare(`SELECT amount_due FROM bills WHERE customer_id = ?`).all(bill.customer_id);
+			customerTotalDue[bill.customer_id] = allBills.reduce((sum, b) => sum + b.amount_due, 0);
 		}
-		let i = r.reduce((e, t) => e + (t.cost_price || 0) * t.quantity, 0), a = e.total_purchased, o = a - i;
+		const costPrice = items.reduce((sum, i) => sum + (i.cost_price || 0) * i.quantity, 0);
+		const sellingPrice = bill.total_purchased;
+		const netGain = sellingPrice - costPrice;
 		return {
-			id: e.id,
+			id: bill.id,
 			customer: {
-				id: n.id,
-				name: n.name,
-				phone: n.phone,
-				address: n.address,
-				date: e.date,
-				paymentMethod: e.payment_method,
-				totalPurchased: e.total_purchased,
-				amountPaid: e.amount_paid,
-				amountDue: e.amount_due,
-				totalDue: t[e.customer_id],
-				status: e.status
+				id: customer.id,
+				name: customer.name,
+				phone: customer.phone,
+				address: customer.address,
+				date: bill.date,
+				paymentMethod: bill.payment_method,
+				totalPurchased: bill.total_purchased,
+				amountPaid: bill.amount_paid,
+				amountDue: bill.amount_due,
+				totalDue: customerTotalDue[bill.customer_id],
+				status: bill.status
 			},
-			purchasedProducts: r.map((e) => ({
-				name: e.product_name,
-				base: e.base,
-				bucketSize: e.bucket_size,
-				quantity: e.quantity,
-				priceAtSale: e.price_at_sale,
-				costPrice: e.cost_price
+			purchasedProducts: items.map((i) => ({
+				name: i.product_name,
+				base: i.base,
+				bucketSize: i.bucket_size,
+				quantity: i.quantity,
+				priceAtSale: i.price_at_sale,
+				costPrice: i.cost_price
 			})),
-			sellingPrice: a,
-			costPrice: i,
-			netGain: o
+			sellingPrice,
+			costPrice,
+			netGain
 		};
 	});
 }
-function Ee(e) {
-	let t = /* @__PURE__ */ new Date(), n;
-	if (e === "yearly") n = `${t.getFullYear()}-01-01`;
-	else if (e === "weekly") {
-		let e = t.getDay(), r = t.getDate() - e + (e === 0 ? -6 : 1);
-		n = new Date(t.getFullYear(), t.getMonth(), r).toISOString().slice(0, 10);
-	} else n = e === "all" ? "0000-01-01" : `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-01`;
-	let r = z.prepare("SELECT * FROM bills WHERE date >= ?").all(n), i = 0, a = 0, o = 0, s = {};
-	for (let e of r) {
-		let t = z.prepare("SELECT * FROM bill_items WHERE bill_id = ?").all(e.id);
-		i += e.total_purchased, a += t.reduce((e, t) => e + (t.cost_price || 0) * t.quantity, 0), o += e.amount_due;
-		for (let e of t) s[e.product_name] = (s[e.product_name] || 0) + e.quantity;
+function getNetPosition(period) {
+	const now = /* @__PURE__ */ new Date();
+	let startDate;
+	if (period === "yearly") startDate = `${now.getFullYear()}-01-01`;
+	else if (period === "weekly") {
+		const day = now.getDay();
+		const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+		startDate = new Date(now.getFullYear(), now.getMonth(), diff).toISOString().slice(0, 10);
+	} else if (period === "all") startDate = "0000-01-01";
+	else startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+	const bills = db.prepare(`SELECT * FROM bills WHERE date >= ?`).all(startDate);
+	let totalEarned = 0;
+	let totalCost = 0;
+	let totalDue = 0;
+	const productTotals = {};
+	for (const bill of bills) {
+		const items = db.prepare(`SELECT * FROM bill_items WHERE bill_id = ?`).all(bill.id);
+		totalEarned += bill.total_purchased;
+		totalCost += items.reduce((sum, i) => sum + (i.cost_price || 0) * i.quantity, 0);
+		totalDue += bill.amount_due;
+		for (const i of items) productTotals[i.product_name] = (productTotals[i.product_name] || 0) + i.quantity;
 	}
-	let c = i - a, l = z.prepare("SELECT * FROM expenses WHERE date >= ?").all(n), u = l.reduce((e, t) => e + t.amount, 0), d = "-", f = 0;
-	for (let [e, t] of Object.entries(s)) t > f && (f = t, d = e);
-	let p = r.map((e) => ({
-		label: `Sale #${e.id}`,
-		date: e.date,
-		amount: e.total_purchased
-	})), m = l.map((e) => ({
+	const totalProfit = totalEarned - totalCost;
+	const expenseRows = db.prepare(`SELECT * FROM expenses WHERE date >= ?`).all(startDate);
+	const totalExpenses = expenseRows.reduce((sum, e) => sum + e.amount, 0);
+	let topCategory = "-";
+	let topQty = 0;
+	for (const [name, qty] of Object.entries(productTotals)) if (qty > topQty) {
+		topQty = qty;
+		topCategory = name;
+	}
+	const salesActivity = bills.map((b) => ({
+		label: `Sale #${b.id}`,
+		date: b.date,
+		amount: b.total_purchased
+	}));
+	const expenseActivity = expenseRows.map((e) => ({
 		label: e.label,
 		date: e.date,
 		amount: -e.amount
-	})), h = [...p, ...m].sort((e, t) => new Date(t.date) - new Date(e.date)).slice(0, 8);
+	}));
+	const recentActivity = [...salesActivity, ...expenseActivity].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 8);
 	return {
-		totalEarned: i,
-		totalExpenses: u,
-		totalDue: o,
-		totalProfit: c,
-		netPosition: c - u,
-		totalSales: r.length,
-		profitPerSale: r.length > 0 ? c / r.length : 0,
-		topCategory: d,
-		recentActivity: h
+		totalEarned,
+		totalExpenses,
+		totalDue,
+		totalProfit,
+		netPosition: totalProfit - totalExpenses,
+		totalSales: bills.length,
+		profitPerSale: bills.length > 0 ? totalProfit / bills.length : 0,
+		topCategory,
+		recentActivity
 	};
 }
-function De(e, t = 5) {
-	let n = /* @__PURE__ */ new Date(), r;
-	if (e === "yearly") r = `${n.getFullYear()}-01-01`;
-	else if (e === "weekly") {
-		let e = n.getDay(), t = n.getDate() - e + (e === 0 ? -6 : 1);
-		r = new Date(n.getFullYear(), n.getMonth(), t).toISOString().slice(0, 10);
-	} else r = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-01`;
-	let i = z.prepare("SELECT * FROM bills WHERE date >= ?").all(r), a = {};
-	for (let e of i) {
-		let t = z.prepare("SELECT * FROM bill_items WHERE bill_id = ?").all(e.id);
-		for (let e of t) a[e.product_name] || (a[e.product_name] = {
-			units: 0,
-			revenue: 0
-		}), a[e.product_name].units += e.quantity, a[e.product_name].revenue += e.price_at_sale * e.quantity;
+function getTopProducts(period, limit = 5) {
+	const now = /* @__PURE__ */ new Date();
+	let startDate;
+	if (period === "yearly") startDate = `${now.getFullYear()}-01-01`;
+	else if (period === "weekly") {
+		const day = now.getDay();
+		const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+		startDate = new Date(now.getFullYear(), now.getMonth(), diff).toISOString().slice(0, 10);
+	} else startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+	const bills = db.prepare(`SELECT * FROM bills WHERE date >= ?`).all(startDate);
+	const productStats = {};
+	for (const bill of bills) {
+		const items = db.prepare(`SELECT * FROM bill_items WHERE bill_id = ?`).all(bill.id);
+		for (const item of items) {
+			if (!productStats[item.product_name]) productStats[item.product_name] = {
+				units: 0,
+				revenue: 0
+			};
+			productStats[item.product_name].units += item.quantity;
+			productStats[item.product_name].revenue += item.price_at_sale * item.quantity;
+		}
 	}
-	return Object.entries(a).map(([e, t]) => ({
-		name: e,
-		units: t.units,
-		revenue: t.revenue
-	})).sort((e, t) => t.revenue - e.revenue).slice(0, t);
+	return Object.entries(productStats).map(([name, stats]) => ({
+		name,
+		units: stats.units,
+		revenue: stats.revenue
+	})).sort((a, b) => b.revenue - a.revenue).slice(0, limit);
 }
-function Oe(e, t = 5) {
-	let n = /* @__PURE__ */ new Date(), r;
-	if (e === "yearly") r = `${n.getFullYear()}-01-01`;
-	else if (e === "weekly") {
-		let e = n.getDay(), t = n.getDate() - e + (e === 0 ? -6 : 1);
-		r = new Date(n.getFullYear(), n.getMonth(), t).toISOString().slice(0, 10);
-	} else r = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-01`;
-	let i = z.prepare("SELECT * FROM bills WHERE date >= ?").all(r), a = {};
-	for (let e of i) {
-		let t = z.prepare("SELECT * FROM customers WHERE id = ?").get(e.customer_id);
-		t && (a[t.id] || (a[t.id] = {
-			name: t.name,
-			orders: 0,
-			spend: 0
-		}), a[t.id].orders += 1, a[t.id].spend += e.total_purchased);
+function getTopCustomers(period, limit = 5) {
+	const now = /* @__PURE__ */ new Date();
+	let startDate;
+	if (period === "yearly") startDate = `${now.getFullYear()}-01-01`;
+	else if (period === "weekly") {
+		const day = now.getDay();
+		const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+		startDate = new Date(now.getFullYear(), now.getMonth(), diff).toISOString().slice(0, 10);
+	} else startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+	const bills = db.prepare(`SELECT * FROM bills WHERE date >= ?`).all(startDate);
+	const customerStats = {};
+	for (const bill of bills) {
+		const customer = db.prepare(`SELECT * FROM customers WHERE id = ?`).get(bill.customer_id);
+		if (customer) {
+			if (!customerStats[customer.id]) customerStats[customer.id] = {
+				name: customer.name,
+				orders: 0,
+				spend: 0
+			};
+			customerStats[customer.id].orders += 1;
+			customerStats[customer.id].spend += bill.total_purchased;
+		}
 	}
-	return Object.values(a).sort((e, t) => t.spend - e.spend).slice(0, t);
+	return Object.values(customerStats).sort((a, b) => b.spend - a.spend).slice(0, limit);
 }
-function Y(e) {
-	let t = e.productName ? String(e.productName).trim() : "", n = e.base ? String(e.base).trim() : "", r = parseFloat(e.bucketSize) || 0, i = parseFloat(e.quantity) || 0, a = parseFloat(e.costPrice) || 0, o = z.prepare("SELECT * FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE").get(t), s;
-	o ? s = o.id : (s = f(), z.prepare("INSERT INTO products (id, name, images) VALUES (?, ?, ?)").run(s, t, ""));
-	let c = z.prepare("SELECT * FROM variants WHERE product_id = ? AND ABS(bucket_size - ?) < 0.001").get(s, r), l;
-	c ? (l = c.id, z.prepare("UPDATE variants SET landing = ? WHERE id = ?").run(a, l)) : l = z.prepare("INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)").run(s, r, a, 0, 0).lastInsertRowid;
-	let u = z.prepare("SELECT * FROM bases WHERE product_id = ? AND TRIM(name) = TRIM(?) COLLATE NOCASE").get(s, n), d;
-	d = u ? u.id : z.prepare("INSERT INTO bases (product_id, name) VALUES (?, ?)").run(s, n).lastInsertRowid, z.prepare("SELECT * FROM base_stock WHERE base_id = ? AND variant_id = ?").get(d, l) ? z.prepare("UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?").run(i, d, l) : z.prepare("INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)").run(d, l, i);
+function applyImportItemToStock(item) {
+	const productName = item.productName ? String(item.productName).trim() : "";
+	const baseName = item.base ? String(item.base).trim() : "";
+	const bucketSize = parseFloat(item.bucketSize) || 0;
+	const quantity = parseFloat(item.quantity) || 0;
+	const costPrice = parseFloat(item.costPrice) || 0;
+	let product = db.prepare(`SELECT * FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE`).get(productName);
+	let productId;
+	if (!product) {
+		productId = randomUUID();
+		db.prepare(`INSERT INTO products (id, name, images) VALUES (?, ?, ?)`).run(productId, productName, "");
+	} else productId = product.id;
+	let variant = db.prepare(`SELECT * FROM variants WHERE product_id = ? AND ABS(bucket_size - ?) < 0.001`).get(productId, bucketSize);
+	let variantId;
+	if (!variant) variantId = db.prepare(`INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`).run(productId, bucketSize, costPrice, 0, 0).lastInsertRowid;
+	else {
+		variantId = variant.id;
+		db.prepare(`UPDATE variants SET landing = ? WHERE id = ?`).run(costPrice, variantId);
+	}
+	let base = db.prepare(`SELECT * FROM bases WHERE product_id = ? AND TRIM(name) = TRIM(?) COLLATE NOCASE`).get(productId, baseName);
+	let baseId;
+	if (!base) baseId = db.prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`).run(productId, baseName).lastInsertRowid;
+	else baseId = base.id;
+	if (!db.prepare(`SELECT * FROM base_stock WHERE base_id = ? AND variant_id = ?`).get(baseId, variantId)) db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`).run(baseId, variantId, quantity);
+	else db.prepare(`UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?`).run(quantity, baseId, variantId);
 }
-function X(e) {
-	J(e.product_name, e.base, e.bucket_size, -e.quantity);
+function reverseImportItemFromStock(item) {
+	adjustStock(item.product_name, item.base, item.bucket_size, -item.quantity);
 }
-function ke(e, t) {
-	let n = F({
-		...e,
+function recordImportExpense(expenseMeta, items) {
+	const validatedExpenseMeta = validateExpensePayload({
+		...expenseMeta,
 		typeOfExpense: "Import"
-	}), r = I(t), i = r.reduce((e, t) => e + t.costPrice * t.quantity, 0), a;
-	return z.transaction(() => {
-		for (let e of r) Y(e);
-		a = z.prepare("INSERT INTO expenses (date, label, amount, type) VALUES (?, ?, ?, ?)").run(n.date, n.nameOfExpense, i, "Import").lastInsertRowid;
-		for (let e of r) z.prepare("\n        INSERT INTO expense_items (expense_id, product_name, base, bucket_size, quantity, cost_price)\n        VALUES (?, ?, ?, ?, ?, ?)\n      ").run(a, e.productName, e.base, e.bucketSize, e.quantity, e.costPrice);
-	})(), {
-		id: a,
-		totalCost: i
+	});
+	const validatedItems = validateImportItems(items);
+	const totalCost = validatedItems.reduce((sum, i) => sum + i.costPrice * i.quantity, 0);
+	let expenseId;
+	db.transaction(() => {
+		for (const item of validatedItems) applyImportItemToStock(item);
+		expenseId = db.prepare(`INSERT INTO expenses (date, label, amount, type) VALUES (?, ?, ?, ?)`).run(validatedExpenseMeta.date, validatedExpenseMeta.nameOfExpense, totalCost, "Import").lastInsertRowid;
+		for (const item of validatedItems) db.prepare(`
+        INSERT INTO expense_items (expense_id, product_name, base, bucket_size, quantity, cost_price)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).run(expenseId, item.productName, item.base, item.bucketSize, item.quantity, item.costPrice);
+	})();
+	return {
+		id: expenseId,
+		totalCost
 	};
 }
-function Ae(e, t, n) {
-	if (!z.prepare("SELECT id FROM expenses WHERE id = ?").get(e)) throw Error("Expense not found.");
-	let r = F({
-		...t,
+function editImportExpense(expenseId, expenseMeta, newItems) {
+	if (!db.prepare(`SELECT id FROM expenses WHERE id = ?`).get(expenseId)) throw new Error("Expense not found.");
+	const validatedExpenseMeta = validateExpensePayload({
+		...expenseMeta,
 		typeOfExpense: "Import"
-	}), i = I(n), a = z.prepare("SELECT * FROM expense_items WHERE expense_id = ?").all(e), o = i.reduce((e, t) => e + t.costPrice * t.quantity, 0);
-	return z.transaction(() => {
-		for (let e of a) X(e);
-		z.prepare("DELETE FROM expense_items WHERE expense_id = ?").run(e);
-		for (let t of i) Y(t), z.prepare("\n        INSERT INTO expense_items (expense_id, product_name, base, bucket_size, quantity, cost_price)\n        VALUES (?, ?, ?, ?, ?, ?)\n      ").run(e, t.productName, t.base, t.bucketSize, t.quantity, t.costPrice);
-		z.prepare("UPDATE expenses SET date = ?, label = ?, amount = ? WHERE id = ?").run(r.date, r.nameOfExpense, o, e);
-	})(), o;
+	});
+	const validatedItems = validateImportItems(newItems);
+	const oldItems = db.prepare(`SELECT * FROM expense_items WHERE expense_id = ?`).all(expenseId);
+	const totalCost = validatedItems.reduce((sum, i) => sum + i.costPrice * i.quantity, 0);
+	db.transaction(() => {
+		for (const item of oldItems) reverseImportItemFromStock(item);
+		db.prepare(`DELETE FROM expense_items WHERE expense_id = ?`).run(expenseId);
+		for (const item of validatedItems) {
+			applyImportItemToStock(item);
+			db.prepare(`
+        INSERT INTO expense_items (expense_id, product_name, base, bucket_size, quantity, cost_price)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).run(expenseId, item.productName, item.base, item.bucketSize, item.quantity, item.costPrice);
+		}
+		db.prepare(`UPDATE expenses SET date = ?, label = ?, amount = ? WHERE id = ?`).run(validatedExpenseMeta.date, validatedExpenseMeta.nameOfExpense, totalCost, expenseId);
+	})();
+	return totalCost;
 }
-function je(e, t) {
-	let n = F(t);
-	if (!z.prepare("SELECT id FROM expenses WHERE id = ?").get(e)) throw Error("Expense not found.");
-	z.prepare("UPDATE expenses SET date = ?, label = ?, amount = ?, type = ? WHERE id = ?").run(n.date, n.nameOfExpense, n.amountOfExpense, n.typeOfExpense, e);
+function editExpense(id, expense) {
+	const validatedExpense = validateExpensePayload(expense);
+	if (!db.prepare(`SELECT id FROM expenses WHERE id = ?`).get(id)) throw new Error("Expense not found.");
+	db.prepare(`UPDATE expenses SET date = ?, label = ?, amount = ?, type = ? WHERE id = ?`).run(validatedExpense.date, validatedExpense.nameOfExpense, validatedExpense.amountOfExpense, validatedExpense.typeOfExpense, id);
 }
-function Me(e) {
-	let t = z.prepare("SELECT * FROM expenses WHERE id = ?").get(e);
-	if (!t) return null;
-	let n = z.prepare("SELECT * FROM expense_items WHERE expense_id = ?").all(e);
+function getExpenseDetails(expenseId) {
+	const expense = db.prepare(`SELECT * FROM expenses WHERE id = ?`).get(expenseId);
+	if (!expense) return null;
+	const items = db.prepare(`SELECT * FROM expense_items WHERE expense_id = ?`).all(expenseId);
 	return {
-		id: t.id,
-		date: t.date,
-		nameOfExpense: t.label,
-		typeOfExpense: t.type,
-		amountOfExpense: t.amount,
-		items: n.map((e) => ({
-			productName: e.product_name,
-			base: e.base,
-			bucketSize: e.bucket_size,
-			quantity: e.quantity,
-			costPrice: e.cost_price
+		id: expense.id,
+		date: expense.date,
+		nameOfExpense: expense.label,
+		typeOfExpense: expense.type,
+		amountOfExpense: expense.amount,
+		items: items.map((i) => ({
+			productName: i.product_name,
+			base: i.base,
+			bucketSize: i.bucket_size,
+			quantity: i.quantity,
+			costPrice: i.cost_price
 		}))
 	};
 }
-function Z(e, t) {
-	let n = z.prepare("SELECT * FROM products WHERE name = ?").get(e);
-	if (!n) return 0;
-	let r = z.prepare("SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?").get(n.id, t);
-	return r ? r.landing : 0;
+function getLandingPrice(productName, bucketSize) {
+	const product = db.prepare(`SELECT * FROM products WHERE name = ?`).get(productName);
+	if (!product) return 0;
+	const variant = db.prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`).get(product.id, bucketSize);
+	return variant ? variant.landing : 0;
 }
-function Ne(e, t) {
-	z.prepare("DELETE FROM base_stock WHERE base_id = ? AND variant_id = ?").run(e, t);
+function deleteBaseStock(baseId, variantId) {
+	db.prepare(`DELETE FROM base_stock WHERE base_id = ? AND variant_id = ?`).run(baseId, variantId);
 }
-function Pe(e) {
-	z.prepare("DELETE FROM base_stock WHERE variant_id = ?").run(e), z.prepare("DELETE FROM variants WHERE id = ?").run(e);
+function deleteVariant(variantId) {
+	db.prepare(`DELETE FROM base_stock WHERE variant_id = ?`).run(variantId);
+	db.prepare(`DELETE FROM variants WHERE id = ?`).run(variantId);
 }
-function Fe(e) {
-	let t = L.readFile(e).Sheets["JESTH- 2083"];
-	if (!t) throw Error("Sheet \"JESTH- 2083\" not found in this file.");
-	let n = L.utils.sheet_to_json(t, {
+function importProductsFromExcel(filePath) {
+	const sheet = XLSX.readFile(filePath).Sheets["JESTH- 2083"];
+	if (!sheet) throw new Error("Sheet \"JESTH- 2083\" not found in this file.");
+	const rows = XLSX.utils.sheet_to_json(sheet, {
 		header: 1,
 		range: 1
-	}), r = /^([A-Za-z]+)((?:\d+)(?:\/\d+)*)$/, i = /^([A-Za-z]+?)(I{1,3}|IV)$/, a = new Set([
+	});
+	const BASE_DIGIT_RE = /^([A-Za-z]+)((?:\d+)(?:\/\d+)*)$/;
+	const ROMAN_RE = /^([A-Za-z]+?)(I{1,3}|IV)$/;
+	const ALLOWED_SIZES = new Set([
 		1,
 		4,
 		10,
 		20
 	]);
-	function o(e) {
-		return e.split(" ").map((e) => e && e.charAt(0).toUpperCase() + e.slice(1).toLowerCase()).join(" ");
+	function titleCase(s) {
+		return s.split(" ").map((w) => w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w).join(" ");
 	}
-	function s(e) {
-		let t = parseFloat(e);
-		return isNaN(t) ? null : t;
+	function toNum(v) {
+		const n = parseFloat(v);
+		return isNaN(n) ? null : n;
 	}
-	function c(e) {
-		if (!e) return [null, []];
-		let t = String(e).trim();
-		if (t.toUpperCase().startsWith("PGE")) {
-			let e = t.slice(3).trim(), n = r.exec(e), a = i.exec(e);
-			if (n) {
-				let e = n[1];
-				return ["Enamel", n[2].split("/").map((t) => e + t)];
-			} else if (a) return ["Enamel", [e]];
-			else return [`Enamel ${o(e)}`.trim(), []];
+	function parseColA(raw) {
+		if (!raw) return [null, []];
+		const s = String(raw).trim();
+		if (s.toUpperCase().startsWith("PGE")) {
+			const rest = s.slice(3).trim();
+			const mDigit = BASE_DIGIT_RE.exec(rest);
+			const mRoman = ROMAN_RE.exec(rest);
+			if (mDigit) {
+				const prefix = mDigit[1];
+				return ["Enamel", mDigit[2].split("/").map((n) => prefix + n)];
+			} else if (mRoman) return ["Enamel", [rest]];
+			else return [`Enamel ${titleCase(rest)}`.trim(), []];
 		}
-		let n = t.split(" "), a, s;
-		n.length >= 2 ? (s = n[n.length - 1], a = n.slice(0, -1).join(" ")) : (a = t, s = "");
-		let c = r.exec(s);
-		if (c) {
-			let e = c[1], t = c[2].split("/");
-			return [o(a.trim()), t.map((t) => e + t)];
+		const parts = s.split(" ");
+		let head, last;
+		if (parts.length >= 2) {
+			last = parts[parts.length - 1];
+			head = parts.slice(0, -1).join(" ");
+		} else {
+			head = s;
+			last = "";
 		}
-		return [o(t), []];
+		const m = BASE_DIGIT_RE.exec(last);
+		if (m) {
+			const prefix = m[1];
+			const nums = m[2].split("/");
+			return [titleCase(head.trim()), nums.map((n) => prefix + n)];
+		}
+		return [titleCase(s), []];
 	}
-	let l = [], u, d = [], p = !1;
-	for (let e of n) {
-		let t = e[0];
-		!p || t !== u ? (p && l.push([u, d]), u = t, d = [e], p = !0) : d.push(e);
+	const groups = [];
+	let currentKey;
+	let currentRows = [];
+	let started = false;
+	for (const r of rows) {
+		const key = r[0];
+		if (!started || key !== currentKey) {
+			if (started) groups.push([currentKey, currentRows]);
+			currentKey = key;
+			currentRows = [r];
+			started = true;
+		} else currentRows.push(r);
 	}
-	p && l.push([u, d]);
-	let m = {};
-	for (let [e, t] of l) {
-		let [n, r] = c(e);
-		if (!n) continue;
-		m[n] || (m[n] = {
+	if (started) groups.push([currentKey, currentRows]);
+	const products = {};
+	for (const [colA, groupRows] of groups) {
+		const [name, bases] = parseColA(colA);
+		if (!name) continue;
+		if (!products[name]) products[name] = {
 			bases: [],
 			variants: {},
-			canonicalSet: !1
-		});
-		let i = m[n];
-		for (let e of r) i.bases.includes(e) || i.bases.push(e);
-		if (!i.canonicalSet && t.some((e) => s(e[17]) !== null && s(e[14]) !== null)) {
-			for (let e of t) {
-				let t = e[1];
-				if (a.has(t)) {
-					let n = s(e[17]), r = s(e[14]), a = s(e[13]);
-					if (n === null || r === null) continue;
-					a === null && (a = 0), i.variants[t] = {
-						landing: n,
-						mp: r,
-						sales: a
-					};
+			canonicalSet: false
+		};
+		const product = products[name];
+		for (const b of bases) if (!product.bases.includes(b)) product.bases.push(b);
+		if (!product.canonicalSet) {
+			if (groupRows.some((r) => toNum(r[17]) !== null && toNum(r[14]) !== null)) {
+				for (const r of groupRows) {
+					const size = r[1];
+					if (ALLOWED_SIZES.has(size)) {
+						const landing = toNum(r[17]);
+						const mp = toNum(r[14]);
+						let sales = toNum(r[13]);
+						if (landing === null || mp === null) continue;
+						if (sales === null) sales = 0;
+						product.variants[size] = {
+							landing,
+							mp,
+							sales
+						};
+					}
 				}
+				if (Object.keys(product.variants).length > 0) product.canonicalSet = true;
 			}
-			Object.keys(i.variants).length > 0 && (i.canonicalSet = !0);
 		}
 	}
-	let h = 0, g = 0;
-	return z.transaction(() => {
-		for (let [e, t] of Object.entries(m)) {
-			let n = Object.keys(t.variants);
-			if (n.length === 0) {
-				g++;
+	let importedCount = 0;
+	let skippedCount = 0;
+	db.transaction(() => {
+		for (const [name, data] of Object.entries(products)) {
+			const sizes = Object.keys(data.variants);
+			if (sizes.length === 0) {
+				skippedCount++;
 				continue;
 			}
-			let r = z.prepare("SELECT * FROM products WHERE name = ?").get(e), i;
-			r ? i = r.id : (i = f(), z.prepare("INSERT INTO products (id, name, images) VALUES (?, ?, ?)").run(i, e, ""));
-			let a = {};
-			for (let e of n) {
-				let n = t.variants[e], r = z.prepare("SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?").get(i, Number(e));
-				r ? a[e] = r.id : a[e] = z.prepare("INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)").run(i, Number(e), n.landing, n.sales, n.mp).lastInsertRowid;
+			let productRow = db.prepare(`SELECT * FROM products WHERE name = ?`).get(name);
+			let productId;
+			if (!productRow) {
+				productId = randomUUID();
+				db.prepare(`INSERT INTO products (id, name, images) VALUES (?, ?, ?)`).run(productId, name, "");
+			} else productId = productRow.id;
+			const variantIds = {};
+			for (const size of sizes) {
+				const v = data.variants[size];
+				let variant = db.prepare(`SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?`).get(productId, Number(size));
+				if (!variant) variantIds[size] = db.prepare(`INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`).run(productId, Number(size), v.landing, v.sales, v.mp).lastInsertRowid;
+				else variantIds[size] = variant.id;
 			}
-			for (let e of t.bases) {
-				let t = z.prepare("SELECT * FROM bases WHERE product_id = ? AND name = ?").get(i, e), r;
-				r = t ? t.id : z.prepare("INSERT INTO bases (product_id, name) VALUES (?, ?)").run(i, e).lastInsertRowid;
-				for (let e of n) {
-					let t = a[e];
-					z.prepare("SELECT * FROM base_stock WHERE base_id = ? AND variant_id = ?").get(r, t) || z.prepare("INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, 0)").run(r, t);
+			for (const baseName of data.bases) {
+				let base = db.prepare(`SELECT * FROM bases WHERE product_id = ? AND name = ?`).get(productId, baseName);
+				let baseId;
+				if (!base) baseId = db.prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`).run(productId, baseName).lastInsertRowid;
+				else baseId = base.id;
+				for (const size of sizes) {
+					const variantId = variantIds[size];
+					if (!db.prepare(`SELECT * FROM base_stock WHERE base_id = ? AND variant_id = ?`).get(baseId, variantId)) db.prepare(`INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, 0)`).run(baseId, variantId);
 				}
 			}
-			h++;
+			importedCount++;
 		}
-	})(), {
-		imported: h,
-		skipped: g
+	})();
+	return {
+		imported: importedCount,
+		skipped: skippedCount
 	};
 }
 //#endregion
 //#region electron/main.js
-var Q = l.dirname(s(import.meta.url));
-function $() {
-	let e = new t({
+var __dirname = path.dirname(fileURLToPath(import.meta.url));
+function createWindow() {
+	const win = new BrowserWindow({
 		width: 1200,
 		height: 800,
-		webPreferences: { preload: l.join(Q, "preload.cjs") }
+		webPreferences: { preload: path.join(__dirname, "preload.cjs") }
 	});
-	process.env.VITE_DEV_SERVER_URL ? e.loadURL(process.env.VITE_DEV_SERVER_URL) : e.loadFile(l.join(Q, "../dist/index.html"));
+	if (process.env.VITE_DEV_SERVER_URL) win.loadURL(process.env.VITE_DEV_SERVER_URL);
+	else win.loadFile(path.join(__dirname, "../dist/index.html"));
 }
-o.registerSchemesAsPrivileged([{
+protocol.registerSchemesAsPrivileged([{
 	scheme: "app-image",
 	privileges: {
-		standard: !0,
-		secure: !0,
-		supportFetchAPI: !0,
-		stream: !0
+		standard: true,
+		secure: true,
+		supportFetchAPI: true,
+		stream: true
 	}
-}]), n.whenReady().then(() => {
-	o.handle("app-image", (e) => {
+}]);
+app.whenReady().then(() => {
+	protocol.handle("app-image", (request) => {
 		try {
-			let t = new URL(e.url).searchParams.get("path");
-			if (!t) throw Error("No path provided");
-			let n = c(t).href;
-			return a.fetch(n);
-		} catch (t) {
-			return console.error("app-image protocol error:", t.message, e.url), new Response("Not found", { status: 404 });
+			const filePath = new URL(request.url).searchParams.get("path");
+			if (!filePath) throw new Error("No path provided");
+			const fileUrl = pathToFileURL(filePath).href;
+			return net.fetch(fileUrl);
+		} catch (err) {
+			console.error("app-image protocol error:", err.message, request.url);
+			return new Response("Not found", { status: 404 });
 		}
-	}), i.handle("db:addProduct", (e, t) => B(t)), i.handle("db:getProducts", () => V()), i.handle("db:deleteProduct", (e, t) => H(t)), i.handle("db:editProduct", (e, t, n) => U(t, n)), i.handle("db:addExpense", (e, t) => Se(t)), i.handle("db:getExpenses", () => Ce()), i.handle("db:deleteExpense", (e, t) => we(t)), i.handle("db:getSales", () => Te()), i.handle("db:getNetPosition", (e, t) => Ee(t)), i.handle("db:getProductByName", (e, t) => W(t)), i.handle("db:getVariantBySize", (e, t, n) => G(t, n)), i.handle("db:addVariant", (e, t, n) => le(t, n)), i.handle("db:addBase", (e, t, n) => K(t, n)), i.handle("db:addBaseStock", (e, t, n, r) => de(t, n, r)), i.handle("db:getBaseByName", (e, t, n) => ue(t, n)), i.handle("db:addCustomer", (e, t) => me(t)), i.handle("db:addBill", (e, t, n) => ge(t, n)), i.handle("db:addBillActivity", (e, t, n) => q(t, n)), i.handle("db:getBillActivity", (e, t) => he(t)), i.handle("db:editCustomer", (e, t, n) => be(t, n)), i.handle("db:getExpenseDetails", (e, t) => Me(t)), i.handle("db:editExpense", (e, t, n) => je(t, n)), i.handle("db:editImportExpense", (e, t, n, r) => Ae(t, n, r)), i.handle("db:editBill", (e, t, n) => xe(t, n)), i.handle("db:getCustomers", () => _e()), i.handle("db:deleteCustomer", (e, t) => ve(t)), i.handle("db:deleteBill", (e, t) => ye(t)), i.handle("db:resolveImagePath", (e, t) => pe(t)), i.handle("dialog:pickExcelFile", async () => {
-		let e = await r.showOpenDialog({
+	});
+	ipcMain.handle("db:addProduct", (_, product) => addProduct(product));
+	ipcMain.handle("db:getProducts", () => getProducts());
+	ipcMain.handle("db:deleteProduct", (_, id) => deleteProduct(id));
+	ipcMain.handle("db:editProduct", (_, id, product) => editProduct(id, product));
+	ipcMain.handle("db:addExpense", (_, expense) => addExpense(expense));
+	ipcMain.handle("db:getExpenses", () => getExpenses());
+	ipcMain.handle("db:deleteExpense", (_, id) => deleteExpense(id));
+	ipcMain.handle("db:getSales", () => getSales());
+	ipcMain.handle("db:getNetPosition", (_, period) => getNetPosition(period));
+	ipcMain.handle("db:getProductByName", (_, name) => getProductByName(name));
+	ipcMain.handle("db:getVariantBySize", (_, productId, bucketSize) => getVariantBySize(productId, bucketSize));
+	ipcMain.handle("db:addVariant", (_, productId, variant) => addVariant(productId, variant));
+	ipcMain.handle("db:addBase", (_, productId, baseName) => addBase(productId, baseName));
+	ipcMain.handle("db:addBaseStock", (_, baseId, variantId, stock) => addBaseStock(baseId, variantId, stock));
+	ipcMain.handle("db:getBaseByName", (_, productId, baseName) => getBaseByName(productId, baseName));
+	ipcMain.handle("db:addCustomer", (_, customer) => addCustomer(customer));
+	ipcMain.handle("db:addBill", (_, customerId, bill) => addBill(customerId, bill));
+	ipcMain.handle("db:addBillActivity", (_, billId, activity) => addBillActivity(billId, activity));
+	ipcMain.handle("db:getBillActivity", (_, billId) => getBillActivity(billId));
+	ipcMain.handle("db:editCustomer", (_, id, customer) => editCustomer(id, customer));
+	ipcMain.handle("db:getExpenseDetails", (_, id) => getExpenseDetails(id));
+	ipcMain.handle("db:editExpense", (_, id, expense) => editExpense(id, expense));
+	ipcMain.handle("db:editImportExpense", (_, id, expenseMeta, items) => editImportExpense(id, expenseMeta, items));
+	ipcMain.handle("db:editBill", (_, billId, bill) => editBill(billId, bill));
+	ipcMain.handle("db:getCustomers", () => getCustomers());
+	ipcMain.handle("db:deleteCustomer", (_, id) => deleteCustomer(id));
+	ipcMain.handle("db:deleteBill", (_, billId) => deleteBill(billId));
+	ipcMain.handle("db:resolveImagePath", (_, relativePath) => resolveImagePath(relativePath));
+	ipcMain.handle("dialog:pickExcelFile", async () => {
+		const result = await dialog.showOpenDialog({
 			properties: ["openFile"],
 			filters: [{
 				name: "Excel Files",
 				extensions: ["xlsx", "xls"]
 			}]
 		});
-		return e.canceled || e.filePaths.length === 0 ? null : e.filePaths[0];
-	}), i.handle("db:recordImportExpense", (e, t, n) => ke(t, n)), i.handle("db:importExcel", (e, t) => Fe(t)), i.handle("db:copyImage", (e, t) => fe(t)), i.handle("db:deleteBaseStock", (e, t, n) => Ne(t, n)), i.handle("db:deleteVariant", (e, t) => Pe(t)), i.handle("db:getTopProducts", (e, t) => De(t)), i.handle("db:getTopCustomers", (e, t) => Oe(t)), i.handle("dialog:pickImage", async () => {
-		let e = await r.showOpenDialog({
+		if (result.canceled || result.filePaths.length === 0) return null;
+		return result.filePaths[0];
+	});
+	ipcMain.handle("db:recordImportExpense", (_, expenseMeta, items) => recordImportExpense(expenseMeta, items));
+	ipcMain.handle("db:importExcel", (_, filePath) => importProductsFromExcel(filePath));
+	ipcMain.handle("db:copyImage", (_, sourcePath) => copyImageToDatabase(sourcePath));
+	ipcMain.handle("db:deleteBaseStock", (_, baseId, variantId) => deleteBaseStock(baseId, variantId));
+	ipcMain.handle("db:deleteVariant", (_, variantId) => deleteVariant(variantId));
+	ipcMain.handle("db:getTopProducts", (_, period) => getTopProducts(period));
+	ipcMain.handle("db:getTopCustomers", (_, period) => getTopCustomers(period));
+	ipcMain.handle("dialog:pickImage", async () => {
+		const result = await dialog.showOpenDialog({
 			properties: ["openFile"],
 			filters: [{
 				name: "Images",
@@ -1170,12 +1777,16 @@ o.registerSchemesAsPrivileged([{
 				]
 			}]
 		});
-		return e.canceled || e.filePaths.length === 0 ? null : e.filePaths[0];
-	}), $();
-}), n.on("window-all-closed", () => {
-	process.platform !== "darwin" && n.quit();
-}), n.on("activate", () => {
-	t.getAllWindows().length === 0 && $();
+		if (result.canceled || result.filePaths.length === 0) return null;
+		return result.filePaths[0];
+	});
+	createWindow();
+});
+app.on("window-all-closed", () => {
+	if (process.platform !== "darwin") app.quit();
+});
+app.on("activate", () => {
+	if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
 //#endregion
 export {};

@@ -15,6 +15,7 @@ import {
   validateImportItems,
   normalizeText,
 } from "./validation.js";
+import { migrateDatabase } from "./migrations.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const dbPath = app.isPackaged
@@ -22,104 +23,8 @@ const dbPath = app.isPackaged
   : path.join(__dirname, "../", "Database", "inventory.db");
 
 const db = new Database(dbPath);
-db.exec(`
-  CREATE TABLE IF NOT EXISTS products (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL, 
-    images TEXT
-  );
+migrateDatabase(db);
 
-  CREATE TABLE IF NOT EXISTS variants (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    product_id TEXT NOT NULL,
-    bucket_size REAL NOT NULL,
-    landing REAL,
-    sales REAL,
-    mp REAL,
-    FOREIGN KEY (product_id) REFERENCES products(id)
-  );
-
-  CREATE TABLE IF NOT EXISTS bases (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    product_id TEXT NOT NULL,
-    name TEXT NOT NULL,
-    FOREIGN KEY (product_id) REFERENCES products(id)
-  );
-
-  CREATE TABLE IF NOT EXISTS base_stock (
-    base_id INTEGER NOT NULL,
-    variant_id INTEGER NOT NULL,
-    stock REAL NOT NULL DEFAULT 0,
-    PRIMARY KEY (base_id, variant_id),
-    FOREIGN KEY (base_id) REFERENCES bases(id),
-    FOREIGN KEY (variant_id) REFERENCES variants(id)
-  );
-  CREATE TABLE IF NOT EXISTS customers (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    phone TEXT,
-    address TEXT,
-    notes TEXT
-  );
-  CREATE TABLE IF NOT EXISTS expense_items (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  expense_id INTEGER NOT NULL,
-  product_name TEXT NOT NULL,
-  base TEXT,
-  bucket_size REAL,
-  quantity REAL NOT NULL,
-  cost_price REAL NOT NULL,
-  FOREIGN KEY (expense_id) REFERENCES expenses(id)
-);
-  CREATE TABLE IF NOT EXISTS bills (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    customer_id INTEGER NOT NULL,
-    date TEXT NOT NULL,
-    payment_method TEXT,
-    total_purchased REAL NOT NULL,
-    amount_paid REAL NOT NULL,
-    amount_due REAL NOT NULL,
-    status TEXT NOT NULL,
-    FOREIGN KEY (customer_id) REFERENCES customers(id)
-  );
-
-  CREATE TABLE IF NOT EXISTS bill_activity (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    bill_id INTEGER NOT NULL,
-    type TEXT NOT NULL,
-    date TEXT NOT NULL,
-    amount REAL NOT NULL DEFAULT 0,
-    payment_method TEXT,
-    note TEXT,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (bill_id) REFERENCES bills(id)
-  );
-
-  CREATE TABLE IF NOT EXISTS bill_items (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    bill_id INTEGER NOT NULL,
-    product_name TEXT NOT NULL,
-    base TEXT,
-    bucket_size REAL,
-    quantity REAL NOT NULL,
-    price_at_sale REAL NOT NULL,
-    FOREIGN KEY (bill_id) REFERENCES bills(id)
-  );
-`);
-const billItemsColumns = db.prepare(`PRAGMA table_info(bill_items)`).all();
-const hasCostPrice = billItemsColumns.some((c) => c.name === "cost_price");
-if (!hasCostPrice) {
-  db.exec(`ALTER TABLE bill_items ADD COLUMN cost_price REAL DEFAULT 0`);
-}
-db.exec(`
-  CREATE TABLE IF NOT EXISTS expenses (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    date TEXT NOT NULL,
-    label TEXT NOT NULL,
-    amount REAL NOT NULL,
-    type TEXT DEFAULT 'General'
-  );
-`);
 export function addProduct(product) {
   const validatedProduct = validateProduct(product);
   const productId = validatedProduct.id || randomUUID();

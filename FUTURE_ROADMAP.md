@@ -6,7 +6,7 @@ This roadmap is intentionally focused on improvements that matter most for a sma
 
 ### Must do next
 - [x] Add data validation and safer CRUD flows for products, bills, expenses, and customers
-- [ ] Add DB migration/versioning so schema changes are safe and repeatable
+- [x] Add DB migration/versioning so schema changes are safe and repeatable
 - [ ] Add backup and restore flow for local SQLite data
 - [ ] Review and harden error handling around failed database or import actions
 - [ ] Add test coverage for core business flows: product add/edit/delete, bill creation, expense import
@@ -55,7 +55,7 @@ Move from simple transaction recording to actionable business reporting.
 - [ ] Better onboarding and first-run setup for new users
 - [ ] Standardized dialogs and validation messages
 - [ ] Quick actions for frequent tasks: duplicate, restore, export, delete
-- [ ] Theme and layout polish for desktop usability
+- [x] Theme and layout polish for desktop usability
 - [ ] Keyboard shortcut documentation and better accessibility for form-heavy screens
 
 ### Goal
