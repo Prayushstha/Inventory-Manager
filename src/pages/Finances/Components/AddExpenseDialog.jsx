@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { useDialogKeyboard } from "../../../hooks/useDialogKeyboard";
+import { useToast } from "../../../hooks/ToastContext";
 
 const emptyImportItem = {
   productName: "",
@@ -10,6 +11,8 @@ const emptyImportItem = {
 };
 
 export function AddExpenseDialog({ onClose, onSaved, asPage = false }) {
+  const showToast = useToast();
+  const [isSaving, setIsSaving] = useState(false);
   const [nameOfExpense, setNameOfExpense] = useState("");
   const [typeOfExpense, setTypeOfExpense] = useState("General");
   const [amountOfExpense, setAmountOfExpense] = useState("");
@@ -50,34 +53,40 @@ export function AddExpenseDialog({ onClose, onSaved, asPage = false }) {
   }
 
   async function handleSave() {
+    if (isSaving) return;
     if (!nameOfExpense) {
       alert("Please enter a name for this expense.");
       return;
     }
 
-    if (isImport) {
-      if (importItems.length === 0) {
-        alert("Please add at least one imported item.");
-        return;
+    setIsSaving(true);
+    try {
+      if (isImport) {
+        if (importItems.length === 0) {
+          alert("Please add at least one imported item.");
+          return;
+        }
+        await window.db.recordImportExpense({ date, nameOfExpense }, importItems);
+      } else {
+        if (!amountOfExpense) {
+          alert("Please enter an amount.");
+          return;
+        }
+        await window.db.addExpense({
+          date,
+          nameOfExpense,
+          typeOfExpense,
+          amountOfExpense: parseFloat(amountOfExpense),
+        });
       }
-      await window.db.recordImportExpense(
-        { date, nameOfExpense },
-        importItems,
-      );
-    } else {
-      if (!amountOfExpense) {
-        alert("Please enter an amount.");
-        return;
-      }
-      await window.db.addExpense({
-        date,
-        nameOfExpense,
-        typeOfExpense,
-        amountOfExpense: parseFloat(amountOfExpense),
-      });
-    }
 
-    onSaved?.();
+      onSaved?.();
+    } catch (error) {
+      console.error("Expense save failed:", error);
+      showToast(error?.message || "Failed to save expense. Your changes are still available.", "error");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   useDialogKeyboard({
@@ -242,7 +251,9 @@ export function AddExpenseDialog({ onClose, onSaved, asPage = false }) {
 
         <div className="dialog-footer">
           <button className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button className="btn-primary" onClick={handleSave}>Save Expense</button>
+          <button className="btn-primary" onClick={handleSave} disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save Expense"}
+          </button>
         </div>
       </div>
     </div>

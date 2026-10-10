@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useToast } from "../../../hooks/ToastContext";
 
 const emptyItem = {
   productName: "",
@@ -9,8 +10,10 @@ const emptyItem = {
 };
 
 export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = false }) {
+  const showToast = useToast();
   const [details, setDetails] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [nameOfExpense, setNameOfExpense] = useState("");
   const [amountOfExpense, setAmountOfExpense] = useState("");
@@ -19,16 +22,25 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
   const [itemForm, setItemForm] = useState(emptyItem);
 
   useEffect(() => {
+    let cancelled = false;
     async function fetchDetails() {
-      const data = await window.db.getExpenseDetails(expenseId);
-      setDetails(data);
-      setNameOfExpense(data.nameOfExpense);
-      setAmountOfExpense(data.amountOfExpense);
-      setDate(data.date);
-      setItems(data.items);
+      try {
+        const data = await window.db.getExpenseDetails(expenseId);
+        if (!data) throw new Error("Expense not found.");
+        if (cancelled) return;
+        setDetails(data);
+        setNameOfExpense(data.nameOfExpense);
+        setAmountOfExpense(data.amountOfExpense);
+        setDate(data.date);
+        setItems(data.items);
+      } catch (error) {
+        console.error("Expense details load failed:", error);
+        if (!cancelled) showToast(error?.message || "Failed to load expense details.", "error");
+      }
     }
     fetchDetails();
-  }, [expenseId]);
+    return () => { cancelled = true; };
+  }, [expenseId, showToast]);
 
   if (!details) return null;
 
@@ -54,22 +66,32 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
   }
 
   async function handleSave() {
-    if (isImport) {
-      if (items.length === 0) {
-        alert("An import expense needs at least one item.");
-        return;
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      if (isImport) {
+        if (items.length === 0) {
+          alert("An import expense needs at least one item.");
+          return;
+        }
+        await window.db.editImportExpense(details.id, { date, nameOfExpense }, items);
+      } else {
+        await window.db.editExpense(details.id, {
+          date,
+          nameOfExpense,
+          typeOfExpense: details.typeOfExpense,
+          amountOfExpense: parseFloat(amountOfExpense),
+        });
       }
-      await window.db.editImportExpense(details.id, { date, nameOfExpense }, items);
-    } else {
-      await window.db.editExpense(details.id, {
-        date,
-        nameOfExpense,
-        typeOfExpense: details.typeOfExpense,
-        amountOfExpense: parseFloat(amountOfExpense),
-      });
+
+      setIsEditing(false);
+      onSaved?.();
+    } catch (error) {
+      console.error("Expense update failed:", error);
+      showToast(error?.message || "Failed to update expense. Your changes are still available.", "error");
+    } finally {
+      setIsSaving(false);
     }
-    setIsEditing(false);
-    onSaved?.();
   }
 
   const overlayStyle = asPage
@@ -221,7 +243,9 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
         <div className="dialog-footer">
           <button className="btn-secondary" onClick={onClose}>Close</button>
           {isEditing ? (
-            <button className="btn-primary" onClick={handleSave}>Save Changes</button>
+            <button className="btn-primary" onClick={handleSave} disabled={isSaving}>
+              {isSaving ? "Saving..." : "Save Changes"}
+            </button>
           ) : (
             <button className="btn-primary" onClick={() => setIsEditing(true)}>Edit</button>
           )}

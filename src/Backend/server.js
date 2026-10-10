@@ -16,6 +16,8 @@ import {
   normalizeText,
 } from "./validation.js";
 import { migrateDatabase } from "./migrations.js";
+import { saveInventoryProduct } from "./inventoryWrites.js";
+import { deleteExpenseAndRestoreStock, deleteVariantAndStock } from "./inventoryDeletes.js";
 import {
   activateStagedDatabase,
   createDatabaseBackup,
@@ -38,6 +40,10 @@ openDatabase();
 
 export function backupDatabase(destinationPath) {
   return createDatabaseBackup(db, destinationPath);
+}
+
+export function saveInventoryProductChanges(product) {
+  return saveInventoryProduct(db, product);
 }
 
 export async function restoreDatabase(sourcePath) {
@@ -68,7 +74,7 @@ export async function restoreDatabase(sourcePath) {
         throw new AggregateError(
           [error, reopenError],
           "Restore failed and the active database could not be reopened.",
-          { cause: error },
+          { cause: reopenError },
         );
       }
       throw error;
@@ -514,6 +520,15 @@ export function deleteCustomer(id) {
   run();
 }
 
+export function addCustomerBill(customer, bill) {
+  const run = db.transaction(() => {
+    const customerId = addCustomer(customer);
+    addBill(customerId, bill);
+    return customerId;
+  });
+  return run();
+}
+
 export function deleteBill(billId) {
   const bill = db.prepare(`SELECT id FROM bills WHERE id = ?`).get(billId);
   if (!bill) {
@@ -634,6 +649,14 @@ export function editBill(billId, bill) {
 
   run();
 }
+
+export function editCustomerBill(customerId, customer, billId, bill) {
+  const run = db.transaction(() => {
+    editCustomer(customerId, customer);
+    editBill(billId, bill);
+  });
+  run();
+}
 function adjustStock(productName, baseName, bucketSize, deltaQty) {
   const pName = productName ? String(productName).trim() : "";
   const bName = baseName ? String(baseName).trim() : "";
@@ -689,14 +712,7 @@ export function getExpenses() {
 }
 
 export function deleteExpense(id) {
-  const items = db
-    .prepare(`SELECT * FROM expense_items WHERE expense_id = ?`)
-    .all(id);
-  for (const item of items) {
-    reverseImportItemFromStock(item);
-  }
-  db.prepare(`DELETE FROM expense_items WHERE expense_id = ?`).run(id);
-  db.prepare(`DELETE FROM expenses WHERE id = ?`).run(id);
+  deleteExpenseAndRestoreStock(db, id, reverseImportItemFromStock);
 }
 
 export function getSales() {
@@ -1183,11 +1199,22 @@ export function deleteBaseStock(baseId, variantId) {
 }
 
 export function deleteVariant(variantId) {
-  db.prepare(`DELETE FROM base_stock WHERE variant_id = ?`).run(variantId);
-  db.prepare(`DELETE FROM variants WHERE id = ?`).run(variantId);
+  deleteVariantAndStock(db, variantId);
 }
 export function importProductsFromExcel(filePath) {
-  const workbook = XLSX.readFile(filePath);
+  if (typeof filePath !== "string" || filePath.trim() === "") {
+    throw new Error("Choose an Excel file to import.");
+  }
+
+  let workbook;
+  try {
+    workbook = XLSX.readFile(filePath);
+  } catch (error) {
+    throw new Error(
+      "Could not read the selected Excel file. Check that it is a valid, accessible workbook.",
+      { cause: error },
+    );
+  }
   const sheet = workbook.Sheets["JESTH- 2083"];
   if (!sheet) {
     throw new Error('Sheet "JESTH- 2083" not found in this file.');

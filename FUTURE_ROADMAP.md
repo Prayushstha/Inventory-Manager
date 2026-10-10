@@ -8,7 +8,7 @@ This roadmap is intentionally focused on improvements that matter most for a sma
 - [x] Add data validation and safer CRUD flows for products, bills, expenses, and customers
 - [x] Add DB migration/versioning so schema changes are safe and repeatable
 - [x] Add backup and restore flow for local SQLite data
-- [ ] Review and harden error handling around failed database or import actions
+- [x] Review and harden error handling around failed database or import actions
 - [ ] Add test coverage for core business flows: product add/edit/delete, bill creation, expense import
 - [ ] Improve settings and configuration handling for app defaults and local storage paths
 

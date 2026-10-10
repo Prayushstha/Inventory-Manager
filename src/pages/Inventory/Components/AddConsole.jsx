@@ -11,6 +11,7 @@ export function AddConsole() {
   const [baseInput, setBaseInput] = useState("");
   const [basesList, setBasesList] = useState([]);
   const [image, setImage] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const resolvedImage = useResolvedImage(image);
 
   // Keyboard shortcut support
@@ -61,6 +62,8 @@ export function AddConsole() {
   }
 
   async function handleAdd() {
+    if (isSaving) return;
+
     const filledRows = BUCKET_SIZES.filter((size) => {
       const r = rows[size];
       return r.landing !== "" && r.mp !== "" && r.sales !== "";
@@ -73,49 +76,25 @@ export function AddConsole() {
       return;
     }
 
-    const success = await handleAsync(async () => {
-      let product = await window.db.getProductByName(name);
-
-      if (!product) {
-        const id = crypto.randomUUID();
-        await window.db.addProduct({
-          id,
-          name,
-          images: image,
-          variants: [],
-          bases: [],
-        });
-        product = await window.db.getProductByName(name);
-      }
-
-      for (const size of filledRows) {
-        const r = rows[size];
-
-        let variant = await window.db.getVariantBySize(product.id, size);
-        if (!variant) {
-          const variantId = await window.db.addVariant(product.id, {
-            bucket_size: size,
-            landing: parseFloat(r.landing),
-            sales: parseFloat(r.sales),
-            mp: parseFloat(r.mp),
-          });
-          variant = { id: variantId };
-        }
-
-        for (const baseName of basesList) {
-          let base = await window.db.getBaseByName(product.id, baseName);
-          const baseId = base
-            ? base.id
-            : await window.db.addBase(product.id, baseName);
-          await window.db.addBaseStock(
-            baseId,
-            variant.id,
-            parseFloat(r.stock || 0),
-          );
-        }
-      }
-      return true;
-    }, "Failed to add product");
+    setIsSaving(true);
+    const success = await handleAsync(
+      () => window.db.saveInventoryProduct({
+        name,
+        images: image,
+        variants: filledRows.map((size) => ({
+          bucket_size: size,
+          landing: parseFloat(rows[size].landing),
+          sales: parseFloat(rows[size].sales),
+          mp: parseFloat(rows[size].mp),
+        })),
+        bases: basesList.map((baseName) => ({
+          name: baseName,
+          stocks: filledRows.map((size) => parseFloat(rows[size].stock || 0)),
+        })),
+      }),
+      "Failed to add product and stock",
+    );
+    setIsSaving(false);
 
     if (!success) return;
 
@@ -243,8 +222,8 @@ export function AddConsole() {
           </tbody>
         </table>
 
-        <button className="btn-add" onClick={handleAdd}>
-          Add as new
+        <button className="btn-add" onClick={handleAdd} disabled={isSaving}>
+          {isSaving ? "Saving..." : "Add as new"}
         </button>
       </div>
     </div>

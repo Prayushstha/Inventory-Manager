@@ -26,7 +26,7 @@ function App() {
 
   return (
     <HashRouter>
-      <div className="main-container">
+      <div className="main-container" spellCheck={true}>
         <SideBar isDark={isDark} />
         <div className="main-content">
           <Routes>

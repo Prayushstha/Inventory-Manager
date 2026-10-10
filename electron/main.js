@@ -1,5 +1,5 @@
 /* global process */
-import { app, BrowserWindow, ipcMain, dialog, protocol, net } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, protocol, net, Menu } from "electron";
 import { fileURLToPath } from "url";
 import path from "path";
 import { pathToFileURL } from "url";
@@ -41,6 +41,9 @@ import {
   getTopCustomers,
   backupDatabase,
   restoreDatabase,
+  saveInventoryProductChanges,
+  addCustomerBill,
+  editCustomerBill,
 } from "../src/Backend/server.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -50,7 +53,28 @@ function createWindow() {
     height: 800,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
+      spellcheck: true,
     },
+  });
+  win.webContents.session.setSpellCheckerLanguages(["en-US"]);
+  win.webContents.on("context-menu", (_event, params) => {
+    if (!params.misspelledWord) return;
+
+    const suggestions = (params.dictionarySuggestions || []).slice(0, 5);
+    const template = suggestions.length
+      ? suggestions.map((suggestion) => ({
+          label: suggestion,
+          click: () => win.webContents.replaceMisspelling(suggestion),
+        }))
+      : [{ label: "No spelling suggestions", enabled: false }];
+    template.push(
+      { type: "separator" },
+      {
+        label: `Add “${params.misspelledWord}” to dictionary`,
+        click: () => win.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord),
+      },
+    );
+    Menu.buildFromTemplate(template).popup({ window: win });
   });
 
   if (process.env.VITE_DEV_SERVER_URL) {
@@ -86,6 +110,7 @@ app.whenReady().then(() => {
     }
   });
   ipcMain.handle("db:addProduct", (_, product) => addProduct(product));
+  ipcMain.handle("db:saveInventoryProduct", (_, product) => saveInventoryProductChanges(product));
   ipcMain.handle("db:getProducts", () => getProducts());
   ipcMain.handle("db:deleteProduct", (_, id) => deleteProduct(id));
   ipcMain.handle("db:editProduct", (_, id, product) =>
@@ -115,6 +140,10 @@ app.whenReady().then(() => {
   ipcMain.handle("db:addCustomer", (_, customer) => addCustomer(customer));
   ipcMain.handle("db:addBill", (_, customerId, bill) =>
     addBill(customerId, bill),
+  );
+  ipcMain.handle("db:addCustomerBill", (_, customer, bill) => addCustomerBill(customer, bill));
+  ipcMain.handle("db:editCustomerBill", (_, customerId, customer, billId, bill) =>
+    editCustomerBill(customerId, customer, billId, bill),
   );
   ipcMain.handle("db:addBillActivity", (_, billId, activity) =>
     addBillActivity(billId, activity),

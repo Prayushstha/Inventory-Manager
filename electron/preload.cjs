@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("db", {
   addProduct: (product) => ipcRenderer.invoke("db:addProduct", product),
+  saveInventoryProduct: (product) => ipcRenderer.invoke("db:saveInventoryProduct", product),
   getProducts: () => ipcRenderer.invoke("db:getProducts"),
   editProduct: (id, product) =>
     ipcRenderer.invoke("db:editProduct", id, product),
@@ -26,6 +27,9 @@ contextBridge.exposeInMainWorld("db", {
   addCustomer: (customer) => ipcRenderer.invoke("db:addCustomer", customer),
   addBill: (customerId, bill) =>
     ipcRenderer.invoke("db:addBill", customerId, bill),
+  addCustomerBill: (customer, bill) => ipcRenderer.invoke("db:addCustomerBill", customer, bill),
+  editCustomerBill: (customerId, customer, billId, bill) =>
+    ipcRenderer.invoke("db:editCustomerBill", customerId, customer, billId, bill),
   getCustomers: () => ipcRenderer.invoke("db:getCustomers"),
   deleteCustomer: (id) => ipcRenderer.invoke("db:deleteCustomer", id),
   deleteBill: (billId) => ipcRenderer.invoke("db:deleteBill", billId),

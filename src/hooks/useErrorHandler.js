@@ -8,7 +8,7 @@ export function useErrorHandler() {
       return await asyncFn();
     } catch (error) {
       console.error(error);
-      showToast(errorMessage, "error");
+      showToast(error?.message || errorMessage, "error");
       return null;
     }
   };

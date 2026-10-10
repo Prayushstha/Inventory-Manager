@@ -1,6 +1,7 @@
 import "./Styles/navbar.css";
 import { EditConsole } from "../pages/Inventory/Components/EditConsole";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { useToast } from "../hooks/ToastContext";
 
 export function NavBar({
   isDark,
@@ -11,6 +12,8 @@ export function NavBar({
   setSearch,
 }) {
   const addItemToInventory = useRef();
+  const [isImporting, setIsImporting] = useState(false);
+  const showToast = useToast();
 
   function toggleAddItemDialog() {
     if (!addItemToInventory.current) {
@@ -21,13 +24,23 @@ export function NavBar({
       : addItemToInventory.current.showModal();
   }
   async function handleImportExcel() {
-    const filePath = await window.db.pickExcelFile();
-    if (!filePath) return;
-    const result = await window.db.importExcel(filePath);
-    alert(
-      `Imported ${result.imported} products. Skipped ${result.skipped} (no usable price data).`,
-    );
-    fetchProducts();
+    if (isImporting) return;
+    setIsImporting(true);
+    try {
+      const filePath = await window.db.pickExcelFile();
+      if (!filePath) return;
+      const result = await window.db.importExcel(filePath);
+      showToast(
+        `Imported ${result.imported} products. Skipped ${result.skipped} (no usable price data).`,
+        "success",
+      );
+      await fetchProducts();
+    } catch (error) {
+      console.error("Excel import failed:", error);
+      showToast(error?.message || "Could not import this Excel file.", "error");
+    } finally {
+      setIsImporting(false);
+    }
   }
 
   return (
@@ -65,8 +78,8 @@ export function NavBar({
           >
             Add Item
           </button>
-          <button className="nav-add-item-btn" onClick={handleImportExcel}>
-            Import
+          <button className="nav-add-item-btn" onClick={handleImportExcel} disabled={isImporting}>
+            {isImporting ? "Importing..." : "Import"}
           </button>
         </>
       ) : (

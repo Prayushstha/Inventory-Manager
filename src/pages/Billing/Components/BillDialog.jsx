@@ -40,9 +40,7 @@ export function BillDialog({
     })),
   });
   const [isEditing, setIsEditing] = useState(isNew);
-
-  const [totalQuantity, setTotalQuantity] = useState(0);
-  const [customerNotes, setCustomerNotes] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const [showPanel, setShowPanel] = useState(false);
   const [panelInitial, setPanelInitial] = useState(null); // { item, editIndex }
@@ -129,6 +127,8 @@ export function BillDialog({
   }
 
   async function handleSave() {
+    if (isSaving) return;
+
     const customerName = form.name.trim() || "Unknown";
     const customerPhone = form.phone.trim() || "0";
     if(isNew && customers.find((customer) => customer.name === customerName && customer.phone === customerPhone) ){
@@ -156,27 +156,30 @@ export function BillDialog({
       })),
     };
 
-    if (isNew) {
-      const customerId = await window.db.addCustomer({
+    setIsSaving(true);
+    try {
+      const customer = {
         name: customerName,
         phone: customerPhone,
         address: form.address,
         notes: form.notes,
-      });
-      await window.db.addBill(customerId, billPayload);
-    } else {
-      await window.db.editCustomer(form.customerId, {
-        name: customerName,
-        phone: customerPhone,
-        address: form.address,
-        notes: form.notes,
-      });
-      await window.db.editBill(form.id, billPayload);
-    }
+      };
 
-    setIsEditing(false);
-    onSaved?.();
-    showToast("Bill saved successfully.", "success");
+      if (isNew) {
+        await window.db.addCustomerBill(customer, billPayload);
+      } else {
+        await window.db.editCustomerBill(form.customerId, customer, form.id, billPayload);
+      }
+
+      setIsEditing(false);
+      onSaved?.();
+      showToast("Bill saved successfully.", "success");
+    } catch (error) {
+      console.error("Bill save failed:", error);
+      showToast(error?.message || "Failed to save bill. Your changes are still available.", "error");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   const handlePrint = () => window.print();
@@ -480,8 +483,8 @@ export function BillDialog({
             Print Bill
           </button>
           {isEditing ? (
-            <button className="btn-primary bill-action-primary" onClick={handleSave}>
-              Save Bill
+            <button className="btn-primary bill-action-primary" onClick={handleSave} disabled={isSaving}>
+              {isSaving ? "Saving..." : "Save Bill"}
             </button>
           ) : (
             <button className="btn-primary bill-action-primary" onClick={() => setIsEditing(true)}>
