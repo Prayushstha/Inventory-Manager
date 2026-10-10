@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useToast } from "../../../hooks/ToastContext";
+import { NepaliDatePicker } from "../../../components/NepaliDatePicker";
 
 const emptyItem = {
   productName: "",
@@ -147,10 +148,9 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
             </div>
             <div className="field">
               <label>Date</label>
-              <input
-                type="date"
+              <NepaliDatePicker
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={setDate}
                 disabled={locked}
               />
             </div>

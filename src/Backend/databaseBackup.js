@@ -108,7 +108,7 @@ export function activateStagedDatabase(activePath, stagingPath, previousPath) {
       throw new AggregateError(
         [error, rollbackError],
         "Restore activation failed and the original database could not be put back.",
-        { cause: error },
+        { cause: rollbackError },
       );
     }
     throw new Error(error.message, { cause: error });

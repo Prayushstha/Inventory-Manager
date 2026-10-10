@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { formatNepaliDate } from "../../../utils/nepaliDate";
 
 // The current bill's line items with keyboard navigation (roving tabindex).
 //   Up/Down  select row      Enter  edit      Delete  remove
@@ -11,7 +12,6 @@ export function BillItemsTable({
   onEdit,
   onDelete,
   onChangeQty,
-  totalPurchased,
   billDate,
 }) {
   const rowRefs = useRef([]);
@@ -98,10 +98,7 @@ export function BillItemsTable({
             >
               <td>{i + 1}</td>
               <td>
-                {new Date(`${purchaseDate}T00:00:00`).toLocaleDateString(undefined, {
-                  day: "numeric",
-                  month: "short",
-                })}
+                {formatNepaliDate(purchaseDate, "DD MMM YYYY")}
               </td>
               <td>{p.productName}</td>
               <td>{p.base || "—"}</td>

@@ -167,7 +167,7 @@
 .bucket-pill {
     border: 1px solid var(--border-color);
     background: var(--button-secondary);
-    color: var(--color-secondary);
+    color: var(--color-primary);
     border-radius: 6px;
     padding: 4px 9px;
     font-family: "JetBrains Mono", monospace;

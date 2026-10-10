@@ -9,17 +9,17 @@ import { useEffect } from "react";
 import { useErrorHandler } from "../../hooks/useErrorHandler";
 
 function fmt(n) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-NP", {
     style: "currency",
-    currency: "USD",
+    currency: "NPR",
     maximumFractionDigits: 0,
   }).format(n);
 }
 
 function fmtSmall(n) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-NP", {
     style: "currency",
-    currency: "USD",
+    currency: "NPR",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(n);
@@ -28,7 +28,7 @@ function fmtSmall(n) {
 function Eyebrow({
   children,
   color = "var(--primary)",
-  tint = "var(--primary-dim)",
+  tint = "color-mix(in srgb, var(--primary) 12%, transparent)",
 }) {
   return (
     <span

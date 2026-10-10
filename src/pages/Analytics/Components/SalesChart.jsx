@@ -74,26 +74,26 @@ export function SalesChart({ Card, overViewTime, Eyebrow }) {
             data={data}
             margin={{ top: 4, right: 4, left: 4, bottom: 0 }}
           >
-            <CartesianGrid vertical={false} stroke="var(--divider-color)" />
+            <CartesianGrid vertical={false} stroke="var(--border)" />
             <XAxis
               dataKey="label"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: "var(--text-muted)", fontSize: 11 }}
+              tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
             />
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fill: "var(--text-muted)", fontSize: 11 }}
+              tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
               width={36}
             />
             <Tooltip
-              cursor={{ fill: "rgba(255,255,255,0.04)" }}
+              cursor={{ fill: "color-mix(in srgb, var(--foreground) 5%, transparent)" }}
               content={<ChartTooltip />}
             />
             <Bar
               dataKey="revenue"
-              fill="var(--primary)"
+              fill="var(--chart-1)"
               radius={[3, 3, 0, 0]}
               maxBarSize={28}
             />

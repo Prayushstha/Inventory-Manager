@@ -809,7 +809,7 @@ function we(e, t, n) {
 		try {
 			h.renameSync(n, e);
 		} catch (e) {
-			throw AggregateError([t, e], "Restore activation failed and the original database could not be put back.", { cause: t });
+			throw AggregateError([t, e], "Restore activation failed and the original database could not be put back.", { cause: e });
 		}
 		throw Error(t.message, { cause: t });
 	}

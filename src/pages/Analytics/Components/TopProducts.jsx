@@ -3,7 +3,10 @@ export function TopProducts({ Card, Eyebrow, products = [] }) {
   const max = displayProducts.length > 0 ? Math.max(...displayProducts.map((p) => p.revenue)) : 1;
   return (
     <Card style={{width: "48%"}}>
-      <Eyebrow color="var(--info)" tint="rgba(55,138,221,0.14)">
+      <Eyebrow
+        color="var(--info)"
+        tint="color-mix(in srgb, var(--info) 14%, transparent)"
+      >
         best sellers
       </Eyebrow>
       <h3 className="card-title">Top products</h3>

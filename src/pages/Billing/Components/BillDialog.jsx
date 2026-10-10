@@ -3,6 +3,8 @@ import { useToast } from "../../../hooks/ToastContext";
 import { AddProductPanel } from "./AddProductPanel";
 import { BillItemsTable } from "./BillItemsTable";
 import { NumericMathInput } from "./NumericMathInput";
+import { NepaliDatePicker } from "../../../components/NepaliDatePicker";
+import { formatNepaliDate } from "../../../utils/nepaliDate";
 
 function normalizeProduct(p) {
   return {
@@ -339,10 +341,9 @@ export function BillDialog({
               </div>
               <div className="field">
                 <label>Date</label>
-                <input
-                  type="date"
+                <NepaliDatePicker
                   value={form.date}
-                  onChange={set("date")}
+                  onChange={(date) => setForm((current) => ({ ...current, date }))}
                   disabled={locked}
                 />
               </div>
@@ -413,7 +414,6 @@ export function BillDialog({
               items={form.products}
               isEditing={isEditing}
               selectedIndex={selectedRow}
-              totalPurchased={totalPurchased}
               billDate={form.date}
               setSelectedIndex={setSelectedIndex}
               onEdit={handleEditRow}
@@ -462,7 +462,7 @@ export function BillDialog({
               <div className="field-grid">
                 {activity.map((item) => (
                   <div key={item.id} className="field field-full">
-                    <label>{new Date(item.date).toLocaleDateString()} — {item.type}</label>
+                    <label>{formatNepaliDate(item.date)} — {item.type}</label>
                     <input
                       type="text"
                       value={`${item.note || item.type} • NPR ${Number(item.amount || 0).toLocaleString()}${item.payment_method ? ` • ${item.payment_method}` : ""}`}

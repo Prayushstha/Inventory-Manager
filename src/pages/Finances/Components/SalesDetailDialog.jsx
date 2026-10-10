@@ -1,10 +1,12 @@
+import { formatNepaliDate } from "../../../utils/nepaliDate";
+
 export function SalesDetailDialog({ day, onClose }) {
   return (
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-header">
           <h2 className="dialog-title">
-            Sales on {new Date(day.date).toLocaleDateString()}
+            Sales on {formatNepaliDate(day.date)}
           </h2>
           <button className="dialog-close" onClick={onClose}>✕</button>
         </div>

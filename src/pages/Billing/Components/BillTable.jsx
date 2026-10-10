@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatNepaliDate } from "../../../utils/nepaliDate";
 export function BillTable({ filtered, statusMeta, openExisting, onDelete }) {
   const [sortKey, setSortKey] = useState("id");
   const [sortOrder, setSortOrder] = useState(true);
@@ -101,7 +102,7 @@ export function BillTable({ filtered, statusMeta, openExisting, onDelete }) {
               </td>
             </tr>
           ) : (
-            sortedFiltered.map((c, i) => (
+            sortedFiltered.map((c) => (
               <tr
                 key={c.id}
                 className="table-row"
@@ -112,7 +113,7 @@ export function BillTable({ filtered, statusMeta, openExisting, onDelete }) {
                 <td>{c.phone}</td>
                 <td>Rs {c.totalPurchased.toLocaleString()}</td>
                 <td>Rs {c.totalDue.toLocaleString()}</td>
-                <td>{c.date}</td>
+                <td>{formatNepaliDate(c.date)}</td>
                 <td>
                   <span className={`status-badge ${statusMeta[c.status].cls}`}>
                     {statusMeta[c.status].label}

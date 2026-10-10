@@ -387,7 +387,7 @@
 
 .time-toggle-group {
   display: flex;
-  background-color: var(--secondary);
+  background-color: var(--background-tertiary);
   border-radius: 8px;
   padding: 4px;
   gap: 2px;
@@ -407,7 +407,7 @@
 
 .toggle-btn.active {
   background-color: var(--accent);
-  color: var(--foreground);
+  color: var(--accent-foreground);
 }
 
 .toggle-btn.active-primary {
@@ -416,39 +416,6 @@
   font-weight: 700;
 }
 
-
-.eyebrow {
-  display: inline-block;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  border-radius: 5px;
-  padding: 4px 9px;
-  text-transform: uppercase;
-  color: var(--primary);
-  background-color: transparent;
-  border: 1px solid var(--primary);
-}
-
-.card {
-  background-color: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px 28px;
-}
-
-.card-title {
-  margin: 12px 0 4px;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--foreground);
-}
-
-.card-subtitle {
-  margin: 0;
-  font-size: 13px;
-  color: var(--muted-foreground);
-}
 
 .chart-header {
   display: flex;

@@ -12,7 +12,10 @@ export function TopCustomers({ Card, Eyebrow, customers = [] }) {
   const max = displayCustomers.length > 0 ? Math.max(...displayCustomers.map((c) => c.spend)) : 1;
   return (
     <Card style={{width: "48%"}}>
-      <Eyebrow color="var(--warning)" tint="rgba(230,168,23,0.14)">
+      <Eyebrow
+        color="var(--warning)"
+        tint="color-mix(in srgb, var(--warning) 14%, transparent)"
+      >
         loyalty
       </Eyebrow>
       <h3 className="card-title">Top customers</h3>

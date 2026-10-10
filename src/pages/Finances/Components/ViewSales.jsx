@@ -3,6 +3,7 @@ import '../styles/viewsales.css'
 import { SalesDetailDialog } from "./SalesDetailDialog";
 import { getRangeStart } from "../../../utils/dateUtils";
 import { useErrorHandler } from "../../../hooks/useErrorHandler";
+import { formatNepaliDate } from "../../../utils/nepaliDate";
 
 function groupSalesByDay(sales) {
   const groups = {};
@@ -111,7 +112,7 @@ function SalesTable({ dailyGroups, onViewDetails }) {
           {dailyGroups.map((day, i) => (
             <tr key={day.date}>
               <td>{i + 1}</td>
-              <td>{new Date(day.date).toLocaleDateString()}</td>
+              <td>{formatNepaliDate(day.date)}</td>
               <td>{day.salesCount}</td>
               <td>NPR {day.totalSales.toLocaleString()}</td>
               <td>NPR {day.totalProfit.toLocaleString()}</td>

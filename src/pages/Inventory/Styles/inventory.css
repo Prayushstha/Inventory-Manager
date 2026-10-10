@@ -28,7 +28,7 @@
     z-index: 1;
     background-color: var(--background-tertiary);
     color: var(--color-primary);
-    border: 1px solid var(--color-secondary);
+    border: 1px solid var(--border-color);
     border-top: none;
     border-right: none;
     padding: 10px 15px;
@@ -37,7 +37,7 @@
 
 .table-products tbody td {
     color: var(--color-primary);
-    border: 1px solid var(--color-secondary);
+    border: 1px solid var(--border-color);
     border-top: none;
     border-right: none;
     padding: 5px 15px;

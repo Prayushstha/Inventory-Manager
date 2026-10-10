@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useDialogKeyboard } from "../../../hooks/useDialogKeyboard";
 import { useToast } from "../../../hooks/ToastContext";
+import { NepaliDatePicker } from "../../../components/NepaliDatePicker";
 
 const emptyImportItem = {
   productName: "",
@@ -159,7 +160,7 @@ export function AddExpenseDialog({ onClose, onSaved, asPage = false }) {
             </div>
             <div className="field">
               <label>Date</label>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <NepaliDatePicker value={date} onChange={setDate} />
             </div>
           </div>
 

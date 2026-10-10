@@ -103,7 +103,7 @@ dialog.edit-console::backdrop {
   cursor: pointer;
 }
 .confirm-btn{
-  color: var(--color-secondary);
+  color: var(--color-primary);
 }
 .btn-update:hover,
 .btn-add:hover {
@@ -149,6 +149,7 @@ dialog.edit-console::backdrop {
   gap: 4px;
   padding: 4px 8px;
   background: var(--secondary);
+  color: var(--secondary-foreground);
   border-radius: 6px;
   font-size: 13px;
 }

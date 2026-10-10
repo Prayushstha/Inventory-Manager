@@ -9,17 +9,17 @@ import { StatCard } from "../Analytics/Components/StatCard";
 import { AddExpenseDialog } from "./Components/AddExpenseDialog";
 
 function fmt(n) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-NP", {
     style: "currency",
-    currency: "USD",
+    currency: "NPR",
     maximumFractionDigits: 0,
   }).format(n);
 }
 
 function fmtSmall(n) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-NP", {
     style: "currency",
-    currency: "USD",
+    currency: "NPR",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(n);

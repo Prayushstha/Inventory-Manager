@@ -4,6 +4,7 @@ import { ExpenseDetailDialog } from "./ExpenseDetailDialog";
 import { getRangeStart } from "../../../utils/dateUtils";
 import { useConfirm } from "../../../hooks/useConfirm";
 import { useErrorHandler } from "../../../hooks/useErrorHandler";
+import { formatNepaliDate } from "../../../utils/nepaliDate";
 
 export function ViewExpenses() {
   const [selectedExpenseId, setSelectedExpenseId] = useState(null);
@@ -144,7 +145,7 @@ function ExpensesTable({ expenses, onDeleted, onSelect, confirm, handleAsync }) 
               style={{ cursor: "pointer" }}
             >
               <td>{i + 1}</td>
-              <td>{new Date(expense.date).toLocaleDateString()}</td>
+              <td>{formatNepaliDate(expense.date)}</td>
               <td>{expense.nameOfExpense}</td>
               <td>{expense.typeOfExpense}</td>
               <td>NPR {expense.amountOfExpense.toLocaleString()}</td>
