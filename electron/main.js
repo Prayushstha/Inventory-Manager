@@ -39,6 +39,8 @@ import {
   getNetPosition,
   getTopProducts,
   getTopCustomers,
+  backupDatabase,
+  restoreDatabase,
 } from "../src/Backend/server.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -135,6 +137,37 @@ app.whenReady().then(() => {
   ipcMain.handle("db:resolveImagePath", (_, relativePath) =>
     resolveImagePath(relativePath),
   );
+  ipcMain.handle("db:createBackup", async (event) => {
+    const result = await dialog.showSaveDialog(
+      BrowserWindow.fromWebContents(event.sender),
+      {
+        title: "Back Up StockWise Data",
+        defaultPath: `StockWise-Backup-${new Date().toISOString().slice(0, 10)}.db`,
+        filters: [{ name: "SQLite Database", extensions: ["db", "sqlite", "sqlite3"] }],
+      },
+    );
+    if (result.canceled || !result.filePath) return null;
+    const filePath = await backupDatabase(result.filePath);
+    return { filePath };
+  });
+  ipcMain.handle("db:restoreBackup", async (event) => {
+    const result = await dialog.showOpenDialog(
+      BrowserWindow.fromWebContents(event.sender),
+      {
+        title: "Restore StockWise Backup",
+        properties: ["openFile"],
+        filters: [{ name: "SQLite Database", extensions: ["db", "sqlite", "sqlite3"] }],
+      },
+    );
+    if (result.canceled || result.filePaths.length === 0) return null;
+
+    const restoreResult = await restoreDatabase(result.filePaths[0]);
+    setTimeout(() => {
+      app.relaunch();
+      app.exit(0);
+    }, 1000);
+    return restoreResult;
+  });
   ipcMain.handle("dialog:pickExcelFile", async () => {
     const result = await dialog.showOpenDialog({
       properties: ["openFile"],

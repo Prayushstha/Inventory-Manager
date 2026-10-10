@@ -5,6 +5,8 @@ import path from "path";
 import fs from "fs";
 import { createRequire as createRequire$1 } from "module";
 import { randomUUID } from "crypto";
+import fs$1 from "node:fs";
+import path$1 from "node:path";
 //#region \0rolldown/runtime.js
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -100,14 +102,14 @@ var require_bindings = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	/**
 	* Module dependencies.
 	*/
-	var fs$3 = __require("fs"), path$3 = __require("path"), fileURLToPath$1 = require_file_uri_to_path(), join = path$3.join, dirname = path$3.dirname, exists = fs$3.accessSync && function(path) {
+	var fs$4 = __require("fs"), path$4 = __require("path"), fileURLToPath$1 = require_file_uri_to_path(), join = path$4.join, dirname = path$4.dirname, exists = fs$4.accessSync && function(path) {
 		try {
-			fs$3.accessSync(path);
+			fs$4.accessSync(path);
 		} catch (e) {
 			return false;
 		}
 		return true;
-	} || fs$3.existsSync || path$3.existsSync, defaults = {
+	} || fs$4.existsSync || path$4.existsSync, defaults = {
 		arrow: process.env.NODE_BINDINGS_ARROW || " → ",
 		compiled: process.env.NODE_BINDINGS_COMPILED_DIR || "compiled",
 		platform: process.platform,
@@ -211,7 +213,7 @@ var require_bindings = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			if (!(i in opts)) opts[i] = defaults[i];
 		});
 		if (!opts.module_root) opts.module_root = exports.getRoot(exports.getFileName());
-		if (path$3.extname(opts.bindings) != ".node") opts.bindings += ".node";
+		if (path$4.extname(opts.bindings) != ".node") opts.bindings += ".node";
 		var requireFunc = typeof __webpack_require__ === "function" ? __non_webpack_require__ : __require;
 		var tries = [], i = 0, l = opts.try.length, n, b, err;
 		for (; i < l; i++) {
@@ -423,11 +425,11 @@ var require_pragma = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 //#endregion
 //#region node_modules/better-sqlite3/lib/methods/backup.js
 var require_backup = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-	var fs$2 = __require("fs");
-	var path$2 = __require("path");
+	var fs$3 = __require("fs");
+	var path$3 = __require("path");
 	var { promisify } = __require("util");
 	var { cppdb } = require_util();
-	var fsAccess = promisify(fs$2.access);
+	var fsAccess = promisify(fs$3.access);
 	module.exports = async function backup(filename, options) {
 		if (options == null) options = {};
 		if (typeof filename !== "string") throw new TypeError("Expected first argument to be a string");
@@ -440,7 +442,7 @@ var require_backup = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		if (typeof attachedName !== "string") throw new TypeError("Expected the \"attached\" option to be a string");
 		if (!attachedName) throw new TypeError("The \"attached\" option cannot be an empty string");
 		if (handler != null && typeof handler !== "function") throw new TypeError("Expected the \"progress\" option to be a function");
-		await fsAccess(path$2.dirname(filename)).catch(() => {
+		await fsAccess(path$3.dirname(filename)).catch(() => {
 			throw new TypeError("Cannot save backup because the directory does not exist");
 		});
 		const isNewFile = await fsAccess(filename).then(() => false, () => true);
@@ -671,8 +673,8 @@ var require_inspect = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 //#endregion
 //#region node_modules/better-sqlite3/lib/database.js
 var require_database = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-	var fs$1 = __require("fs");
-	var path$1 = __require("path");
+	var fs$2 = __require("fs");
+	var path$2 = __require("path");
 	var util = require_util();
 	var SqliteError = require_sqlite_error();
 	var DEFAULT_ADDON;
@@ -703,13 +705,13 @@ var require_database = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		if (nativeBinding != null && typeof nativeBinding !== "string" && typeof nativeBinding !== "object") throw new TypeError("Expected the \"nativeBinding\" option to be a string or addon object");
 		let addon;
 		if (nativeBinding == null) addon = DEFAULT_ADDON || (DEFAULT_ADDON = require_bindings()("better_sqlite3.node"));
-		else if (typeof nativeBinding === "string") addon = (typeof __non_webpack_require__ === "function" ? __non_webpack_require__ : __require)(path$1.resolve(nativeBinding).replace(/(\.node)?$/, ".node"));
+		else if (typeof nativeBinding === "string") addon = (typeof __non_webpack_require__ === "function" ? __non_webpack_require__ : __require)(path$2.resolve(nativeBinding).replace(/(\.node)?$/, ".node"));
 		else addon = nativeBinding;
 		if (!addon.isInitialized) {
 			addon.setErrorConstructor(SqliteError);
 			addon.isInitialized = true;
 		}
-		if (!anonymous && !filename.startsWith("file:") && !fs$1.existsSync(path$1.dirname(filename))) throw new TypeError("Cannot open database because the directory does not exist");
+		if (!anonymous && !filename.startsWith("file:") && !fs$2.existsSync(path$2.dirname(filename))) throw new TypeError("Cannot open database because the directory does not exist");
 		Object.defineProperties(this, {
 			[util.cppdb]: { value: new addon.Database(filename, filenameGiven, anonymous, readonly, fileMustExist, timeout, verbose || null, buffer || null) },
 			...wrappers.getters
@@ -1020,11 +1022,205 @@ function migrateDatabase(db) {
 	return currentVersion;
 }
 //#endregion
+//#region src/Backend/databaseBackup.js
+var requiredColumns = {
+	products: [
+		"id",
+		"name",
+		"images"
+	],
+	variants: [
+		"id",
+		"product_id",
+		"bucket_size",
+		"landing",
+		"sales",
+		"mp"
+	],
+	bases: [
+		"id",
+		"product_id",
+		"name"
+	],
+	base_stock: [
+		"base_id",
+		"variant_id",
+		"stock"
+	],
+	customers: [
+		"id",
+		"name",
+		"phone",
+		"address",
+		"notes"
+	],
+	expenses: [
+		"id",
+		"date",
+		"label",
+		"amount",
+		"type"
+	],
+	expense_items: [
+		"id",
+		"expense_id",
+		"product_name",
+		"base",
+		"bucket_size",
+		"quantity",
+		"cost_price"
+	],
+	bills: [
+		"id",
+		"customer_id",
+		"date",
+		"payment_method",
+		"total_purchased",
+		"amount_paid",
+		"amount_due",
+		"status"
+	],
+	bill_activity: [
+		"id",
+		"bill_id",
+		"type",
+		"date",
+		"amount",
+		"payment_method",
+		"note",
+		"created_at"
+	],
+	bill_items: [
+		"id",
+		"bill_id",
+		"product_name",
+		"base",
+		"bucket_size",
+		"quantity",
+		"price_at_sale",
+		"cost_price"
+	]
+};
+var legacyIdentityColumns = {
+	products: ["id", "name"],
+	customers: ["id", "name"],
+	bills: ["id", "customer_id"],
+	bill_items: [
+		"id",
+		"bill_id",
+		"product_name",
+		"quantity",
+		"price_at_sale"
+	]
+};
+function assertDatabaseIntegrity(db) {
+	const result = db.pragma("integrity_check", { simple: true });
+	if (result !== "ok") throw new Error(`SQLite integrity check failed: ${result}`);
+}
+function assertStockWiseDatabase(db, requireCurrentSchema = false) {
+	const expectedColumns = requireCurrentSchema ? requiredColumns : legacyIdentityColumns;
+	const tables = new Set(db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all().map((row) => row.name));
+	if (Object.entries(expectedColumns).filter(([table, columns]) => {
+		if (!tables.has(table)) return true;
+		const presentColumns = new Set(db.prepare(`PRAGMA table_info(${table})`).all().map((column) => column.name));
+		return columns.some((column) => !presentColumns.has(column));
+	}).length > 0) throw new Error("The selected file does not contain a complete StockWise database schema.");
+}
+async function createDatabaseBackup(db, destinationPath) {
+	if (!db.open) throw new Error("The active database is not open.");
+	const destination = path$1.resolve(destinationPath);
+	if (db.name && path$1.resolve(db.name) === destination) throw new Error("Choose a different file from the active database.");
+	await db.backup(destination);
+	return destination;
+}
+async function stageDatabaseRestore(sourcePath, stagingPath) {
+	const source = path$1.resolve(sourcePath);
+	const staging = path$1.resolve(stagingPath);
+	if (source === staging) throw new Error("The restore source and staging file must be different.");
+	if (fs$1.existsSync(staging)) throw new Error("The restore staging file already exists.");
+	try {
+		const sourceDb = new import_lib.default(source, {
+			readonly: true,
+			fileMustExist: true
+		});
+		try {
+			assertDatabaseIntegrity(sourceDb);
+			assertStockWiseDatabase(sourceDb);
+			await sourceDb.backup(staging);
+		} finally {
+			sourceDb.close();
+		}
+		const stagedDb = new import_lib.default(staging);
+		try {
+			const schemaVersion = migrateDatabase(stagedDb);
+			assertDatabaseIntegrity(stagedDb);
+			assertStockWiseDatabase(stagedDb, true);
+			return { schemaVersion };
+		} finally {
+			stagedDb.close();
+		}
+	} catch (error) {
+		fs$1.rmSync(staging, { force: true });
+		throw error;
+	}
+}
+function activateStagedDatabase(activePath, stagingPath, previousPath) {
+	fs$1.renameSync(activePath, previousPath);
+	try {
+		fs$1.renameSync(stagingPath, activePath);
+	} catch (error) {
+		try {
+			fs$1.renameSync(previousPath, activePath);
+		} catch (rollbackError) {
+			throw new AggregateError([error, rollbackError], "Restore activation failed and the original database could not be put back.", { cause: error });
+		}
+		throw new Error(error.message, { cause: error });
+	}
+}
+//#endregion
 //#region src/Backend/server.js
 var XLSX = createRequire$1(import.meta.url)("xlsx");
 var __dirname$1 = path.dirname(fileURLToPath(import.meta.url));
-var db = new import_lib.default(app.isPackaged ? path.join(app.getPath("userData"), "inventory.db") : path.join(__dirname$1, "../", "Database", "inventory.db"));
-migrateDatabase(db);
+var dbPath = app.isPackaged ? path.join(app.getPath("userData"), "inventory.db") : path.join(__dirname$1, "../", "Database", "inventory.db");
+var db;
+function openDatabase() {
+	db = new import_lib.default(dbPath);
+	migrateDatabase(db);
+}
+openDatabase();
+function backupDatabase(destinationPath) {
+	return createDatabaseBackup(db, destinationPath);
+}
+async function restoreDatabase(sourcePath) {
+	const source = path.resolve(sourcePath);
+	if (source === path.resolve(dbPath)) throw new Error("Choose a backup file, not the active database.");
+	const stagingDirectory = fs.mkdtempSync(path.join(path.dirname(dbPath), ".stockwise-restore-"));
+	const stagingPath = path.join(stagingDirectory, "restored.db");
+	const previousPath = path.join(stagingDirectory, "previous.db");
+	const recoveryName = `StockWise-Recovery-${(/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "-")}-${randomUUID()}.db`;
+	const recoveryPath = path.join(path.dirname(dbPath), recoveryName);
+	try {
+		await stageDatabaseRestore(source, stagingPath);
+		await createDatabaseBackup(db, recoveryPath);
+		db.close();
+		try {
+			activateStagedDatabase(dbPath, stagingPath, previousPath);
+		} catch (error) {
+			try {
+				openDatabase();
+			} catch (reopenError) {
+				throw new AggregateError([error, reopenError], "Restore failed and the active database could not be reopened.", { cause: error });
+			}
+			throw error;
+		}
+		return { recoveryBackupPath: recoveryPath };
+	} finally {
+		fs.rmSync(stagingDirectory, {
+			recursive: true,
+			force: true
+		});
+	}
+}
 function addProduct(product) {
 	const validatedProduct = validateProduct(product);
 	const productId = validatedProduct.id || randomUUID();
@@ -1746,6 +1942,43 @@ app.whenReady().then(() => {
 	ipcMain.handle("db:deleteCustomer", (_, id) => deleteCustomer(id));
 	ipcMain.handle("db:deleteBill", (_, billId) => deleteBill(billId));
 	ipcMain.handle("db:resolveImagePath", (_, relativePath) => resolveImagePath(relativePath));
+	ipcMain.handle("db:createBackup", async (event) => {
+		const result = await dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender), {
+			title: "Back Up StockWise Data",
+			defaultPath: `StockWise-Backup-${(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}.db`,
+			filters: [{
+				name: "SQLite Database",
+				extensions: [
+					"db",
+					"sqlite",
+					"sqlite3"
+				]
+			}]
+		});
+		if (result.canceled || !result.filePath) return null;
+		return { filePath: await backupDatabase(result.filePath) };
+	});
+	ipcMain.handle("db:restoreBackup", async (event) => {
+		const result = await dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender), {
+			title: "Restore StockWise Backup",
+			properties: ["openFile"],
+			filters: [{
+				name: "SQLite Database",
+				extensions: [
+					"db",
+					"sqlite",
+					"sqlite3"
+				]
+			}]
+		});
+		if (result.canceled || result.filePaths.length === 0) return null;
+		const restoreResult = await restoreDatabase(result.filePaths[0]);
+		setTimeout(() => {
+			app.relaunch();
+			app.exit(0);
+		}, 1e3);
+		return restoreResult;
+	});
 	ipcMain.handle("dialog:pickExcelFile", async () => {
 		const result = await dialog.showOpenDialog({
 			properties: ["openFile"],

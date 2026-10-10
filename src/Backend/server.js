@@ -16,14 +16,69 @@ import {
   normalizeText,
 } from "./validation.js";
 import { migrateDatabase } from "./migrations.js";
+import {
+  activateStagedDatabase,
+  createDatabaseBackup,
+  stageDatabaseRestore,
+} from "./databaseBackup.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const dbPath = app.isPackaged
   ? path.join(app.getPath("userData"), "inventory.db")
   : path.join(__dirname, "../", "Database", "inventory.db");
 
-const db = new Database(dbPath);
-migrateDatabase(db);
+let db;
+
+function openDatabase() {
+  db = new Database(dbPath);
+  migrateDatabase(db);
+}
+
+openDatabase();
+
+export function backupDatabase(destinationPath) {
+  return createDatabaseBackup(db, destinationPath);
+}
+
+export async function restoreDatabase(sourcePath) {
+  const source = path.resolve(sourcePath);
+  if (source === path.resolve(dbPath)) {
+    throw new Error("Choose a backup file, not the active database.");
+  }
+
+  const stagingDirectory = fs.mkdtempSync(
+    path.join(path.dirname(dbPath), ".stockwise-restore-"),
+  );
+  const stagingPath = path.join(stagingDirectory, "restored.db");
+  const previousPath = path.join(stagingDirectory, "previous.db");
+  const recoveryName = `StockWise-Recovery-${new Date().toISOString().replace(/[:.]/g, "-")}-${randomUUID()}.db`;
+  const recoveryPath = path.join(path.dirname(dbPath), recoveryName);
+
+  try {
+    await stageDatabaseRestore(source, stagingPath);
+    await createDatabaseBackup(db, recoveryPath);
+
+    db.close();
+    try {
+      activateStagedDatabase(dbPath, stagingPath, previousPath);
+    } catch (error) {
+      try {
+        openDatabase();
+      } catch (reopenError) {
+        throw new AggregateError(
+          [error, reopenError],
+          "Restore failed and the active database could not be reopened.",
+          { cause: error },
+        );
+      }
+      throw error;
+    }
+
+    return { recoveryBackupPath: recoveryPath };
+  } finally {
+    fs.rmSync(stagingDirectory, { recursive: true, force: true });
+  }
+}
 
 export function addProduct(product) {
   const validatedProduct = validateProduct(product);
