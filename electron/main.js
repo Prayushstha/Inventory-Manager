@@ -47,6 +47,7 @@ import {
   getAppSettings,
   setLocalDataDirectory,
   updateDefaultPaymentMethod,
+  updateInvoiceDefaults,
 } from "../src/Backend/server.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -203,6 +204,9 @@ app.whenReady().then(() => {
   ipcMain.handle("settings:get", () => getAppSettings());
   ipcMain.handle("settings:updateDefaultPaymentMethod", (_, paymentMethod) =>
     updateDefaultPaymentMethod(paymentMethod),
+  );
+  ipcMain.handle("settings:updateInvoiceDefaults", (_, invoiceDefaults) =>
+    updateInvoiceDefaults(invoiceDefaults),
   );
   ipcMain.handle("settings:openDataDirectory", async () => {
     const error = await shell.openPath(getAppSettings().dataDirectory);

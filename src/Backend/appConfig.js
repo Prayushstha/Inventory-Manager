@@ -5,10 +5,21 @@ import { randomUUID } from "node:crypto";
 export const DEFAULT_PAYMENT_METHOD = "Cash";
 export const PAYMENT_METHODS = ["Cash", "UPI", "Card", "Credit"];
 
+export function defaultInvoiceDefaults() {
+  return {
+    shopName: "",
+    shopAddress: "",
+    shopTelephone: "",
+    invoiceNumber: "",
+    tpinNumber: "",
+  };
+}
+
 export function defaultAppConfig() {
   return {
     defaultPaymentMethod: DEFAULT_PAYMENT_METHOD,
     dataDirectory: null,
+    invoiceDefaults: defaultInvoiceDefaults(),
   };
 }
 
@@ -30,7 +41,21 @@ function validateAppConfig(config) {
     throw new Error("The configured data directory must be an absolute path.");
   }
 
-  return { defaultPaymentMethod, dataDirectory };
+  const invoiceDefaults = config.invoiceDefaults ?? defaultInvoiceDefaults();
+  if (!invoiceDefaults || typeof invoiceDefaults !== "object" || Array.isArray(invoiceDefaults)) {
+    throw new Error("Invoice defaults must be a JSON object.");
+  }
+
+  const defaults = defaultInvoiceDefaults();
+  for (const key of Object.keys(defaults)) {
+    const value = invoiceDefaults[key] ?? "";
+    if (typeof value !== "string") {
+      throw new Error(`Invoice default "${key}" must be text.`);
+    }
+    defaults[key] = value.trim();
+  }
+
+  return { defaultPaymentMethod, dataDirectory, invoiceDefaults: defaults };
 }
 
 export function loadAppConfig(configPath) {

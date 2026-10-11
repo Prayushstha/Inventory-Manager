@@ -105,6 +105,15 @@ const migrations = [
       }
     },
   },
+  {
+    version: 2,
+    up(db) {
+      const expenseColumns = db.prepare("PRAGMA table_info(expenses)").all();
+      if (!expenseColumns.some((column) => column.name === "invoice_data")) {
+        db.exec("ALTER TABLE expenses ADD COLUMN invoice_data TEXT");
+      }
+    },
+  },
 ];
 
 export function migrateDatabase(db) {

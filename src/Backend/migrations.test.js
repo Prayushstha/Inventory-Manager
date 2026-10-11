@@ -7,8 +7,8 @@ test("migrates a fresh database once and records its schema version", () => {
   const db = new Database(":memory:");
 
   try {
-    assert.equal(migrateDatabase(db), 1);
-    assert.equal(db.pragma("user_version", { simple: true }), 1);
+    assert.equal(migrateDatabase(db), 2);
+    assert.equal(db.pragma("user_version", { simple: true }), 2);
     assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE name = 'products'").get());
     assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE name = 'expenses'").get());
     assert.ok(
@@ -16,7 +16,12 @@ test("migrates a fresh database once and records its schema version", () => {
         .all()
         .some((column) => column.name === "cost_price"),
     );
-    assert.equal(migrateDatabase(db), 1);
+    assert.ok(
+      db.prepare("PRAGMA table_info(expenses)")
+        .all()
+        .some((column) => column.name === "invoice_data"),
+    );
+    assert.equal(migrateDatabase(db), 2);
   } finally {
     db.close();
   }
@@ -40,7 +45,7 @@ test("upgrades a legacy bill_items table without losing its rows", () => {
       VALUES (7, 'Tea', 2, 12.5);
     `);
 
-    assert.equal(migrateDatabase(db), 1);
+    assert.equal(migrateDatabase(db), 2);
     assert.deepEqual(
       db.prepare("SELECT bill_id, product_name, quantity, price_at_sale, cost_price FROM bill_items").get(),
       {
@@ -49,6 +54,39 @@ test("upgrades a legacy bill_items table without losing its rows", () => {
         quantity: 2,
         price_at_sale: 12.5,
         cost_price: 0,
+      },
+    );
+  } finally {
+    db.close();
+  }
+});
+
+test("adds invoice metadata to an existing version 1 expenses table", () => {
+  const db = new Database(":memory:");
+
+  try {
+    db.exec(`
+      CREATE TABLE expenses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT NOT NULL,
+        label TEXT NOT NULL,
+        amount REAL NOT NULL,
+        type TEXT DEFAULT 'General'
+      );
+      INSERT INTO expenses (date, label, amount, type)
+      VALUES ('2026-10-10', 'Existing import', 25, 'Import');
+      PRAGMA user_version = 1;
+    `);
+
+    assert.equal(migrateDatabase(db), 2);
+    assert.deepEqual(
+      db.prepare("SELECT date, label, amount, type, invoice_data FROM expenses").get(),
+      {
+        date: "2026-10-10",
+        label: "Existing import",
+        amount: 25,
+        type: "Import",
+        invoice_data: null,
       },
     );
   } finally {

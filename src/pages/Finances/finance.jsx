@@ -7,6 +7,7 @@ import { ViewExpenses } from "./Components/ViewExpenses";
 import { NetPosition } from "./Components/NetPosition";
 import { StatCard } from "../Analytics/Components/StatCard";
 import { AddExpenseDialog } from "./Components/AddExpenseDialog";
+import { ExpenseDetailDialog } from "./Components/ExpenseDetailDialog";
 
 function fmt(n) {
   return new Intl.NumberFormat("en-NP", {
@@ -36,6 +37,7 @@ export function FinancePage() {
   const [overviewPeriod, setOverviewPeriod] = useState(2);
   const [data, setData] = useState(null);
   const [showAddExpense, setShowAddExpense] = useState(false);
+  const [selectedExpenseId, setSelectedExpenseId] = useState(null);
 
   async function fetchSummary() {
     const summary = await window.db.getNetPosition(PERIOD_MAP[overviewPeriod]);
@@ -54,39 +56,53 @@ export function FinancePage() {
 
   return (
     <>
-      <FinanceHeader
-        onAddExpense={() => setShowAddExpense(true)}
-        overviewPeriod={overviewPeriod}
-        setOverviewPeriod={setOverviewPeriod}
-      />
-
-      <NetPosition net={data.netPosition} fmt={fmt} />
-
-      <div className="stat-grid-finance">
-        <StatCard
-          label="Total Earned"
-          value={fmt(data.totalEarned)}
-          sub={`${data.totalSales.toLocaleString()} sales`}
-          variant="earned"
+      {selectedExpenseId ? (
+        <ExpenseDetailDialog
+          expenseId={selectedExpenseId}
+          onClose={() => setSelectedExpenseId(null)}
+          onSaved={() => {
+            setSelectedExpenseId(null);
+            fetchSummary();
+          }}
+          asPage
         />
-        <StatCard
-          label="Total Expenses"
-          value={fmt(data.totalExpenses)}
-          sub="Operating costs"
-          variant="expenses"
-        />
-        <StatCard
-          label="Profit per Sale"
-          value={fmtSmall(data.profitPerSale)}
-          sub={`Avg. across ${data.totalSales.toLocaleString()} sales`}
-          variant="profit"
-        />
-      </div>
+      ) : (
+        <>
+          <FinanceHeader
+            onAddExpense={() => setShowAddExpense(true)}
+            overviewPeriod={overviewPeriod}
+            setOverviewPeriod={setOverviewPeriod}
+          />
 
-      <ViewSales />
-      <ViewExpenses />
+          <NetPosition net={data.netPosition} fmt={fmt} />
 
-      {showAddExpense && (
+          <div className="stat-grid-finance">
+            <StatCard
+              label="Total Earned"
+              value={fmt(data.totalEarned)}
+              sub={`${data.totalSales.toLocaleString()} sales`}
+              variant="earned"
+            />
+            <StatCard
+              label="Total Expenses"
+              value={fmt(data.totalExpenses)}
+              sub="Operating costs"
+              variant="expenses"
+            />
+            <StatCard
+              label="Profit per Sale"
+              value={fmtSmall(data.profitPerSale)}
+              sub={`Avg. across ${data.totalSales.toLocaleString()} sales`}
+              variant="profit"
+            />
+          </div>
+
+          <ViewSales />
+          <ViewExpenses onSelectExpense={setSelectedExpenseId} />
+        </>
+      )}
+
+      {!selectedExpenseId && showAddExpense && (
         <AddExpenseDialog
           onClose={() => setShowAddExpense(false)}
           onSaved={() => {

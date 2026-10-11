@@ -7,6 +7,7 @@ import path from "node:path";
 import {
   copyDatabaseToDirectory,
   defaultAppConfig,
+  defaultInvoiceDefaults,
   loadAppConfig,
   resolveDataDirectory,
   saveAppConfig,
@@ -29,6 +30,27 @@ test("loads defaults and persists validated settings", () => {
       "UPI",
     );
     assert.equal(loadAppConfig(configPath).defaultPaymentMethod, "UPI");
+    const invoiceDefaults = {
+      shopName: "  StockWise Store  ",
+      shopAddress: "Main Road",
+      shopTelephone: "01-5550101",
+      invoiceNumber: "INV-01",
+      tpinNumber: "123456789",
+    };
+    const updatedConfig = saveAppConfig(configPath, {
+      ...loadAppConfig(configPath),
+      invoiceDefaults,
+    });
+    assert.equal(updatedConfig.invoiceDefaults.shopName, "StockWise Store");
+    assert.equal(updatedConfig.invoiceDefaults.invoiceNumber, "INV-01");
+    assert.deepEqual(loadAppConfig(configPath).invoiceDefaults, updatedConfig.invoiceDefaults);
+    assert.deepEqual(defaultInvoiceDefaults(), {
+      shopName: "",
+      shopAddress: "",
+      shopTelephone: "",
+      invoiceNumber: "",
+      tpinNumber: "",
+    });
   } finally {
     fs.rmSync(directory, { recursive: true, force: true });
   }
@@ -44,6 +66,10 @@ test("rejects malformed settings and unsupported payment defaults", () => {
     assert.throws(
       () => saveAppConfig(configPath, { defaultPaymentMethod: "Bitcoin" }),
       /Default payment method must be/,
+    );
+    assert.throws(
+      () => saveAppConfig(configPath, { invoiceDefaults: { shopName: 42 } }),
+      /Invoice default "shopName" must be text/,
     );
   } finally {
     fs.rmSync(directory, { recursive: true, force: true });

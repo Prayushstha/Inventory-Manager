@@ -1,13 +1,11 @@
 import "../styles/viewexpenses.css";
 import { useState, useEffect } from "react";
-import { ExpenseDetailDialog } from "./ExpenseDetailDialog";
 import { getRangeStart } from "../../../utils/dateUtils";
 import { useConfirm } from "../../../hooks/useConfirm";
 import { useErrorHandler } from "../../../hooks/useErrorHandler";
 import { formatNepaliDate } from "../../../utils/nepaliDate";
 
-export function ViewExpenses() {
-  const [selectedExpenseId, setSelectedExpenseId] = useState(null);
+export function ViewExpenses({ onSelectExpense }) {
   const [viewingBtn, setViewingBtn] = useState(1);
   const [expenses, setExpenses] = useState([]);
   const { confirm, ConfirmDialogComponent } = useConfirm();
@@ -81,30 +79,13 @@ export function ViewExpenses() {
                 "Failed to refresh expenses"
               );
             }}
-            onSelect={setSelectedExpenseId}
+            onSelect={onSelectExpense}
             confirm={confirm}
             handleAsync={handleAsync}
           />
         )}
       </div>
 
-      {selectedExpenseId && (
-        <ExpenseDetailDialog
-          expenseId={selectedExpenseId}
-          onClose={() => setSelectedExpenseId(null)}
-          onSaved={() => {
-            setSelectedExpenseId(null);
-            handleAsync(
-              async () => {
-                const data = await window.db.getExpenses();
-                setExpenses(data);
-              },
-              "Failed to refresh expenses"
-            );
-          }}
-          asPage
-        />
-      )}
       {ConfirmDialogComponent}
     </div>
   );

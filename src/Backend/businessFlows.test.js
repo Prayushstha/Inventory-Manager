@@ -233,7 +233,11 @@ test("edits an import expense and replaces its stock impact", () => {
       editImportExpense(
         db,
         id,
-        { date: "2026-10-11", nameOfExpense: "Corrected shipment" },
+        {
+          date: "2026-10-11",
+          nameOfExpense: "Corrected shipment",
+          invoiceData: { shopName: "StockWise Shop", invoiceNumber: "INV-2" },
+        },
         [{ productName: "Tea", base: "AC1", bucketSize: 1, quantity: 5, costPrice: 8 }],
       ),
       40,
@@ -241,6 +245,10 @@ test("edits an import expense and replaces its stock impact", () => {
     assert.deepEqual(
       db.prepare("SELECT date, label, amount, type FROM expenses WHERE id = ?").get(id),
       { date: "2026-10-11", label: "Corrected shipment", amount: 40, type: "Import" },
+    );
+    assert.deepEqual(
+      JSON.parse(db.prepare("SELECT invoice_data FROM expenses WHERE id = ?").get(id).invoice_data),
+      { shopName: "StockWise Shop", invoiceNumber: "INV-2" },
     );
     assert.equal(
       db.prepare("SELECT quantity FROM expense_items WHERE expense_id = ?").get(id).quantity,

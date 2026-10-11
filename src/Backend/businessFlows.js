@@ -333,6 +333,14 @@ function reverseImportItemFromStock(db, item) {
   adjustStock(db, item.product_name, item.base, item.bucket_size, -item.quantity);
 }
 
+function serializeInvoiceData(invoiceData) {
+  if (invoiceData == null) return null;
+  if (typeof invoiceData !== "object" || Array.isArray(invoiceData)) {
+    throw new Error("Invoice data must be an object.");
+  }
+  return JSON.stringify(invoiceData);
+}
+
 export function recordImportExpense(db, expenseMeta, items) {
   const validatedItems = validateImportItems(items);
   const totalCost = validatedItems.reduce((sum, item) => sum + item.costPrice * item.quantity, 0);
@@ -348,8 +356,14 @@ export function recordImportExpense(db, expenseMeta, items) {
     }
 
     const expenseId = db
-      .prepare("INSERT INTO expenses (date, label, amount, type) VALUES (?, ?, ?, ?)")
-      .run(validatedExpenseMeta.date, validatedExpenseMeta.nameOfExpense, totalCost, "Import")
+      .prepare("INSERT INTO expenses (date, label, amount, type, invoice_data) VALUES (?, ?, ?, ?, ?)")
+      .run(
+        validatedExpenseMeta.date,
+        validatedExpenseMeta.nameOfExpense,
+        totalCost,
+        "Import",
+        serializeInvoiceData(expenseMeta.invoiceData),
+      )
       .lastInsertRowid;
 
     for (const item of validatedItems) {
@@ -385,6 +399,7 @@ export function editImportExpense(db, expenseId, expenseMeta, newItems) {
     amountOfExpense: totalCost,
     typeOfExpense: "Import",
   });
+  const invoiceData = serializeInvoiceData(expenseMeta.invoiceData);
   const oldItems = db
     .prepare("SELECT * FROM expense_items WHERE expense_id = ?")
     .all(expenseId);
@@ -410,8 +425,14 @@ export function editImportExpense(db, expenseId, expenseMeta, newItems) {
       );
     }
 
-    db.prepare("UPDATE expenses SET date = ?, label = ?, amount = ? WHERE id = ?")
-      .run(validatedExpenseMeta.date, validatedExpenseMeta.nameOfExpense, totalCost, expenseId);
+    db.prepare("UPDATE expenses SET date = ?, label = ?, amount = ?, invoice_data = ? WHERE id = ?")
+      .run(
+        validatedExpenseMeta.date,
+        validatedExpenseMeta.nameOfExpense,
+        totalCost,
+        invoiceData,
+        expenseId,
+      );
   });
 
   run();

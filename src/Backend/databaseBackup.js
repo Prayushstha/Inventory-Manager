@@ -9,7 +9,7 @@ const requiredColumns = {
   bases: ["id", "product_id", "name"],
   base_stock: ["base_id", "variant_id", "stock"],
   customers: ["id", "name", "phone", "address", "notes"],
-  expenses: ["id", "date", "label", "amount", "type"],
+  expenses: ["id", "date", "label", "amount", "type", "invoice_data"],
   expense_items: ["id", "expense_id", "product_name", "base", "bucket_size", "quantity", "cost_price"],
   bills: ["id", "customer_id", "date", "payment_method", "total_purchased", "amount_paid", "amount_due", "status"],
   bill_activity: ["id", "bill_id", "type", "date", "amount", "payment_method", "note", "created_at"],

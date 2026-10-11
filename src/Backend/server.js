@@ -78,6 +78,15 @@ export function updateDefaultPaymentMethod(paymentMethod) {
   return getAppSettings();
 }
 
+export function updateInvoiceDefaults(invoiceDefaults) {
+  const nextConfig = saveAppConfig(appConfigPath, {
+    ...appConfig,
+    invoiceDefaults,
+  });
+  appConfig = nextConfig;
+  return getAppSettings();
+}
+
 export async function setLocalDataDirectory(destinationDirectory) {
   if (typeof destinationDirectory !== "string" || !destinationDirectory.trim()) {
     throw new Error("A data directory is required.");
@@ -827,6 +836,7 @@ export function getExpenseDetails(expenseId) {
     nameOfExpense: expense.label,
     typeOfExpense: expense.type,
     amountOfExpense: expense.amount,
+    invoiceData: expense.invoice_data ? JSON.parse(expense.invoice_data) : null,
     items: items.map((i) => ({
       productName: i.product_name,
       base: i.base,
