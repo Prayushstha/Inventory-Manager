@@ -20,6 +20,11 @@ import {
   resolveDataDirectory,
   saveAppConfig,
 } from "./appConfig.js";
+import {
+  createProfileCredentials,
+  normalizeProfileUsername,
+  verifyProfilePassword,
+} from "./profileAuth.js";
 import { saveInventoryProduct } from "./inventoryWrites.js";
 import {
   addBill as createBill,
@@ -41,13 +46,29 @@ import {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const appConfigPath = path.join(app.getPath("userData"), "settings.json");
 let appConfig = loadAppConfig(appConfigPath);
-let dataDirectory = resolveDataDirectory({
-  config: appConfig,
-  isPackaged: app.isPackaged,
-  userDataPath: app.getPath("userData"),
-  developmentPath: path.join(__dirname, "../", "Database"),
-});
+const userDataPath = app.getPath("userData");
 
+function getProfile(profileId) {
+  return appConfig.profiles.find((profile) => profile.id === profileId) ?? null;
+}
+
+function resolveProfileDataDirectory(profileId) {
+  if (profileId === "user") {
+    return resolveDataDirectory({
+      config: appConfig,
+      isPackaged: app.isPackaged,
+      userDataPath,
+      developmentPath: path.join(__dirname, "../", "Database"),
+    });
+  }
+  const profile = getProfile(profileId);
+  if (!profile) throw new Error("The selected profile does not exist.");
+  return path.resolve(
+    profile.dataDirectory || path.join(userDataPath, "profiles", profile.id),
+  );
+}
+
+let dataDirectory = resolveProfileDataDirectory(appConfig.activeProfileId);
 let dbPath = path.join(dataDirectory, "inventory.db");
 
 let db;
@@ -60,6 +81,10 @@ function openDatabase() {
 
 openDatabase();
 
+function publicProfile(profile) {
+  return { id: profile.id, username: profile.username, isDefault: false };
+}
+
 export function backupDatabase(destinationPath) {
   return createDatabaseBackup(db, destinationPath);
 }
@@ -69,7 +94,114 @@ export function saveInventoryProductChanges(product) {
 }
 
 export function getAppSettings() {
-  return { ...appConfig, dataDirectory };
+  const publicConfig = { ...appConfig };
+  delete publicConfig.defaultProfileCredentials;
+  delete publicConfig.profiles;
+  return {
+    ...publicConfig,
+    dataDirectory,
+    activeProfileId: appConfig.activeProfileId,
+    defaultProfilePasswordSet: Boolean(appConfig.defaultProfileCredentials),
+    profiles: [
+      { id: "user", username: "user", isDefault: true },
+      ...appConfig.profiles.map(publicProfile),
+    ],
+  };
+}
+
+export function setDefaultProfilePassword(password) {
+  if (appConfig.defaultProfileCredentials) {
+    throw new Error("The default profile password has already been set.");
+  }
+  const nextConfig = saveAppConfig(appConfigPath, {
+    ...appConfig,
+    defaultProfileCredentials: createProfileCredentials(password),
+  });
+  appConfig = nextConfig;
+  return getAppSettings();
+}
+
+export function createProfile(usernameValue, password) {
+  const username = normalizeProfileUsername(usernameValue);
+  if (username.toLocaleLowerCase() === "user" ||
+    appConfig.profiles.some((profile) => profile.username.toLocaleLowerCase() === username.toLocaleLowerCase())) {
+    throw new Error(`The username "${username}" is already in use.`);
+  }
+
+  const profile = {
+    id: randomUUID(),
+    username,
+    ...createProfileCredentials(password),
+    dataDirectory: null,
+  };
+  const profileDirectory = path.join(userDataPath, "profiles", profile.id);
+  fs.mkdirSync(profileDirectory, { recursive: true });
+  const profileDatabasePath = path.join(profileDirectory, "inventory.db");
+
+  try {
+    const profileDatabase = new Database(profileDatabasePath);
+    try {
+      migrateDatabase(profileDatabase);
+    } finally {
+      profileDatabase.close();
+    }
+    const nextConfig = saveAppConfig(appConfigPath, {
+      ...appConfig,
+      profiles: [...appConfig.profiles, profile],
+    });
+    appConfig = nextConfig;
+    return getAppSettings();
+  } catch (error) {
+    fs.rmSync(profileDirectory, { recursive: true, force: true });
+    throw error;
+  }
+}
+
+export function switchProfile(profileId, usernameValue, password) {
+  const username = normalizeProfileUsername(usernameValue);
+  let targetProfile;
+  if (profileId === "user") {
+    if (
+      username.toLocaleLowerCase() !== "user" ||
+      !appConfig.defaultProfileCredentials ||
+      !verifyProfilePassword(appConfig.defaultProfileCredentials, password)
+    ) {
+      throw new Error("The username or password is incorrect.");
+    }
+  } else {
+    targetProfile = getProfile(profileId);
+    if (
+      !targetProfile ||
+      targetProfile.username.toLocaleLowerCase() !== username.toLocaleLowerCase() ||
+      !verifyProfilePassword(targetProfile, password)
+    ) {
+      throw new Error("The username or password is incorrect.");
+    }
+  }
+
+  const targetDirectory = resolveProfileDataDirectory(profileId);
+  const targetPath = path.join(targetDirectory, "inventory.db");
+  if (profileId === appConfig.activeProfileId) return getAppSettings();
+
+  fs.mkdirSync(targetDirectory, { recursive: true });
+  const nextDatabase = new Database(targetPath);
+  try {
+    migrateDatabase(nextDatabase);
+    const nextConfig = saveAppConfig(appConfigPath, {
+      ...appConfig,
+      activeProfileId: profileId,
+    });
+    const previousDatabase = db;
+    db = nextDatabase;
+    dataDirectory = targetDirectory;
+    dbPath = targetPath;
+    appConfig = nextConfig;
+    previousDatabase.close();
+    return getAppSettings();
+  } catch (error) {
+    if (nextDatabase.open && nextDatabase !== db) nextDatabase.close();
+    throw error;
+  }
 }
 
 export function updateDefaultPaymentMethod(paymentMethod) {
@@ -122,10 +254,21 @@ export async function setLocalDataDirectory(destinationDirectory) {
   await copyDatabaseToDirectory(db, dataDirectory, destination);
   let nextConfig;
   try {
-    nextConfig = saveAppConfig(appConfigPath, {
-      ...appConfig,
-      dataDirectory: destination,
-    });
+    if (appConfig.activeProfileId === "user") {
+      nextConfig = saveAppConfig(appConfigPath, {
+        ...appConfig,
+        dataDirectory: destination,
+      });
+    } else {
+      nextConfig = saveAppConfig(appConfigPath, {
+        ...appConfig,
+        profiles: appConfig.profiles.map((profile) =>
+          profile.id === appConfig.activeProfileId
+            ? { ...profile, dataDirectory: destination }
+            : profile,
+        ),
+      });
+    }
   } catch (error) {
     try {
       fs.rmSync(path.join(destination, "inventory.db"), { force: true });
@@ -140,7 +283,7 @@ export async function setLocalDataDirectory(destinationDirectory) {
     throw error;
   }
   appConfig = nextConfig;
-  return { ...appConfig, dataDirectory: destination };
+  return getAppSettings();
 }
 
 export async function restoreDatabase(sourcePath) {

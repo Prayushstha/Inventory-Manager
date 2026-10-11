@@ -4,6 +4,7 @@ import Database from "better-sqlite3";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { createProfileCredentials } from "./profileAuth.js";
 import {
   copyDatabaseToDirectory,
   defaultAppConfig,
@@ -89,6 +90,24 @@ test("rejects malformed settings and unsupported payment defaults", () => {
       () => saveAppConfig(configPath, { appearanceMode: "automatic" }),
       /Appearance mode must be/,
     );
+    assert.throws(
+      () => saveAppConfig(configPath, { defaultProfileCredentials: { passwordHash: "plaintext" } }),
+      /Default profile credentials are invalid/,
+    );
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("persists profile metadata and default profile credentials", () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "stockwise-profile-settings-"));
+  const configPath = path.join(directory, "settings.json");
+  const credentials = createProfileCredentials("correct-horse-battery");
+
+  try {
+    const config = saveAppConfig(configPath, { defaultProfileCredentials: credentials });
+    assert.deepEqual(loadAppConfig(configPath).defaultProfileCredentials, credentials);
+    assert.equal(config.activeProfileId, "user");
   } finally {
     fs.rmSync(directory, { recursive: true, force: true });
   }

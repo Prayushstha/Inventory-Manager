@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { validatePasswordCredentials, validateProfiles } from "./profileAuth.js";
 
 export const DEFAULT_PAYMENT_METHOD = "Cash";
 export const PAYMENT_METHODS = ["Cash", "UPI", "Card", "Credit"];
@@ -25,6 +26,9 @@ export function defaultAppConfig() {
     inventoryAddItemMode: null,
     appearanceTheme: "lara",
     appearanceMode: "dark",
+    profiles: [],
+    activeProfileId: "user",
+    defaultProfileCredentials: null,
   };
 }
 
@@ -75,6 +79,18 @@ function validateAppConfig(config) {
     throw new Error('Appearance mode must be "light" or "dark".');
   }
 
+  const profiles = validateProfiles(config.profiles ?? []);
+  const defaultProfileCredentials = config.defaultProfileCredentials == null
+    ? null
+    : validatePasswordCredentials(config.defaultProfileCredentials);
+  const activeProfileId = config.activeProfileId ?? "user";
+  if (
+    typeof activeProfileId !== "string" ||
+    (activeProfileId !== "user" && !profiles.some((profile) => profile.id === activeProfileId))
+  ) {
+    throw new Error("The active profile must exist in the profile list.");
+  }
+
   return {
     defaultPaymentMethod,
     dataDirectory,
@@ -82,6 +98,9 @@ function validateAppConfig(config) {
     inventoryAddItemMode,
     appearanceTheme,
     appearanceMode,
+    profiles,
+    activeProfileId,
+    defaultProfileCredentials,
   };
 }
 

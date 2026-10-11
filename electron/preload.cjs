@@ -60,6 +60,12 @@ contextBridge.exposeInMainWorld("db", {
   getTopProducts: (period) => ipcRenderer.invoke("db:getTopProducts", period),
   getTopCustomers: (period) => ipcRenderer.invoke("db:getTopCustomers", period),
   getAppSettings: () => ipcRenderer.invoke("settings:get"),
+  createProfile: (username, password) =>
+    ipcRenderer.invoke("settings:createProfile", username, password),
+  setDefaultProfilePassword: (password) =>
+    ipcRenderer.invoke("settings:setDefaultProfilePassword", password),
+  switchProfile: (profileId, username, password) =>
+    ipcRenderer.invoke("settings:switchProfile", profileId, username, password),
   updateDefaultPaymentMethod: (paymentMethod) =>
     ipcRenderer.invoke("settings:updateDefaultPaymentMethod", paymentMethod),
   updateInvoiceDefaults: (invoiceDefaults) =>

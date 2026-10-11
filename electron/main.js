@@ -52,6 +52,9 @@ import {
   updateInvoiceDefaults,
   updateInventoryAddItemMode,
   updateAppearanceSettings,
+  createProfile,
+  switchProfile,
+  setDefaultProfilePassword,
 } from "../src/Backend/server.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -210,6 +213,20 @@ app.whenReady().then(() => {
     return restoreResult;
   });
   ipcMain.handle("settings:get", () => getAppSettings());
+  ipcMain.handle("settings:createProfile", (_, username, password) =>
+    createProfile(username, password),
+  );
+  ipcMain.handle("settings:setDefaultProfilePassword", (_, password) =>
+    setDefaultProfilePassword(password),
+  );
+  ipcMain.handle("settings:switchProfile", (event, profileId, username, password) => {
+    const settings = switchProfile(profileId, username, password);
+    setTimeout(() => {
+      const window = BrowserWindow.fromWebContents(event.sender);
+      if (window && !window.isDestroyed()) window.webContents.reload();
+    }, 100);
+    return settings;
+  });
   ipcMain.handle("settings:updateDefaultPaymentMethod", (_, paymentMethod) =>
     updateDefaultPaymentMethod(paymentMethod),
   );

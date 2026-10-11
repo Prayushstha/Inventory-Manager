@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useConfirm } from "../hooks/useConfirm";
 import { useToast } from "../hooks/ToastContext";
 import "./settings.css";
@@ -21,14 +21,34 @@ const APPEARANCE_THEMES = [
 export function SettingsPage({ appearanceTheme, appearanceMode, setAppearance }) {
       const [busy, setBusy] = useState("");
       const [settings, setSettings] = useState(null);
+      const [profileId, setProfileId] = useState("");
+      const [profileUsername, setProfileUsername] = useState("");
+      const [profilePassword, setProfilePassword] = useState("");
+      const [profileDialogMode, setProfileDialogMode] = useState("");
+      const profileDialog = useRef(null);
       const showToast = useToast();
       const { confirm, ConfirmDialogComponent } = useConfirm();
+
+      useEffect(() => {
+            const dialog = profileDialog.current;
+            if (!dialog) return;
+            if (profileDialogMode && !dialog.open) dialog.showModal();
+            if (!profileDialogMode && dialog.open) dialog.close();
+      }, [profileDialogMode]);
 
       useEffect(() => {
             let cancelled = false;
             window.db.getAppSettings()
                   .then((currentSettings) => {
-                        if (!cancelled) setSettings(currentSettings);
+                        if (!cancelled) {
+                              setSettings(currentSettings);
+                              setProfileId(currentSettings.activeProfileId);
+                              setProfileUsername(
+                                    currentSettings.profiles.find(
+                                          (profile) => profile.id === currentSettings.activeProfileId,
+                                    )?.username || "user",
+                              );
+                        }
                   })
                   .catch((error) => {
                         showToast(error.message || "Could not load application settings.", "error");
@@ -131,6 +151,53 @@ export function SettingsPage({ appearanceTheme, appearanceMode, setAppearance })
             }
       }
 
+      function openProfileDialog() {
+            setProfileUsername(profileId === "create-new" ? "" : profileId === "user"
+                  ? "user"
+                  : settings?.profiles.find((profile) => profile.id === profileId)?.username || "");
+            setProfilePassword("");
+            setProfileDialogMode(profileId === "create-new" ? "create" : "switch");
+      }
+
+      async function handleProfileDialogSubmit(event) {
+            event.preventDefault();
+            if (profileDialogMode === "create") {
+                  setBusy("profile-create");
+            } else if (profileId === "user" && !settings?.defaultProfilePasswordSet) {
+                  setBusy("default-profile-password");
+            } else {
+                  setBusy("profile-switch");
+            }
+            try {
+                  let targetProfileId = profileId;
+                  if (profileDialogMode === "create") {
+                        const createdSettings = await window.db.createProfile(profileUsername, profilePassword);
+                        const newProfile = createdSettings.profiles.find(
+                              (profile) => !profile.isDefault &&
+                                    !settings?.profiles.some((existing) => existing.id === profile.id),
+                        );
+                        if (!newProfile) throw new Error("The new profile was created, but could not be found.");
+                        setSettings(createdSettings);
+                        targetProfileId = newProfile.id;
+                  } else if (profileId === "user" && !settings?.defaultProfilePasswordSet) {
+                        await window.db.setDefaultProfilePassword(profilePassword);
+                  }
+
+                  const updatedSettings = await window.db.switchProfile(
+                        targetProfileId,
+                        profileUsername,
+                        profilePassword,
+                  );
+                  setSettings(updatedSettings);
+                  setProfileId(targetProfileId);
+                  setProfileDialogMode("");
+                  showToast("Profile switched. Reloading StockWise...", "success");
+            } catch (error) {
+                  showToast(error.message || "Could not complete the profile action.", "error");
+                  setBusy("");
+            }
+      }
+
       return (
             <main className="settings-page">
                   <header className="settings-header">
@@ -156,6 +223,142 @@ export function SettingsPage({ appearanceTheme, appearanceMode, setAppearance })
                                     ))}
                               </select>
                         </div>
+                  </section>
+                  <section className="settings-section" aria-labelledby="profiles-settings-title">
+                        <div className="settings-section-heading">
+                              <h2 id="profiles-settings-title">Profiles</h2>
+                              <p>Each profile has separate inventory, bills, finances, and database. Enter its credentials every time you switch.</p>
+                        </div>
+                        <div className="settings-profile-switch">
+                              <div className="settings-field">
+                                    <label htmlFor="profile-select">Switch profile</label>
+                                    <select
+                                          id="profile-select"
+                                          value={profileId || settings?.activeProfileId || "user"}
+                                          onChange={(event) => {
+                                                const selectedId = event.target.value;
+                                                setProfileId(selectedId);
+                                                if (selectedId !== "create-new" &&
+                                                      selectedId !== settings?.activeProfileId) {
+                                                      const selectedProfile = settings?.profiles.find(
+                                                            (profile) => profile.id === selectedId,
+                                                      );
+                                                      setProfileUsername(selectedProfile?.username || "");
+                                                      setProfilePassword("");
+                                                      setProfileDialogMode("switch");
+                                                }
+                                          }}
+                                          disabled={!settings || Boolean(busy)}
+                                    >
+                                          {settings?.profiles.map((profile) => (
+                                                <option key={profile.id} value={profile.id}>
+                                                      {profile.username}{profile.id === settings.activeProfileId ? " (active)" : ""}
+                                                </option>
+                                          ))}
+                                          <option value="create-new">Create new</option>
+                                    </select>
+                              </div>
+                              <button
+                                    className="settings-action"
+                                    type="button"
+                                    onClick={openProfileDialog}
+                                    disabled={
+                                          !settings ||
+                                          Boolean(busy) ||
+                                          profileId === settings?.activeProfileId
+                                    }
+                              >
+                                    Switch Profile
+                              </button>
+                        </div>
+                        <dialog
+                              ref={profileDialog}
+                              className="settings-profile-dialog"
+                              onCancel={(event) => {
+                                    event.preventDefault();
+                                    setProfileDialogMode("");
+                              }}
+                        >
+                              <form className="settings-profile-dialog-form" onSubmit={handleProfileDialogSubmit}>
+                                    <button
+                                          className="settings-profile-dialog-close"
+                                          type="button"
+                                          aria-label="Close"
+                                          onClick={() => setProfileDialogMode("")}
+                                    >
+                                          ×
+                                    </button>
+                                    <h3>
+                                          {profileDialogMode === "create"
+                                                ? "Create profile"
+                                                : profileId === "user" && !settings?.defaultProfilePasswordSet
+                                                      ? "Set up the user profile"
+                                                      : "Switch profile"}
+                                    </h3>
+                                    {profileDialogMode === "create" && (
+                                          <p>Create a profile with its own separate database.</p>
+                                    )}
+                                    {profileDialogMode === "switch" && profileId === "user" &&
+                                          !settings?.defaultProfilePasswordSet && (
+                                                <p>Set a password for the existing user profile. This password will be required whenever you switch back to it.</p>
+                                          )}
+                                    <div className="settings-field">
+                                          <label htmlFor="profile-dialog-username">Username</label>
+                                          <input
+                                                id="profile-dialog-username"
+                                                autoComplete="username"
+                                                value={profileUsername}
+                                                onChange={(event) => setProfileUsername(event.target.value)}
+                                                readOnly={profileId === "user" && profileDialogMode !== "create"}
+                                                required
+                                          />
+                                    </div>
+                                    <div className="settings-field">
+                                          <label htmlFor="profile-dialog-password">
+                                                {profileDialogMode === "create" ||
+                                                      (profileId === "user" && !settings?.defaultProfilePasswordSet)
+                                                      ? "Password (at least 8 characters)"
+                                                      : "Password"}
+                                          </label>
+                                          <input
+                                                id="profile-dialog-password"
+                                                type="password"
+                                                autoComplete={profileDialogMode === "create" ||
+                                                      (profileId === "user" && !settings?.defaultProfilePasswordSet)
+                                                      ? "new-password"
+                                                      : "current-password"}
+                                                minLength={profileDialogMode === "create" ||
+                                                      (profileId === "user" && !settings?.defaultProfilePasswordSet)
+                                                      ? 8
+                                                      : undefined}
+                                                value={profilePassword}
+                                                onChange={(event) => setProfilePassword(event.target.value)}
+                                                required
+                                          />
+                                    </div>
+                                    <div className="settings-profile-dialog-actions">
+                                          <button
+                                                className="settings-action"
+                                                type="button"
+                                                onClick={() => setProfileDialogMode("")}
+                                                disabled={Boolean(busy)}
+                                          >
+                                                Cancel
+                                          </button>
+                                          <button className="settings-action" type="submit" disabled={Boolean(busy)}>
+                                                {busy === "profile-create"
+                                                      ? "Creating..."
+                                                      : busy === "profile-switch"
+                                                            ? "Switching..."
+                                                            : busy === "default-profile-password"
+                                                                  ? "Setting up..."
+                                                                  : profileDialogMode === "create"
+                                                                        ? "Create Profile"
+                                                                        : "Continue"}
+                                          </button>
+                                    </div>
+                              </form>
+                        </dialog>
                   </section>
                   <section className="settings-section" aria-labelledby="defaults-settings-title">
                         <div className="settings-section-heading">
