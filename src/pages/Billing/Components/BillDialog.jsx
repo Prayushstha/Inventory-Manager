@@ -7,6 +7,7 @@ import { NepaliDatePicker } from "../../../components/NepaliDatePicker";
 import { formatNepaliDate } from "../../../utils/nepaliDate";
 import { ExpenseInvoiceEditor } from "../../Finances/Components/ExpenseInvoiceEditor";
 import { validateInvoiceDraft } from "../../Finances/Components/expenseInvoiceUtils";
+import { getTodayGregorianISO } from "../../../utils/nepaliDate";
 
 function normalizeProduct(p) {
   return {
@@ -41,7 +42,7 @@ export function BillDialog({
     billType: bill.billType || "default",
     products: (bill.products || []).map((p) => ({
       ...normalizeProduct(p),
-      purchaseDate: p?.purchaseDate || p?.date || bill.date || new Date().toISOString().slice(0, 10),
+      purchaseDate: p?.purchaseDate || p?.date || bill.date || getTodayGregorianISO(),
     })),
   });
   const [invoice, setInvoice] = useState(() => ({
@@ -93,7 +94,7 @@ export function BillDialog({
   function handleAddItem(item) {
     setForm((f) => ({
       ...f,
-      products: [...f.products, { ...item, purchaseDate: item.purchaseDate || f.date || new Date().toISOString().slice(0, 10) }],
+      products: [...f.products, { ...item, purchaseDate: item.purchaseDate || f.date || getTodayGregorianISO() }],
     }));
   }
   function handleReplaceItem(index, item) {

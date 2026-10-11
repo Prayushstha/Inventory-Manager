@@ -73,6 +73,10 @@ function toGregorianISO(date) {
   return `${year}-${month}-${day}`;
 }
 
+export function getTodayGregorianISO() {
+  return toGregorianISO(new Date());
+}
+
 export function getNepaliDateParts(value) {
   const date = parseGregorianISO(value);
   if (!date || date < MIN_SUPPORTED_DATE || date > MAX_SUPPORTED_DATE) {
@@ -82,8 +86,7 @@ export function getNepaliDateParts(value) {
 }
 
 export function getTodayNepaliDateParts() {
-  const today = new Date();
-  return getNepaliDateParts(toGregorianISO(today));
+  return getNepaliDateParts(getTodayGregorianISO());
 }
 
 export function getNepaliMonthInfo(year, month) {

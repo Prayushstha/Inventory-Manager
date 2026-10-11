@@ -346,7 +346,7 @@
   justify-content: flex-end;
 }
 
-.invoice-date-field input {
+.invoice-date-field .nepali-date-picker {
   max-width: 160px;
 }
 

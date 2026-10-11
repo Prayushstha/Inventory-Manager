@@ -11,7 +11,13 @@ import {
 } from "../utils/nepaliDate";
 import "./Styles/nepali-date-picker.css";
 
-export function NepaliDatePicker({ value, onChange, disabled = false }) {
+export function NepaliDatePicker({
+  value,
+  onChange,
+  disabled = false,
+  className = "",
+  invalid = false,
+}) {
   const rootRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
   const selectedDate = getNepaliDateParts(value);
@@ -80,9 +86,10 @@ export function NepaliDatePicker({ value, onChange, disabled = false }) {
     >
       <button
         type="button"
-        className="nepali-date-trigger"
+        className={`nepali-date-trigger ${className}`.trim()}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
+        aria-invalid={invalid || undefined}
         disabled={disabled}
         onClick={() => setIsOpen((open) => !open)}
       >

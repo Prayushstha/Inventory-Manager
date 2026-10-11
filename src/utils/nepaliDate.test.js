@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   formatNepaliDate,
+  getTodayGregorianISO,
   getNepaliDateParts,
   getNepaliMonthInfo,
   nepaliDateToGregorianISO,
@@ -9,6 +10,16 @@ import {
 
 test("formats Gregorian dates as Bikram Sambat dates", () => {
   assert.equal(formatNepaliDate("2026-10-10"), "24 Aswin 2083");
+});
+
+test("provides today's Gregorian ISO date for backend-compatible form values", () => {
+  const today = new Date();
+  const expected = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, "0"),
+    String(today.getDate()).padStart(2, "0"),
+  ].join("-");
+  assert.equal(getTodayGregorianISO(), expected);
 });
 
 test("converts a selected Bikram Sambat date back to its Gregorian ISO date", () => {

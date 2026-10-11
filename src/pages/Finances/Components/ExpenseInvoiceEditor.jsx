@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useDialogKeyboard } from "../../../hooks/useDialogKeyboard";
 import { formatInvoiceNumber } from "./expenseInvoiceUtils";
+import { NepaliDatePicker } from "../../../components/NepaliDatePicker";
 
 function amountParts(value) {
   const cents = Math.round((Number(value) || 0) * 100);
@@ -312,15 +313,13 @@ export function ExpenseInvoiceEditor({
               </div>
             </div>
             <div className="field-inline invoice-date-field">
-              <label htmlFor="invoice-date">Date</label>
-              <input
-                id="invoice-date"
-                type="date"
+              <label>Date</label>
+              <NepaliDatePicker
                 className="invoice-nav-field"
                 value={date ?? ""}
-                aria-invalid={Boolean(errors.date)}
-                onChange={(event) => {
-                  setDate(event.target.value);
+                invalid={Boolean(errors.date)}
+                onChange={(nextDate) => {
+                  setDate(nextDate);
                   setErrors?.((current) => ({ ...current, date: undefined }));
                 }}
               />

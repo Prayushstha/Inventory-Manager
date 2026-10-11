@@ -9,6 +9,7 @@ import { StatCard } from "../Analytics/Components/StatCard";
 import { AddExpenseDialog } from "./Components/AddExpenseDialog";
 import { ExpenseDetailDialog } from "./Components/ExpenseDetailDialog";
 import { NewImportExpensePage } from "./Components/NewImportExpensePage";
+import { getTodayGregorianISO } from "../../utils/nepaliDate";
 
 function fmt(n) {
   return new Intl.NumberFormat("en-NP", {
@@ -41,7 +42,7 @@ export function FinancePage() {
   const [showImportPage, setShowImportPage] = useState(false);
   const [importDraft, setImportDraft] = useState({
     nameOfExpense: "",
-    date: new Date().toISOString().slice(0, 10),
+    date: getTodayGregorianISO(),
   });
   const [selectedExpenseId, setSelectedExpenseId] = useState(null);
 

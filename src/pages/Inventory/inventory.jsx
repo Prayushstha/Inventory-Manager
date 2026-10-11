@@ -4,6 +4,7 @@ import { ProductsTable } from "./Components/ProductsTable";
 import { useState, useEffect } from "react";
 import { useErrorHandler } from "../../hooks/useErrorHandler";
 import { NewImportExpensePage } from "../Finances/Components/NewImportExpensePage";
+import { getTodayGregorianISO } from "../../utils/nepaliDate";
 
 export function InventoryPage() {
   const isInventoryPage = true;
@@ -12,7 +13,7 @@ export function InventoryPage() {
   const [showBillAddPage, setShowBillAddPage] = useState(false);
   const [billDraft, setBillDraft] = useState({
     nameOfExpense: "Inventory import",
-    date: new Date().toISOString().slice(0, 10),
+    date: getTodayGregorianISO(),
   });
   const { handleAsync } = useErrorHandler();
 

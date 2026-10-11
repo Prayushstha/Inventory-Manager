@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useDialogKeyboard } from "../../../hooks/useDialogKeyboard";
 import { useToast } from "../../../hooks/ToastContext";
 import { NepaliDatePicker } from "../../../components/NepaliDatePicker";
+import { getTodayGregorianISO } from "../../../utils/nepaliDate";
 
 const emptyImportItem = {
   productName: "",
@@ -16,7 +17,7 @@ export function AddExpenseDialog({
   onSaved,
   onSelectImport,
   initialNameOfExpense = "",
-  initialDate = new Date().toISOString().slice(0, 10),
+  initialDate = getTodayGregorianISO(),
   asPage = false,
 }) {
   const showToast = useToast();

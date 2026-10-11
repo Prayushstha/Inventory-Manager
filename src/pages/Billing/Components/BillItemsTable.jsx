@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { formatNepaliDate } from "../../../utils/nepaliDate";
+import { formatNepaliDate, getTodayGregorianISO } from "../../../utils/nepaliDate";
 
 // The current bill's line items with keyboard navigation (roving tabindex).
 //   Up/Down  select row      Enter  edit      Delete  remove
@@ -84,7 +84,7 @@ export function BillItemsTable({
       </thead>
       <tbody>
         {items.map((p, i) => {
-          const purchaseDate = p.purchaseDate || p.date || billDate || new Date().toISOString().slice(0, 10);
+          const purchaseDate = p.purchaseDate || p.date || billDate || getTodayGregorianISO();
 
           return (
             <tr

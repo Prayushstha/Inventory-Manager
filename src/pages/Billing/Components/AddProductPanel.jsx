@@ -10,6 +10,7 @@ import { normalize } from "../../../utils/fuzzySearch";
 import { commitMath } from "../../../utils/evalMath";
 import { ProductCombobox } from "./ProductCombobox";
 import { NumericMathInput } from "./NumericMathInput";
+import { getTodayGregorianISO } from "../../../utils/nepaliDate";
 
 const blankForm = {
   productName: "",
@@ -150,7 +151,7 @@ export const AddProductPanel = forwardRef(function AddProductPanel(
       bucketSize: form.bucketSize,
       quantity: commitMath(form.quantity),
       priceAtSale: commitMath(form.priceAtSale),
-      purchaseDate: new Date().toISOString().slice(0, 10),
+      purchaseDate: getTodayGregorianISO(),
     };
 
     if (sessionMemory?.current) {
