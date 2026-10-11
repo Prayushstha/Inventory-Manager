@@ -3,7 +3,7 @@ import { useToast } from "../../../hooks/ToastContext";
 import { NepaliDatePicker } from "../../../components/NepaliDatePicker";
 import { formatNepaliDate } from "../../../utils/nepaliDate";
 import { ExpenseInvoiceEditor } from "./ExpenseInvoiceEditor";
-import { formatInvoiceNumber } from "./expenseInvoiceUtils";
+import { formatInvoiceNumber, validateInvoiceDraft } from "./expenseInvoiceUtils";
 import "../styles/expense-invoice.css";
 
 function displayText(value) {
@@ -24,6 +24,10 @@ const emptyItem = {
   costPrice: "",
 };
 
+function invoiceSnapshot({ date, nameOfExpense, invoice, items }) {
+  return JSON.stringify({ date, nameOfExpense, invoice, items });
+}
+
 export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = false }) {
   const showToast = useToast();
   const [details, setDetails] = useState(null);
@@ -38,6 +42,14 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
   const [date, setDate] = useState("");
   const [items, setItems] = useState([]);
   const [itemForm, setItemForm] = useState(emptyItem);
+  const [products, setProducts] = useState([]);
+  const [invoiceErrors, setInvoiceErrors] = useState({});
+  const [baseline, setBaseline] = useState("");
+
+  const isDirty = Boolean(
+    baseline &&
+    invoiceSnapshot({ date, nameOfExpense, invoice, items }) !== baseline,
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -49,6 +61,17 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
         ]);
         if (!data) throw new Error("Expense not found.");
         if (cancelled) return;
+        let catalog = [];
+        try {
+          catalog = await window.db.getProducts();
+        } catch (catalogError) {
+          console.error("Inventory catalog load failed:", catalogError);
+          showToast(
+            catalogError?.message || "Inventory suggestions are unavailable; item details can still be entered manually.",
+            "error",
+          );
+        }
+        if (cancelled) return;
         const defaults = settings.invoiceDefaults || {};
         const invoiceData = data.invoiceData || {};
         setDetails(data);
@@ -56,8 +79,9 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
         setAmountOfExpense(data.amountOfExpense);
         setDate(data.date);
         setItems(Array.isArray(data.items) ? data.items : []);
+        setProducts(catalog);
         setInvoiceDefaults(defaults);
-        setInvoice({
+        const initialInvoice = {
           shopName: "",
           shopAddress: "",
           shopTelephone: "",
@@ -71,7 +95,14 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
           amountInWords: "",
           ...defaults,
           ...invoiceData,
-        });
+        };
+        setInvoice(initialInvoice);
+        setBaseline(invoiceSnapshot({
+          date: data.date,
+          nameOfExpense: data.nameOfExpense,
+          invoice: initialInvoice,
+          items: Array.isArray(data.items) ? data.items : [],
+        }));
       } catch (error) {
         console.error("Expense details load failed:", error);
         if (!cancelled) {
@@ -85,12 +116,43 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
     return () => { cancelled = true; };
   }, [expenseId, showToast]);
 
+  useEffect(() => {
+    if (!isEditing || !details) return;
+    const key = `stockwise:import-invoice:${details.id}`;
+    if (!isDirty) {
+      sessionStorage.removeItem(key);
+      return;
+    }
+    sessionStorage.setItem(key, JSON.stringify({ date, nameOfExpense, invoice, items }));
+  }, [date, nameOfExpense, invoice, items, isEditing, isDirty, details]);
+
+  function handleClose() {
+    if (isDirty && !window.confirm("Leave this invoice page? Your draft will be kept.")) return;
+    onClose?.();
+  }
+
+  function startInvoiceEdit() {
+    try {
+      const draft = JSON.parse(sessionStorage.getItem(`stockwise:import-invoice:${details.id}`) || "null");
+      if (draft?.invoice && Array.isArray(draft.items)) {
+        setDate(draft.date || details.date);
+        setNameOfExpense(draft.nameOfExpense || details.nameOfExpense);
+        setInvoice(draft.invoice);
+        setItems(draft.items);
+      }
+    } catch (error) {
+      console.error("Import invoice draft restore failed:", error);
+      showToast(error?.message || "Could not restore the saved invoice draft.", "error");
+    }
+    setIsEditing(true);
+  }
+
   if (!details) {
     if (!asPage) return null;
     return (
       <main className="expense-record-page">
         <div className="expense-record-toolbar">
-          <button className="btn-secondary" type="button" onClick={onClose}>
+          <button className="btn-secondary" type="button" onClick={handleClose}>
             <i className="ti ti-arrow-left" aria-hidden="true" />
             <span>Back to Expenses</span>
           </button>
@@ -127,7 +189,7 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
             <i className="ti ti-arrow-left" aria-hidden="true" />
             <span>Back to Expenses</span>
           </button>
-          <button className="btn-primary" type="button" onClick={() => setIsEditing(true)}>
+          <button className="btn-primary" type="button" onClick={startInvoiceEdit}>
             Edit
           </button>
         </div>
@@ -230,7 +292,7 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
           </footer>
         </article>
         <div className="expense-record-bottom-actions">
-          <button className="btn-primary" type="button" onClick={() => setIsEditing(true)}>
+          <button className="btn-primary" type="button" onClick={startInvoiceEdit}>
             Edit
           </button>
         </div>
@@ -241,8 +303,26 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
   if (isImport && isEditing) {
     async function saveInvoice() {
       if (isSaving) return;
+      const validationErrors = validateInvoiceDraft({ date, nameOfExpense, invoice, items });
+      setInvoiceErrors(validationErrors);
+      if (Object.keys(validationErrors).length > 0) {
+        showToast("Review the highlighted invoice fields.", "error");
+        return;
+      }
       setIsSaving(true);
       try {
+        const invoiceNumberAvailable = await window.db.isInvoiceNumberAvailable(
+          invoice.invoiceNumber,
+          details.id,
+        );
+        if (!invoiceNumberAvailable) {
+          setInvoiceErrors((current) => ({
+            ...current,
+            invoiceNumber: "This invoice number is already in use.",
+          }));
+          showToast("This invoice number is already in use.", "error");
+          return;
+        }
         await window.db.editImportExpense(
           details.id,
           { date, nameOfExpense, invoiceData: invoice },
@@ -272,6 +352,8 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
           invoiceData: invoice,
           items,
         }));
+        setBaseline(invoiceSnapshot({ date, nameOfExpense, invoice, items }));
+        sessionStorage.removeItem(`stockwise:import-invoice:${details.id}`);
         setIsEditing(false);
         setInvoiceDefaults({
           shopName: invoice.shopName,
@@ -289,6 +371,12 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
         );
       } catch (error) {
         console.error("Invoice save failed:", error);
+        if (/invoice number is already in use/i.test(error?.message || "")) {
+          setInvoiceErrors((current) => ({
+            ...current,
+            invoiceNumber: "This invoice number is already in use.",
+          }));
+        }
         showToast(error?.message || "Failed to save invoice. Your changes are still available.", "error");
       } finally {
         setIsSaving(false);
@@ -296,6 +384,7 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
     }
 
     function cancelInvoiceEdit() {
+      if (isDirty && !window.confirm("Discard your unsaved invoice changes?")) return;
       const savedInvoice = details.invoiceData || {};
       setInvoice({
         shopName: "",
@@ -314,6 +403,8 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
       });
       setDate(details.date);
       setItems(details.items || []);
+      setInvoiceErrors({});
+      sessionStorage.removeItem(`stockwise:import-invoice:${details.id}`);
       setIsEditing(false);
     }
 
@@ -328,10 +419,14 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
         setDate={setDate}
         items={items}
         setItems={setItems}
+        products={products}
+        errors={invoiceErrors}
+        setErrors={setInvoiceErrors}
         isSaving={isSaving}
         onSave={saveInvoice}
         onCancel={cancelInvoiceEdit}
-        onClose={onClose}
+        onClose={handleClose}
+        isDirty={isDirty}
       />
     );
   }

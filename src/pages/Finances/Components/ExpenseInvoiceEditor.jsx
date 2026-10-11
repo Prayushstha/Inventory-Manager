@@ -43,6 +43,7 @@ export function ExpenseInvoiceEditor({
   products = [],
   errors = {},
   setErrors,
+  isDirty = false,
 }) {
   const itemRefs = useRef([]);
   const editorRef = useRef(null);
@@ -64,6 +65,7 @@ export function ExpenseInvoiceEditor({
     updateItem(setItems, index, key, value);
     setErrors?.((current) => ({
       ...current,
+      itemList: undefined,
       items: current.items?.map((row, itemIndex) =>
         itemIndex === index ? { ...row, [key]: undefined } : row,
       ),
@@ -103,6 +105,7 @@ export function ExpenseInvoiceEditor({
     ));
     setErrors?.((current) => ({
       ...current,
+      itemList: undefined,
       items: current.items?.map((row, itemIndex) =>
         itemIndex === index ? { ...row, productName: undefined } : row,
       ),
@@ -134,12 +137,15 @@ export function ExpenseInvoiceEditor({
         return;
       }
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-        if (!(currentField instanceof HTMLInputElement) || currentField.type !== "text") return;
-        const { selectionStart, selectionEnd, value } = currentField;
-        const atBoundary = event.key === "ArrowLeft"
-          ? selectionStart === 0 && selectionEnd === 0
-          : selectionStart === value.length && selectionEnd === value.length;
-        if (!atBoundary) return;
+        if (currentField instanceof HTMLInputElement && currentField.type === "text") {
+          const { selectionStart, selectionEnd, value } = currentField;
+          const atBoundary = event.key === "ArrowLeft"
+            ? selectionStart === 0 && selectionEnd === 0
+            : selectionStart === value.length && selectionEnd === value.length;
+          if (!atBoundary) return;
+        } else if (!(currentField instanceof HTMLInputElement && currentField.type === "number")) {
+          return;
+        }
       } else if (event.key !== "Enter") {
         return;
       }
@@ -180,6 +186,16 @@ export function ExpenseInvoiceEditor({
       document.removeEventListener("keydown", handleDuplicateItem);
     };
   }, [setItems]);
+
+  useEffect(() => {
+    if (!isDirty) return undefined;
+    function warnBeforeUnload(event) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+    window.addEventListener("beforeunload", warnBeforeUnload);
+    return () => window.removeEventListener("beforeunload", warnBeforeUnload);
+  }, [isDirty]);
 
   function invoiceField(key, label, placeholder, className = "") {
     const error = errors[key];
@@ -246,6 +262,7 @@ export function ExpenseInvoiceEditor({
           <kbd>Ctrl</kbd>+<kbd>D</kbd> Duplicate row <span>·</span>
           <kbd>Esc</kbd> Cancel
         </span>
+        {isDirty && <span className="invoice-draft-status" role="status">Draft saved locally</span>}
       </div>
 
       <article className="expense-invoice expense-invoice-edit">
@@ -269,8 +286,10 @@ export function ExpenseInvoiceEditor({
                   className="invoice-nav-field"
                   value={invoice.invoiceNumber ?? ""}
                   placeholder="Invoice number"
+                  aria-invalid={Boolean(errors.invoiceNumber)}
                   onChange={(event) => setInvoiceValue("invoiceNumber", event.target.value)}
                 />
+                {errors.invoiceNumber && <small className="invoice-field-error">{errors.invoiceNumber}</small>}
               </div>
               <div className="field-inline">
                 <label htmlFor="invoice-tpin">TPIN No.</label>
@@ -292,8 +311,13 @@ export function ExpenseInvoiceEditor({
                 type="date"
                 className="invoice-nav-field"
                 value={date ?? ""}
-                onChange={(event) => setDate(event.target.value)}
+                aria-invalid={Boolean(errors.date)}
+                onChange={(event) => {
+                  setDate(event.target.value);
+                  setErrors?.((current) => ({ ...current, date: undefined }));
+                }}
               />
+              {errors.date && <small className="invoice-field-error">{errors.date}</small>}
             </div>
           </section>
 
@@ -336,6 +360,7 @@ export function ExpenseInvoiceEditor({
           </section>
 
           <div className="table-wrap invoice-edit-table-wrap">
+            {errors.itemList && <p className="invoice-field-error" role="alert">{errors.itemList}</p>}
             <table className="invoice-items invoice-items-edit">
               <colgroup>
                 <col className="invoice-col-sn" />
@@ -454,7 +479,9 @@ export function ExpenseInvoiceEditor({
                           Number(event.target.value) < 0 ? "0" : event.target.value,
                         )
                       }
+                      aria-invalid={Boolean(errors.discount)}
                     />
+                    {errors.discount && <small className="invoice-field-error">{errors.discount}</small>}
                   </td>
                   <td className="invoice-summary-spacer" />
                 </tr>
@@ -480,6 +507,9 @@ export function ExpenseInvoiceEditor({
           <button className="add-row-btn" type="button" onClick={handleAddItem}>
             + Add item
           </button>
+          <p className="invoice-accounting-note">
+            Tax and discount are shown on this invoice only; the recorded import amount and stock cost use item quantity × rate.
+          </p>
 
           <footer className="invoice-footer">
             <div>E. &amp; O.E.</div>

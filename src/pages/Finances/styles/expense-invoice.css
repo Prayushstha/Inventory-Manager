@@ -231,6 +231,7 @@
 
 .invoice-edit-field {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   min-width: 0;
@@ -265,6 +266,24 @@
 .invoice-edit-field input:focus,
 .invoice-meta-edit input:focus {
   border-bottom-color: var(--primary);
+}
+
+.expense-invoice-edit [aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.invoice-field-error {
+  display: block;
+  flex: 0 0 100%;
+  color: var(--danger);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.invoice-edit-table-wrap .invoice-field-error {
+  text-align: center;
 }
 
 .invoice-edit-field select {
@@ -309,6 +328,7 @@
 
 .field-inline {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   font-size: 16px;
@@ -347,6 +367,7 @@
 
 .invoice-record-name {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   padding-top: 4px;
@@ -557,6 +578,14 @@
   color: var(--primary);
 }
 
+.invoice-accounting-note {
+  margin-top: 8px;
+  color: var(--muted-foreground);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .invoice-footer {
   display: flex;
   justify-content: space-between;
@@ -630,6 +659,13 @@
   color: var(--foreground);
   font-family: var(--font-sans);
   font-size: 10px;
+}
+
+.invoice-draft-status {
+  margin-left: auto;
+  color: var(--muted-foreground);
+  font-family: var(--font-sans);
+  font-size: 12px;
 }
 
 @media (max-width: 600px) {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/ToastContext";
 import { ExpenseInvoiceEditor } from "./ExpenseInvoiceEditor";
+import { validateInvoiceDraft } from "./expenseInvoiceUtils";
 
 function blankItem() {
   return {
@@ -24,57 +25,109 @@ export function NewImportExpensePage({
   const [invoice, setInvoice] = useState(null);
   const [items, setItems] = useState([blankItem()]);
   const [isSaving, setIsSaving] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [draftReady, setDraftReady] = useState(false);
+  const [baseline, setBaseline] = useState(null);
+  const [initialDate] = useState(date);
+  const [initialExpenseName] = useState(nameOfExpense);
+  const draftValue = JSON.stringify({ date, nameOfExpense, invoice, items });
+  const isDirty = Boolean(baseline && draftValue !== JSON.stringify(baseline));
 
   useEffect(() => {
     let cancelled = false;
-    window.db.getAppSettings()
-      .then((settings) => {
-        if (!cancelled) {
-          setInvoice({
-            buyerName: "",
-            buyerAddress: "",
-            buyerTpin: "",
-            paymentMode: "Cash",
-            discount: "",
-            amountInWords: "",
-            ...(settings.invoiceDefaults || {}),
-          });
-        }
-      })
-      .catch((error) => {
-        console.error("Invoice defaults load failed:", error);
-        if (!cancelled) {
-          showToast(error?.message || "Could not load invoice defaults.", "error");
-          setInvoice({
-            shopName: "",
-            shopAddress: "",
-            shopTelephone: "",
-            invoiceNumber: "",
-            tpinNumber: "",
-            buyerName: "",
-            buyerAddress: "",
-            buyerTpin: "",
-            paymentMode: "Cash",
-            discount: "",
-            amountInWords: "",
-          });
-        }
+    Promise.allSettled([
+      window.db.getAppSettings(),
+      window.db.getNextInvoiceNumber(),
+      window.db.getProducts(),
+    ]).then(([settingsResult, numberResult, productsResult]) => {
+      if (cancelled) return;
+      const defaults = settingsResult.status === "fulfilled"
+        ? settingsResult.value.invoiceDefaults || {}
+        : {};
+      if (settingsResult.status === "rejected") {
+        console.error("Invoice defaults load failed:", settingsResult.reason);
+        showToast(settingsResult.reason?.message || "Could not load invoice defaults.", "error");
+      }
+      if (numberResult.status === "rejected") {
+        console.error("Invoice number suggestion failed:", numberResult.reason);
+        showToast(numberResult.reason?.message || "Could not suggest an invoice number.", "error");
+      }
+      if (productsResult.status === "fulfilled") {
+        setProducts(productsResult.value);
+      } else {
+        console.error("Inventory catalog load failed:", productsResult.reason);
+        showToast(productsResult.reason?.message || "Could not load the inventory catalog.", "error");
+      }
+      const initialInvoice = {
+        buyerName: "",
+        buyerAddress: "",
+        buyerTpin: "",
+        paymentMode: "Cash",
+        discount: "",
+        amountInWords: "",
+        ...defaults,
+        invoiceNumber: numberResult.status === "fulfilled"
+          ? numberResult.value
+          : defaults.invoiceNumber || "",
+      };
+      setBaseline({
+        date: initialDate,
+        nameOfExpense: initialExpenseName,
+        invoice: initialInvoice,
+        items: [blankItem()],
       });
+      let restored = false;
+      try {
+        const draft = JSON.parse(sessionStorage.getItem("stockwise:import-invoice:new") || "null");
+        if (draft?.invoice && Array.isArray(draft.items)) {
+          setInvoice(draft.invoice);
+          setItems(draft.items);
+          if (typeof draft.date === "string") setDate(draft.date);
+          if (typeof draft.nameOfExpense === "string") setNameOfExpense(draft.nameOfExpense);
+          restored = true;
+        }
+      } catch (error) {
+        console.error("Import invoice draft restore failed:", error);
+        showToast(error?.message || "Could not restore the saved invoice draft.", "error");
+      }
+      if (!restored) setInvoice(initialInvoice);
+      setDraftReady(true);
+    });
     return () => { cancelled = true; };
-  }, [showToast]);
+  }, [showToast, initialDate, initialExpenseName, setDate, setNameOfExpense]);
+
+  useEffect(() => {
+    if (!draftReady || !invoice) return;
+    if (!isDirty) {
+      sessionStorage.removeItem("stockwise:import-invoice:new");
+      return;
+    }
+    sessionStorage.setItem(
+      "stockwise:import-invoice:new",
+      draftValue,
+    );
+  }, [date, nameOfExpense, invoice, items, draftReady, isDirty, draftValue]);
 
   async function handleSave() {
     if (isSaving) return;
-    if (!nameOfExpense.trim()) {
-      showToast("Enter a name for this import.", "error");
-      return;
-    }
-    if (items.length === 0) {
-      showToast("Add at least one imported item.", "error");
+    const validationErrors = validateInvoiceDraft({ date, nameOfExpense, invoice, items });
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      showToast("Review the highlighted invoice fields.", "error");
       return;
     }
     setIsSaving(true);
     try {
+      const invoiceNumberAvailable = await window.db.isInvoiceNumberAvailable(invoice.invoiceNumber);
+      if (!invoiceNumberAvailable) {
+        setErrors((current) => ({
+          ...current,
+          invoiceNumber: "This invoice number is already in use.",
+        }));
+        showToast("This invoice number is already in use.", "error");
+        return;
+      }
       await window.db.recordImportExpense(
         { date, nameOfExpense: nameOfExpense.trim(), invoiceData: invoice },
         items,
@@ -94,6 +147,7 @@ export function NewImportExpensePage({
         defaultsSaved = false;
       }
 
+      sessionStorage.removeItem("stockwise:import-invoice:new");
       onSaved?.();
       showToast(
         defaultsSaved
@@ -103,17 +157,34 @@ export function NewImportExpensePage({
       );
     } catch (error) {
       console.error("Import invoice save failed:", error);
+      if (/invoice number is already in use/i.test(error?.message || "")) {
+        setErrors((current) => ({
+          ...current,
+          invoiceNumber: "This invoice number is already in use.",
+        }));
+      }
       showToast(error?.message || "Failed to save import invoice.", "error");
     } finally {
       setIsSaving(false);
     }
   }
 
+  function confirmCancel() {
+    if (isDirty && !window.confirm("Discard your unsaved invoice changes?")) return;
+    sessionStorage.removeItem("stockwise:import-invoice:new");
+    onCancel?.();
+  }
+
+  function confirmLeave() {
+    if (isDirty && !window.confirm("Leave this invoice page? Your draft will be kept.")) return;
+    onCancel?.();
+  }
+
   if (!invoice) {
     return (
       <main className="expense-record-page">
         <div className="expense-record-toolbar">
-          <button className="btn-secondary" type="button" onClick={onCancel}>
+          <button className="btn-secondary" type="button" onClick={confirmLeave}>
             <i className="ti ti-arrow-left" aria-hidden="true" />
             <span>Back to Expenses</span>
           </button>
@@ -134,10 +205,14 @@ export function NewImportExpensePage({
       setDate={setDate}
       items={items}
       setItems={setItems}
+      products={products}
+      errors={errors}
+      setErrors={setErrors}
       isSaving={isSaving}
       onSave={handleSave}
-      onCancel={onCancel}
-      onClose={onCancel}
+      onCancel={confirmCancel}
+      onClose={confirmLeave}
+      isDirty={isDirty}
     />
   );
 }
