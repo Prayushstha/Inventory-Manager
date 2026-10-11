@@ -19,12 +19,12 @@ test("accepts a complete invoice draft", () => {
   assert.deepEqual(validateInvoiceDraft(validInvoice), {});
 });
 
-test("allows a blank HS code and accepts a custom VAT percentage", () => {
+test("allows blank HS codes and bases and accepts a custom VAT percentage", () => {
   assert.deepEqual(
     validateInvoiceDraft({
       ...validInvoice,
       invoice: { ...validInvoice.invoice, vatPercent: "15" },
-      items: [{ ...validInvoice.items[0], base: "" }],
+      items: [{ ...validInvoice.items[0], hsCode: "", base: "" }],
     }),
     {},
   );

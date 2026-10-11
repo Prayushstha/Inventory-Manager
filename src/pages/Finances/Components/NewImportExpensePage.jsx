@@ -6,6 +6,7 @@ import { validateInvoiceDraft } from "./expenseInvoiceUtils";
 function blankItem() {
   return {
     productName: "",
+    hsCode: "",
     base: "",
     bucketSize: "",
     quantity: "",

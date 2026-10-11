@@ -14,6 +14,7 @@ function amountParts(value) {
 function emptyItem() {
   return {
     productName: "",
+    hsCode: "",
     base: "",
     bucketSize: "",
     quantity: "",
@@ -124,7 +125,7 @@ export function ExpenseInvoiceEditor({
 
   function handleAddItem() {
     setItems((current) => [...current, emptyItem()]);
-    setTimeout(() => itemRefs.current[items.length]?.base?.focus(), 0);
+    setTimeout(() => itemRefs.current[items.length]?.productName?.focus(), 0);
   }
 
   function handleRemoveItem(index) {
@@ -185,7 +186,7 @@ export function ExpenseInvoiceEditor({
           ...current.slice(index + 1),
         ];
       });
-      setTimeout(() => itemRefs.current[index + 1]?.base?.focus(), 0);
+      setTimeout(() => itemRefs.current[index + 1]?.productName?.focus(), 0);
     }
 
     const editor = editorRef.current;
@@ -385,6 +386,7 @@ export function ExpenseInvoiceEditor({
                 <col className="invoice-col-sn" />
                 <col className="invoice-col-code" />
                 <col className="invoice-col-particulars" />
+                <col className="invoice-col-base" />
                 <col className="invoice-col-size" />
                 <col className="invoice-col-qty" />
                 <col className="invoice-col-rate" />
@@ -397,6 +399,7 @@ export function ExpenseInvoiceEditor({
                   <th rowSpan="2">S.N.</th>
                   <th rowSpan="2">H.S. Code</th>
                   <th className="left" rowSpan="2">Particulars</th>
+                  <th rowSpan="2">Base</th>
                   <th rowSpan="2">Size</th>
                   <th rowSpan="2">Qty.</th>
                   <th rowSpan="2">Rate</th>
@@ -416,13 +419,8 @@ export function ExpenseInvoiceEditor({
                   return (
                     <tr key={`${details.id}-item-${index}`} data-invoice-item-row={index}>
                       <td className="sn">{index + 1}</td>
-                      <td>
-                        {itemInput(index, "base", "—", "invoice-nav-field", "text", `invoice-bases-${index}`)}
-                        <datalist id={`invoice-bases-${index}`}>
-                          {(productForName(item.productName)?.bases || []).map((base) => (
-                            <option key={base.id ?? base.name} value={base.name} />
-                          ))}
-                        </datalist>
+                      <td className="invoice-hs-code-cell">
+                        {itemInput(index, "hsCode", "—", "invoice-nav-field")}
                       </td>
                       <td className="invoice-particulars">
                         {itemInput(
@@ -436,6 +434,14 @@ export function ExpenseInvoiceEditor({
                         )}
                         <datalist id={`invoice-products-${index}`}>
                           {products.map((product) => <option key={product.id} value={product.name} />)}
+                        </datalist>
+                      </td>
+                      <td>
+                        {itemInput(index, "base", "Optional", "invoice-nav-field", "text", `invoice-bases-${index}`)}
+                        <datalist id={`invoice-bases-${index}`}>
+                          {(productForName(item.productName)?.bases || []).map((base) => (
+                            <option key={base.id ?? base.name} value={base.name} />
+                          ))}
                         </datalist>
                       </td>
                       <td>
@@ -466,7 +472,7 @@ export function ExpenseInvoiceEditor({
               </tbody>
               <tbody className="invoice-summary">
                 <tr className="summary-row">
-                  <td colSpan="4" rowSpan="5" className="invoice-words-cell">
+                  <td colSpan="5" rowSpan="5" className="invoice-words-cell">
                     <label htmlFor="invoice-words">Rupees in words</label>
                     <input
                       id="invoice-words"

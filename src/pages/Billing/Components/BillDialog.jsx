@@ -12,6 +12,7 @@ import { getTodayGregorianISO } from "../../../utils/nepaliDate";
 function normalizeProduct(p) {
   return {
     productName: p.productName ?? p.product_name ?? "",
+    hsCode: p.hsCode ?? p.hs_code ?? "",
     base: p.base ?? "",
     bucketSize: p.bucketSize ?? p.bucket_size ?? "",
     quantity: p.quantity ?? 0,
@@ -376,6 +377,7 @@ export function BillDialog({
       ...current,
       products: nextItems.map((item) => ({
         productName: item.productName,
+        hsCode: item.hsCode,
         base: item.base,
         bucketSize: item.bucketSize,
         quantity: item.quantity,
@@ -402,6 +404,7 @@ export function BillDialog({
           setDate={(date) => setForm((current) => ({ ...current, date }))}
           items={form.products.map((item) => ({
             productName: item.productName,
+            hsCode: item.hsCode,
             base: item.base,
             bucketSize: item.bucketSize,
             quantity: item.quantity,

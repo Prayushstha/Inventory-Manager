@@ -18,6 +18,7 @@ function formatInvoiceAmountParts(value) {
 
 const emptyItem = {
   productName: "",
+  hsCode: "",
   base: "",
   bucketSize: "",
   quantity: "",
@@ -232,11 +233,23 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
           </section>
 
           <table className="invoice-items">
+            <colgroup>
+              <col className="invoice-col-sn" />
+              <col className="invoice-col-code" />
+              <col className="invoice-col-particulars" />
+              <col className="invoice-col-base" />
+              <col className="invoice-col-size" />
+              <col className="invoice-col-qty" />
+              <col className="invoice-col-rate" />
+              <col className="invoice-col-amount" />
+              <col className="invoice-col-paisa" />
+            </colgroup>
             <thead>
               <tr>
                 <th rowSpan="2">S.N.</th>
                 <th rowSpan="2">H.S. Code</th>
                 <th rowSpan="2">Particulars</th>
+                <th rowSpan="2">Base</th>
                 <th rowSpan="2">Size</th>
                 <th rowSpan="2">Qty.</th>
                 <th rowSpan="2">Rate</th>
@@ -259,8 +272,11 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
                 return (
                   <tr key={item ? `${item.productName}-${index}` : `empty-${index}`}>
                     <td>{index + 1}</td>
-                    <td>{displayText(item?.base)}</td>
+                    <td className="invoice-hs-code-cell">
+                      {String(item?.hsCode ?? "").trim() || "—"}
+                    </td>
                     <td>{displayText(item?.productName)}</td>
+                    <td>{displayText(item?.base)}</td>
                     <td>{formatInvoiceNumber(item?.bucketSize)}</td>
                     <td>{formatInvoiceNumber(quantity)}</td>
                     <td>{formatInvoiceNumber(rate)}</td>
