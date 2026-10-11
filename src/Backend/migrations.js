@@ -135,6 +135,19 @@ const migrations = [
       }
     },
   },
+  {
+    version: 4,
+    up(db) {
+      const tableExists = db.prepare(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'customers'",
+      ).get();
+      if (!tableExists) return;
+      const customerColumns = db.prepare("PRAGMA table_info(customers)").all();
+      if (!customerColumns.some((column) => column.name === "notes")) {
+        db.exec("ALTER TABLE customers ADD COLUMN notes TEXT");
+      }
+    },
+  },
 ];
 
 export function migrateDatabase(db) {

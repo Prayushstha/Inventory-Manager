@@ -494,6 +494,21 @@ export function BillDialog({
           <h2 className="dialog-title">
             {isNew ? "New Bill" : `Bill — ${bill.name}`}
           </h2>
+           <div className="field">
+                <label htmlFor="bill-type">Bill Type</label>
+                <select
+                  id="bill-type"
+                  value={form.billType}
+                  disabled={locked}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, billType: event.target.value }))
+                  }
+                >
+                  <option value="default">Default bill</option>
+                  <option value="pan">PAN bill</option>
+                  <option value="vat">VAT bill</option>
+                </select>
+              </div>
           {!asPage && (
             <button className="dialog-close" onClick={onClose}>
               ✕
@@ -505,6 +520,37 @@ export function BillDialog({
           <section className="dialog-section">
             <p className="section-label">Customer Information</p>
             <div className="field-grid">
+             
+              {form.billType === "pan" && (
+                <>
+                  <div className="field">
+                    <label htmlFor="bill-pan-number">PAN Number</label>
+                    <input
+                      id="bill-pan-number"
+                      type="text"
+                      value={form.panNumber || ""}
+                      onChange={(event) =>
+                        setForm((current) => ({ ...current, panNumber: event.target.value }))
+                      }
+                      disabled={locked}
+                      placeholder="PAN number"
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="bill-reference-number">Bill Number</label>
+                    <input
+                      id="bill-reference-number"
+                      type="text"
+                      value={form.billNumber || ""}
+                      onChange={(event) =>
+                        setForm((current) => ({ ...current, billNumber: event.target.value }))
+                      }
+                      disabled={locked}
+                      placeholder="Bill number"
+                    />
+                  </div>
+                </>
+              )}
               <div className="field">
                 <label>Customer Name</label>
                 <input
@@ -556,51 +602,6 @@ export function BillDialog({
                   <option>Credit</option>
                 </select>
               </div>
-              <div className="field">
-                <label htmlFor="bill-type">Bill Type</label>
-                <select
-                  id="bill-type"
-                  value={form.billType}
-                  disabled={locked}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, billType: event.target.value }))
-                  }
-                >
-                  <option value="default">Default bill</option>
-                  <option value="pan">PAN bill</option>
-                  <option value="vat">VAT bill</option>
-                </select>
-              </div>
-              {form.billType === "pan" && (
-                <>
-                  <div className="field">
-                    <label htmlFor="bill-pan-number">PAN Number</label>
-                    <input
-                      id="bill-pan-number"
-                      type="text"
-                      value={form.panNumber || ""}
-                      onChange={(event) =>
-                        setForm((current) => ({ ...current, panNumber: event.target.value }))
-                      }
-                      disabled={locked}
-                      placeholder="PAN number"
-                    />
-                  </div>
-                  <div className="field">
-                    <label htmlFor="bill-reference-number">Bill Number</label>
-                    <input
-                      id="bill-reference-number"
-                      type="text"
-                      value={form.billNumber || ""}
-                      onChange={(event) =>
-                        setForm((current) => ({ ...current, billNumber: event.target.value }))
-                      }
-                      disabled={locked}
-                      placeholder="Bill number"
-                    />
-                  </div>
-                </>
-              )}
               <div className="field field-full">
                 <label htmlFor="bill-customer-notes">Customer Notes</label>
                 <textarea

@@ -7,8 +7,8 @@ test("migrates a fresh database once and records its schema version", () => {
   const db = new Database(":memory:");
 
   try {
-    assert.equal(migrateDatabase(db), 3);
-    assert.equal(db.pragma("user_version", { simple: true }), 3);
+    assert.equal(migrateDatabase(db), 4);
+    assert.equal(db.pragma("user_version", { simple: true }), 4);
     assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE name = 'products'").get());
     assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE name = 'expenses'").get());
     assert.ok(
@@ -25,7 +25,7 @@ test("migrates a fresh database once and records its schema version", () => {
     for (const column of ["bill_type", "pan_number", "bill_number", "invoice_data"]) {
       assert.ok(billColumns.some((row) => row.name === column));
     }
-    assert.equal(migrateDatabase(db), 3);
+    assert.equal(migrateDatabase(db), 4);
   } finally {
     db.close();
   }
@@ -49,7 +49,7 @@ test("upgrades a legacy bill_items table without losing its rows", () => {
       VALUES (7, 'Tea', 2, 12.5);
     `);
 
-    assert.equal(migrateDatabase(db), 3);
+    assert.equal(migrateDatabase(db), 4);
     assert.deepEqual(
       db.prepare("SELECT bill_id, product_name, quantity, price_at_sale, cost_price FROM bill_items").get(),
       {
@@ -82,7 +82,7 @@ test("adds invoice metadata to an existing version 1 expenses table", () => {
       PRAGMA user_version = 1;
     `);
 
-    assert.equal(migrateDatabase(db), 3);
+    assert.equal(migrateDatabase(db), 4);
     assert.deepEqual(
       db.prepare("SELECT date, label, amount, type, invoice_data FROM expenses").get(),
       {
@@ -118,10 +118,29 @@ test("adds bill type and tax invoice fields to existing bills", () => {
       PRAGMA user_version = 2;
     `);
 
-    assert.equal(migrateDatabase(db), 3);
+    assert.equal(migrateDatabase(db), 4);
     assert.deepEqual(
       db.prepare("SELECT bill_type, pan_number, bill_number, invoice_data FROM bills WHERE id = 1").get(),
       { bill_type: "default", pan_number: null, bill_number: null, invoice_data: null },
+    );
+  } finally {
+    db.close();
+  }
+});
+
+test("adds customer notes to a version 3 database without losing customer data", () => {
+  const db = new Database(":memory:");
+
+  try {
+    migrateDatabase(db);
+    db.prepare("INSERT INTO customers (name) VALUES (?)").run("Existing customer");
+    db.exec("ALTER TABLE customers DROP COLUMN notes");
+    db.pragma("user_version = 3");
+
+    assert.equal(migrateDatabase(db), 4);
+    assert.deepEqual(
+      db.prepare("SELECT name, notes FROM customers").get(),
+      { name: "Existing customer", notes: null },
     );
   } finally {
     db.close();
