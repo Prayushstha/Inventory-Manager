@@ -64,6 +64,86 @@
   outline-offset: 2px;
 }
 
+.settings-field input,
+.settings-path input {
+  min-height: 40px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--background-secondary);
+  color: var(--color-primary);
+  font: inherit;
+}
+
+.settings-field input:focus-visible,
+.settings-path input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.settings-export-options {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.settings-export-options legend {
+  margin-bottom: 8px;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.settings-export-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.settings-export-option input {
+  margin-top: 3px;
+  accent-color: var(--primary);
+}
+
+.settings-export-option span {
+  display: grid;
+  gap: 2px;
+}
+
+.settings-export-option small {
+  color: var(--color-muted);
+  font-size: 0.8rem;
+}
+
+.settings-export-progress {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 18px;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+.settings-progress-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: settings-export-spin 0.8s linear infinite;
+}
+
+@keyframes settings-export-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .settings-path-row {
   display: flex;
   flex-wrap: wrap;

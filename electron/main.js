@@ -42,6 +42,7 @@ import {
   getTopProducts,
   getTopCustomers,
   backupDatabase,
+  exportDatabase,
   restoreDatabase,
   saveInventoryProductChanges,
   addCustomerBill,
@@ -213,6 +214,20 @@ app.whenReady().then(() => {
     }, 1000);
     return restoreResult;
   });
+  ipcMain.handle("settings:pickExportDirectory", async (event) => {
+    const result = await dialog.showOpenDialog(
+      BrowserWindow.fromWebContents(event.sender),
+      {
+        title: "Choose StockWise Export Folder",
+        properties: ["openDirectory", "createDirectory"],
+      },
+    );
+    if (result.canceled || result.filePaths.length === 0) return null;
+    return result.filePaths[0];
+  });
+  ipcMain.handle("settings:exportData", (_, destinationPath, selections) =>
+    exportDatabase(destinationPath, selections, app.getVersion()),
+  );
   ipcMain.handle("settings:get", () => getAppSettings());
   ipcMain.handle("settings:createProfile", (_, username, password) =>
     createProfile(username, password),

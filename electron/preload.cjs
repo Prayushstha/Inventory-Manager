@@ -25,6 +25,9 @@ contextBridge.exposeInMainWorld("db", {
     ipcRenderer.invoke("db:resolveImagePath", relativePath),
   createBackup: () => ipcRenderer.invoke("db:createBackup"),
   restoreBackup: () => ipcRenderer.invoke("db:restoreBackup"),
+  pickExportDirectory: () => ipcRenderer.invoke("settings:pickExportDirectory"),
+  exportData: (destinationPath, selections) =>
+    ipcRenderer.invoke("settings:exportData", destinationPath, selections),
   getBaseByName: (productId, baseName) =>
     ipcRenderer.invoke("db:getBaseByName", productId, baseName),
   addCustomer: (customer) => ipcRenderer.invoke("db:addCustomer", customer),

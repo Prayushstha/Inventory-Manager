@@ -8,13 +8,16 @@
     "dev": "vite",
     "build": "vite build",
     "build:exe": "vite build && electron-builder",
+    "postinstall": "electron-rebuild -f -w better-sqlite3",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "archiver": "^8.0.0",
     "better-sqlite3": "^12.4.1",
     "nepali-date-converter": "^3.4.0",
     "ngrok": "^5.0.0-beta.2",
+    "pdfkit": "^0.20.2",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router": "^7.18.0",

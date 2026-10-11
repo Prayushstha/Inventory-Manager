@@ -43,6 +43,7 @@ import {
   createDatabaseBackup,
   stageDatabaseRestore,
 } from "./databaseBackup.js";
+import { exportData as createDataExport } from "./dataExport.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const appConfigPath = path.join(app.getPath("userData"), "settings.json");
 let appConfig = loadAppConfig(appConfigPath);
@@ -87,6 +88,10 @@ function publicProfile(profile) {
 
 export function backupDatabase(destinationPath) {
   return createDatabaseBackup(db, destinationPath);
+}
+
+export function exportDatabase(destinationPath, selections, appVersion) {
+  return createDataExport(db, destinationPath, selections, appVersion);
 }
 
 export function saveInventoryProductChanges(product) {
