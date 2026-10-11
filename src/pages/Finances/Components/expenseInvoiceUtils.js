@@ -24,8 +24,6 @@ export function validateInvoiceDraft({ date, nameOfExpense, invoice = {}, items 
   } else {
     safeItems.forEach((item, index) => {
       if (!String(item.productName ?? "").trim()) errors.items[index].productName = "Description is required.";
-      if (!String(item.base ?? "").trim()) errors.items[index].base = "HS code/base is required.";
-
       const size = Number(item.bucketSize);
       const quantity = Number(item.quantity);
       const cost = Number(item.costPrice);
@@ -45,6 +43,15 @@ export function validateInvoiceDraft({ date, nameOfExpense, invoice = {}, items 
     (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.costPrice) || 0),
     0,
   );
+  const vatPercent = Number(invoice.vatPercent ?? 13);
+  if (
+    !String(invoice.vatPercent ?? "13").trim() ||
+    !Number.isFinite(vatPercent) ||
+    vatPercent < 0 ||
+    vatPercent > 100
+  ) {
+    errors.vatPercent = "VAT percentage must be between 0 and 100.";
+  }
   const discount = Number(invoice.discount);
   if (String(invoice.discount ?? "").trim() && (!Number.isFinite(discount) || discount < 0)) {
     errors.discount = "Discount must be a non-negative amount.";

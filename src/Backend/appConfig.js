@@ -15,6 +15,7 @@ export function defaultInvoiceDefaults() {
     shopTelephone: "",
     invoiceNumber: "",
     tpinNumber: "",
+    vatPercent: "13",
   };
 }
 
@@ -57,11 +58,15 @@ function validateAppConfig(config) {
 
   const defaults = defaultInvoiceDefaults();
   for (const key of Object.keys(defaults)) {
-    const value = invoiceDefaults[key] ?? "";
+    const value = invoiceDefaults[key] ?? defaults[key];
     if (typeof value !== "string") {
       throw new Error(`Invoice default "${key}" must be text.`);
     }
     defaults[key] = value.trim();
+  }
+  const vatPercent = Number(defaults.vatPercent);
+  if (!defaults.vatPercent.trim() || !Number.isFinite(vatPercent) || vatPercent < 0 || vatPercent > 100) {
+    throw new Error("Default VAT percentage must be between 0 and 100.");
   }
 
   const inventoryAddItemMode = config.inventoryAddItemMode ?? null;

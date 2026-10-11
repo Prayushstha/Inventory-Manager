@@ -51,6 +51,8 @@ export function ExpenseInvoiceEditor({
   billTypeControl,
   extraControls,
   backLabel = "Back to Expenses",
+  showBackButton = true,
+  compactToolbar = false,
 }) {
   const itemRefs = useRef([]);
   const editorRef = useRef(null);
@@ -59,8 +61,9 @@ export function ExpenseInvoiceEditor({
     0,
   );
   const discount = Math.max(0, Number(invoice.discount) || 0);
+  const vatPercent = Number(invoice.vatPercent ?? 13);
   const taxableAmount = Math.max(0, amount - discount);
-  const tax = taxableAmount * 0.13;
+  const tax = taxableAmount * vatPercent / 100;
   const grandTotal = taxableAmount + tax;
 
   function setInvoiceValue(key, value) {
@@ -258,23 +261,33 @@ export function ExpenseInvoiceEditor({
 
   return (
     <main className="expense-record-page" ref={editorRef}>
-      <div className="expense-record-toolbar">
-        <button className="btn-secondary" type="button" onClick={onClose}>
-          <i className="ti ti-arrow-left" aria-hidden="true" />
-          <span>{backLabel}</span>
-        </button>
-        <span className="invoice-shortcut-hint">
-          <kbd>Ctrl</kbd>+<kbd>S</kbd> Save <span>·</span>
-          <kbd>Shift</kbd>+<kbd>Enter</kbd> Add item <span>·</span>
-          <kbd>Ctrl</kbd>+<kbd>D</kbd> Duplicate row <span>·</span>
-          <kbd>Esc</kbd> Cancel
-        </span>
-        {billTypeControl}
-        {isDirty && <span className="invoice-draft-status" role="status">Draft saved locally</span>}
-      </div>
+      {!compactToolbar && (
+        <div className={`expense-record-toolbar${showBackButton ? "" : " invoice-toolbar-no-back"}`}>
+          {showBackButton && (
+            <button className="btn-secondary" type="button" onClick={onClose}>
+              <i className="ti ti-arrow-left" aria-hidden="true" />
+              <span>{backLabel}</span>
+            </button>
+          )}
+          <span className="invoice-shortcut-hint">
+            <kbd>Ctrl</kbd>+<kbd>S</kbd> Save <span>·</span>
+            <kbd>Shift</kbd>+<kbd>Enter</kbd> Add item <span>·</span>
+            <kbd>Ctrl</kbd>+<kbd>D</kbd> Duplicate row <span>·</span>
+            <kbd>Esc</kbd> Cancel
+          </span>
+          {billTypeControl}
+          {isDirty && <span className="invoice-draft-status" role="status">Draft saved locally</span>}
+        </div>
+      )}
 
       <article className="expense-invoice expense-invoice-edit">
-        <div className="invoice-edit-topbar">TAX INVOICE</div>
+        <div className={`invoice-edit-topbar${compactToolbar ? " invoice-edit-topbar-compact" : ""}`}>
+          <span>TAX INVOICE</span>
+          {compactToolbar && billTypeControl}
+          {compactToolbar && isDirty && (
+            <span className="invoice-draft-status" role="status">Draft saved locally</span>
+          )}
+        </div>
         <header className="invoice-heading invoice-edit-heading">
           {invoiceField("shopName", "Business name", "Shop name", "invoice-shop-name")}
           <div className="invoice-shop-sub">
@@ -497,7 +510,21 @@ export function ExpenseInvoiceEditor({
                   <td className="invoice-summary-spacer" />
                 </tr>
                 <tr className="summary-row">
-                  <td className="summary-label" colSpan="2">13% Tax</td>
+                  <td className="summary-label invoice-vat-rate-cell" colSpan="2">
+                    <label htmlFor="invoice-vat-percent">VAT %</label>
+                    <input
+                      id="invoice-vat-percent"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="any"
+                      className="invoice-nav-field"
+                      value={invoice.vatPercent ?? "13"}
+                      aria-invalid={Boolean(errors.vatPercent)}
+                      onChange={(event) => setInvoiceValue("vatPercent", event.target.value)}
+                    />
+                    {errors.vatPercent && <small className="invoice-field-error">{errors.vatPercent}</small>}
+                  </td>
                   <td className="summary-value readonly" colSpan="2">{formatInvoiceNumber(tax)}</td>
                   <td className="invoice-summary-spacer" />
                 </tr>

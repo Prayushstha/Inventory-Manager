@@ -5,12 +5,23 @@
   background: var(--background-primary);
 }
 
+.bill-vat-page-shell .expense-record-page {
+  padding-top: 15px;
+}
+
 .expense-record-toolbar {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
   max-width: 1050px;
   margin: 0 auto 16px;
+}
+
+.expense-record-toolbar.invoice-toolbar-no-back {
+  justify-content: flex-end;
+  min-height: 36px;
 }
 
 .expense-record-toolbar .btn-secondary,
@@ -33,6 +44,7 @@
   font-family: var(--font-sans);
   font-size: 15px;
   box-shadow: var(--shadow-md);
+  
 }
 
 .invoice-heading {
@@ -222,9 +234,46 @@
   letter-spacing: 0.18em;
 }
 
+.invoice-edit-topbar-compact {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 12px;
+  letter-spacing: normal;
+}
+
+.invoice-edit-topbar-compact > span:first-child {
+  flex: 1;
+  text-align: center;
+  letter-spacing: 0.18em;
+}
+
+.invoice-edit-topbar-compact .invoice-bill-type-control {
+  color: var(--secondary-foreground);
+}
+
+.invoice-edit-topbar-compact .invoice-bill-type-control select {
+  min-height: 28px;
+  padding: 3px 8px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: normal;
+}
+
+.invoice-edit-topbar-compact .invoice-draft-status {
+  flex: 1;
+  color: inherit;
+  text-align: right;
+}
+
 .invoice-edit-heading {
   gap: 8px;
-  padding: 28px 38px 24px;
+  padding: 12px 38px 10px;
   border-bottom: 2px solid var(--border);
   text-align: left;
 }
@@ -293,13 +342,13 @@
 }
 
 .invoice-shop-name input {
-  font-size: 32px;
+  font-size: 26px;
   font-weight: 700;
 }
 
 .invoice-shop-sub {
   display: grid;
-  gap: 4px;
+  gap: 0;
 }
 
 .invoice-shop-sub .invoice-edit-field {
@@ -308,6 +357,30 @@
 
 .invoice-shop-sub .invoice-edit-field label {
   min-width: 100px;
+}
+
+.invoice-shop-sub .invoice-edit-field input {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.invoice-vat-rate-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.invoice-vat-rate-cell input {
+  width: 58px;
+  min-width: 0;
+  padding: 2px 4px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--card);
+  color: var(--foreground);
+  font: inherit;
+  text-align: center;
 }
 
 .invoice-edit-body {

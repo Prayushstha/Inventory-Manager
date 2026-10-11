@@ -131,8 +131,6 @@ export function validateBillPayload(customerId, bill) {
     const priceAtSale = parseRequiredNumber(item?.priceAtSale ?? item?.price_at_sale ?? 0, `Item ${index + 1} price`, { min: 0 });
 
     assert(productName.length > 0, `Item ${index + 1} product name is required.`);
-    assert(base.length > 0, `Item ${index + 1} base is required.`);
-
     computedTotal += quantity * priceAtSale;
 
     return {
@@ -154,10 +152,23 @@ export function validateBillPayload(customerId, bill) {
     const discount = parseRequiredNumber(invoiceData.discount ?? 0, "Invoice discount", { min: 0 });
     assert(discount <= computedTotal, "Invoice discount cannot exceed the item subtotal.");
     const taxableAmount = computedTotal - discount;
-    const tax = parseRequiredNumber(invoiceData.tax ?? taxableAmount * 0.13, "VAT amount", { min: 0 });
-    assert(Math.abs(tax - taxableAmount * 0.13) < 0.01, "VAT must equal 13% of the taxable amount.");
+    assert(
+      normalizeText(invoiceData.vatPercent ?? "13").length > 0,
+      "VAT percentage is required.",
+    );
+    const vatPercent = parseRequiredNumber(invoiceData.vatPercent ?? 13, "VAT percentage", { min: 0 });
+    assert(vatPercent <= 100, "VAT percentage cannot exceed 100.");
+    const tax = parseRequiredNumber(
+      invoiceData.tax ?? taxableAmount * vatPercent / 100,
+      "VAT amount",
+      { min: 0 },
+    );
+    assert(
+      Math.abs(tax - taxableAmount * vatPercent / 100) < 0.01,
+      `VAT must equal ${vatPercent}% of the taxable amount.`,
+    );
     expectedTotal = taxableAmount + tax;
-    invoiceData = { ...invoiceData, discount, tax, taxableAmount };
+    invoiceData = { ...invoiceData, discount, vatPercent, tax, taxableAmount };
   }
   assert(Math.abs(expectedTotal - totalPurchased) < 0.01, "Bill total does not match its items and applicable tax/discount.");
   assert(
@@ -218,8 +229,6 @@ export function validateImportItems(items) {
     const costPrice = parseRequiredNumber(item?.costPrice ?? item?.cost_price ?? 0, `Item ${index + 1} cost price`, { min: 0 });
 
     assert(productName.length > 0, `Item ${index + 1} product name is required.`);
-    assert(base.length > 0, `Item ${index + 1} base is required.`);
-
     return {
       ...item,
       productName,

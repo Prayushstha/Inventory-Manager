@@ -106,6 +106,7 @@ protocol.registerSchemesAsPrivileged([
   },
 ]);
 app.whenReady().then(() => {
+  Menu.setApplicationMenu(null);
   protocol.handle("app-image", (request) => {
     try {
       const url = new URL(request.url);

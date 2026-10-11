@@ -87,6 +87,7 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
           shopTelephone: "",
           invoiceNumber: "",
           tpinNumber: "",
+          vatPercent: "13",
           buyerName: "",
           buyerAddress: "",
           buyerTpin: "",
@@ -177,9 +178,10 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
     const savedInvoice = details.invoiceData || {};
     const seller = { ...invoiceDefaults, ...savedInvoice };
     const invoiceDiscount = Math.max(0, Number(savedInvoice.discount) || 0);
+    const vatPercent = Number(savedInvoice.vatPercent ?? 13);
     const invoiceAmount = isImport ? importTotal : Number(details.amountOfExpense) || 0;
     const taxableAmount = Math.max(0, invoiceAmount - invoiceDiscount);
-    const invoiceTax = taxableAmount * 0.13;
+    const invoiceTax = taxableAmount * vatPercent / 100;
     const invoiceTotal = taxableAmount + invoiceTax;
 
     return (
@@ -279,7 +281,7 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
               <p><span>Amount</span><strong>{formatInvoiceNumber(invoiceAmount)}</strong></p>
               <p><span>Discount</span><strong>{formatInvoiceNumber(invoiceDiscount)}</strong></p>
               <p><span>Taxable Amount</span><strong>{formatInvoiceNumber(taxableAmount)}</strong></p>
-              <p><span>13% Tax</span><strong>{formatInvoiceNumber(invoiceTax)}</strong></p>
+              <p><span>{vatPercent}% Tax</span><strong>{formatInvoiceNumber(invoiceTax)}</strong></p>
               <p className="invoice-grand-total">
                 <span>Grand Total</span><strong>{formatInvoiceNumber(invoiceTotal)}</strong>
               </p>
@@ -336,6 +338,7 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
             shopTelephone: invoice.shopTelephone,
             invoiceNumber: invoice.invoiceNumber,
             tpinNumber: invoice.tpinNumber,
+            vatPercent: invoice.vatPercent ?? "13",
           });
         } catch (error) {
           console.error("Invoice defaults update failed:", error);
@@ -361,6 +364,7 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
           shopTelephone: invoice.shopTelephone,
           invoiceNumber: invoice.invoiceNumber,
           tpinNumber: invoice.tpinNumber,
+          vatPercent: invoice.vatPercent ?? "13",
         });
         onSaved?.();
         showToast(
@@ -392,6 +396,7 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
         shopTelephone: "",
         invoiceNumber: "",
         tpinNumber: "",
+        vatPercent: "13",
         buyerName: "",
         buyerAddress: "",
         buyerTpin: "",

@@ -37,6 +37,7 @@ test("loads defaults and persists validated settings", () => {
       shopTelephone: "01-5550101",
       invoiceNumber: "INV-01",
       tpinNumber: "123456789",
+      vatPercent: "15",
     };
     const updatedConfig = saveAppConfig(configPath, {
       ...loadAppConfig(configPath),
@@ -57,6 +58,7 @@ test("loads defaults and persists validated settings", () => {
       shopTelephone: "",
       invoiceNumber: "",
       tpinNumber: "",
+      vatPercent: "13",
     });
   } finally {
     fs.rmSync(directory, { recursive: true, force: true });
@@ -77,6 +79,10 @@ test("rejects malformed settings and unsupported payment defaults", () => {
     assert.throws(
       () => saveAppConfig(configPath, { invoiceDefaults: { shopName: 42 } }),
       /Invoice default "shopName" must be text/,
+    );
+    assert.throws(
+      () => saveAppConfig(configPath, { invoiceDefaults: { vatPercent: "101" } }),
+      /Default VAT percentage must be between 0 and 100/,
     );
     assert.throws(
       () => saveAppConfig(configPath, { inventoryAddItemMode: "unknown" }),

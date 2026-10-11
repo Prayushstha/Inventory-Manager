@@ -67,6 +67,7 @@ export function NewImportExpensePage({
         buyerTpin: "",
         paymentMode: "Cash",
         discount: "",
+        vatPercent: "13",
         amountInWords: "",
         ...defaults,
         invoiceNumber: numberResult.status === "fulfilled"
@@ -143,6 +144,7 @@ export function NewImportExpensePage({
           shopTelephone: invoice.shopTelephone,
           invoiceNumber: invoice.invoiceNumber,
           tpinNumber: invoice.tpinNumber,
+          vatPercent: invoice.vatPercent ?? "13",
         });
       } catch (error) {
         console.error("Invoice defaults update failed:", error);

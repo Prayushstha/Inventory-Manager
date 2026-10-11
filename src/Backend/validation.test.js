@@ -73,6 +73,20 @@ test("validateBillPayload includes VAT and discount in VAT bill total", () => {
     }),
     /items and applicable tax\/discount/,
   );
+
+  const customRate = validateBillPayload(1, {
+    date: "2026-10-10",
+    billType: "vat",
+    totalPurchased: 20.7,
+    amountPaid: 0,
+    amountDue: 20.7,
+    invoiceData: { discount: 2, vatPercent: 15, tax: 2.7 },
+    products: [
+      { productName: "Tea", base: "A", bucketSize: 1, quantity: 2, priceAtSale: 10 },
+    ],
+  });
+  assert.equal(customRate.invoiceData.vatPercent, 15);
+  assert.equal(customRate.invoiceData.tax, 2.7);
 });
 
 test("validateExpensePayload accepts valid data and rejects invalid type", () => {
@@ -91,6 +105,7 @@ test("validateImportItems enforces required item fields", () => {
   const items = [{ productName: "Rice", base: "Bag", bucketSize: 5, quantity: 10, costPrice: 40 }];
   const result = validateImportItems(items);
   assert.equal(result[0].quantity, 10);
+  assert.equal(validateImportItems([{ ...items[0], base: "" }])[0].base, "");
 
   assert.throws(() => validateImportItems([]), /At least one import item is required/);
 });

@@ -52,6 +52,7 @@ export function BillDialog({
     buyerTpin: "",
     paymentMode: bill.paymentMethod || "Cash",
     discount: "",
+    vatPercent: bill.invoiceDefaults?.vatPercent ?? "13",
     amountInWords: "",
     ...(bill.invoiceData || {}),
   }));
@@ -77,8 +78,9 @@ export function BillDialog({
     0,
   );
   const vatDiscount = Math.max(0, Number(invoice.discount) || 0);
+  const vatPercent = Number(invoice.vatPercent ?? 13);
   const vatTaxableAmount = Math.max(0, totalPurchased - vatDiscount);
-  const vatAmount = vatTaxableAmount * 0.13;
+  const vatAmount = vatTaxableAmount * vatPercent / 100;
   const billTotal = form.billType === "vat"
     ? vatTaxableAmount + vatAmount
     : totalPurchased;
@@ -202,6 +204,7 @@ export function BillDialog({
           discount: vatDiscount,
           tax: vatAmount,
           taxableAmount: vatTaxableAmount,
+          vatPercent,
         }
       : null;
     const billPayload = {
@@ -245,6 +248,7 @@ export function BillDialog({
             shopTelephone: invoice.shopTelephone || "",
             invoiceNumber: invoice.invoiceNumber || "",
             tpinNumber: invoice.tpinNumber || "",
+            vatPercent: invoice.vatPercent ?? "13",
           });
         } catch (error) {
           console.error("VAT invoice defaults update failed:", error);
@@ -410,6 +414,8 @@ export function BillDialog({
           onClose={onClose}
           recordLabel="Buyer’s name"
           backLabel="Back to Bills"
+          showBackButton={false}
+          compactToolbar
           accountingNote={false}
           enableShortcuts
           errors={invoiceErrors}

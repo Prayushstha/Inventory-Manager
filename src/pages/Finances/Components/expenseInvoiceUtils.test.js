@@ -19,6 +19,24 @@ test("accepts a complete invoice draft", () => {
   assert.deepEqual(validateInvoiceDraft(validInvoice), {});
 });
 
+test("allows a blank HS code and accepts a custom VAT percentage", () => {
+  assert.deepEqual(
+    validateInvoiceDraft({
+      ...validInvoice,
+      invoice: { ...validInvoice.invoice, vatPercent: "15" },
+      items: [{ ...validInvoice.items[0], base: "" }],
+    }),
+    {},
+  );
+  assert.equal(
+    validateInvoiceDraft({
+      ...validInvoice,
+      invoice: { ...validInvoice.invoice, vatPercent: "101" },
+    }).vatPercent,
+    "VAT percentage must be between 0 and 100.",
+  );
+});
+
 test("returns field-level validation errors for incomplete and invalid values", () => {
   assert.deepEqual(
     validateInvoiceDraft({

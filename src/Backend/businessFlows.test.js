@@ -237,6 +237,26 @@ test("imports expenses, creates stock records, and accumulates repeat imports", 
   }
 });
 
+test("imports items when the HS code is blank", () => {
+  const db = createDatabase();
+
+  try {
+    const { id } = recordImportExpense(
+      db,
+      { date: "2026-10-10", nameOfExpense: "Uncoded shipment" },
+      [{ productName: "Tea", base: "", bucketSize: 1, quantity: 2, costPrice: 10 }],
+    );
+
+    assert.equal(
+      db.prepare("SELECT base FROM expense_items WHERE expense_id = ?").get(id).base,
+      "",
+    );
+    assert.equal(db.prepare("SELECT stock FROM base_stock").get().stock, 2);
+  } finally {
+    db.close();
+  }
+});
+
 test("rolls back imported expense, item, and stock changes when item insertion fails", () => {
   const db = createDatabase();
 
