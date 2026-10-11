@@ -114,6 +114,8 @@ export function validateBillPayload(customerId, bill) {
   const date = normalizeText(bill.date);
   assert(date.length > 0, "Bill date is required.");
 
+  const billType = normalizeText(bill.billType ?? bill.bill_type ?? "default").toLowerCase();
+  assert(["default", "pan", "vat"].includes(billType), "Bill type must be Default, PAN, or VAT.");
   const totalPurchased = parseRequiredNumber(bill.totalPurchased, "Total purchased", { min: 0 });
   const amountPaid = parseRequiredNumber(bill.amountPaid, "Amount paid", { min: 0 });
   const amountDue = parseRequiredNumber(bill.amountDue, "Amount due", { min: 0 });
@@ -143,7 +145,21 @@ export function validateBillPayload(customerId, bill) {
     };
   });
 
-  assert(Math.abs(computedTotal - totalPurchased) < 0.01, "Bill total does not match the sum of item prices.");
+  let expectedTotal = computedTotal;
+  let invoiceData = null;
+  if (billType === "vat") {
+    invoiceData = bill.invoiceData && typeof bill.invoiceData === "object"
+      ? bill.invoiceData
+      : {};
+    const discount = parseRequiredNumber(invoiceData.discount ?? 0, "Invoice discount", { min: 0 });
+    assert(discount <= computedTotal, "Invoice discount cannot exceed the item subtotal.");
+    const taxableAmount = computedTotal - discount;
+    const tax = parseRequiredNumber(invoiceData.tax ?? taxableAmount * 0.13, "VAT amount", { min: 0 });
+    assert(Math.abs(tax - taxableAmount * 0.13) < 0.01, "VAT must equal 13% of the taxable amount.");
+    expectedTotal = taxableAmount + tax;
+    invoiceData = { ...invoiceData, discount, tax, taxableAmount };
+  }
+  assert(Math.abs(expectedTotal - totalPurchased) < 0.01, "Bill total does not match its items and applicable tax/discount.");
   assert(
     Math.abs(amountPaid + amountDue - totalPurchased) < 0.01,
     "Bill payment values must add up to the total purchased.",
@@ -158,6 +174,10 @@ export function validateBillPayload(customerId, bill) {
     status: normalizeText(bill.status, "Open"),
     products: items,
     customerId: normalizedCustomerId,
+    billType,
+    panNumber: normalizeText(bill.panNumber ?? bill.pan_number ?? ""),
+    billNumber: normalizeText(bill.billNumber ?? bill.bill_number ?? ""),
+    invoiceData,
   };
 }
 

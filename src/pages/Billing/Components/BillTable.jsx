@@ -85,11 +85,23 @@ export function BillTable({ filtered, statusMeta, openExisting, onDelete }) {
             <th
               className="th-data"
               onClick={() => {
-                setSortKey("status");
-                setSortStatus((sortStatus + 1) % 3);
+                if (sortKey === "status") {
+                  setSortStatus((sortStatus + 1) % 3);
+                } else {
+                  setSortKey("status");
+                }
               }}
             >
               Status
+            </th>
+            <th
+              className="th-data"
+              onClick={() => {
+                setSortKey("billType");
+                setSortOrder(!sortOrder);
+              }}
+            >
+              Types
             </th>
             <th className="th-actions">Actions</th>
           </tr>
@@ -97,7 +109,7 @@ export function BillTable({ filtered, statusMeta, openExisting, onDelete }) {
         <tbody>
           {filtered.length === 0 ? (
             <tr>
-              <td colSpan={8} className="empty-row">
+              <td colSpan={9} className="empty-row">
                 No bills found.
               </td>
             </tr>
@@ -119,6 +131,7 @@ export function BillTable({ filtered, statusMeta, openExisting, onDelete }) {
                     {statusMeta[c.status].label}
                   </span>
                 </td>
+                <td>{({ default: "Default", pan: "PAN", vat: "VAT" })[c.billType] || "Default"}</td>
                 <td onClick={(e) => e.stopPropagation()}>
                   <div className="action-btns">
                     <button

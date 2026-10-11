@@ -446,7 +446,9 @@ export function editBill(billId, bill) {
 
     db.prepare(
       `
-      UPDATE bills SET date = ?, payment_method = ?, total_purchased = ?, amount_paid = ?, amount_due = ?, status = ?
+      UPDATE bills SET
+        date = ?, payment_method = ?, total_purchased = ?, amount_paid = ?, amount_due = ?,
+        status = ?, bill_type = ?, pan_number = ?, bill_number = ?, invoice_data = ?
       WHERE id = ?
     `,
     ).run(
@@ -456,6 +458,10 @@ export function editBill(billId, bill) {
       normalizedBill.amountPaid,
       normalizedBill.amountDue,
       normalizedBill.status,
+      normalizedBill.billType,
+      normalizedBill.panNumber,
+      normalizedBill.billNumber,
+      normalizedBill.invoiceData ? JSON.stringify(normalizedBill.invoiceData) : null,
       billId,
     );
 
@@ -598,10 +604,15 @@ export function getSales() {
       0,
     );
     const sellingPrice = bill.total_purchased;
-    const netGain = sellingPrice - costPrice;
+    const invoiceData = bill.invoice_data ? JSON.parse(bill.invoice_data) : null;
+    const netGain = sellingPrice - (Number(invoiceData?.tax) || 0) - costPrice;
 
     return {
       id: bill.id,
+      billType: bill.bill_type || "default",
+      panNumber: bill.pan_number || "",
+      billNumber: bill.bill_number || "",
+      invoiceData,
       customer: {
         id: customer.id,
         name: customer.name,
@@ -653,6 +664,7 @@ export function getNetPosition(period) {
     .all(startDate);
   let totalEarned = 0;
   let totalCost = 0;
+  let totalVat = 0;
   let totalDue = 0;
   const productTotals = {};
 
@@ -661,6 +673,8 @@ export function getNetPosition(period) {
       .prepare(`SELECT * FROM bill_items WHERE bill_id = ?`)
       .all(bill.id);
     totalEarned += bill.total_purchased;
+    const invoiceData = bill.invoice_data ? JSON.parse(bill.invoice_data) : null;
+    totalVat += Number(invoiceData?.tax) || 0;
     totalCost += items.reduce(
       (sum, i) => sum + (i.cost_price || 0) * i.quantity,
       0,
@@ -672,7 +686,7 @@ export function getNetPosition(period) {
     }
   }
 
-  const totalProfit = totalEarned - totalCost;
+  const totalProfit = totalEarned - totalVat - totalCost;
 
   const expenseRows = db
     .prepare(`SELECT * FROM expenses WHERE date >= ?`)

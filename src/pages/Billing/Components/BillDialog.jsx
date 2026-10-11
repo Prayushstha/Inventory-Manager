@@ -5,6 +5,8 @@ import { BillItemsTable } from "./BillItemsTable";
 import { NumericMathInput } from "./NumericMathInput";
 import { NepaliDatePicker } from "../../../components/NepaliDatePicker";
 import { formatNepaliDate } from "../../../utils/nepaliDate";
+import { ExpenseInvoiceEditor } from "../../Finances/Components/ExpenseInvoiceEditor";
+import { validateInvoiceDraft } from "../../Finances/Components/expenseInvoiceUtils";
 
 function normalizeProduct(p) {
   return {
@@ -36,11 +38,23 @@ export function BillDialog({
 
   const [form, setForm] = useState({
     ...bill,
+    billType: bill.billType || "default",
     products: (bill.products || []).map((p) => ({
       ...normalizeProduct(p),
       purchaseDate: p?.purchaseDate || p?.date || bill.date || new Date().toISOString().slice(0, 10),
     })),
   });
+  const [invoice, setInvoice] = useState(() => ({
+    ...(bill.invoiceDefaults || {}),
+    buyerName: bill.name || "",
+    buyerAddress: bill.address || "",
+    buyerTpin: "",
+    paymentMode: bill.paymentMethod || "Cash",
+    discount: "",
+    amountInWords: "",
+    ...(bill.invoiceData || {}),
+  }));
+  const [invoiceErrors, setInvoiceErrors] = useState({});
   const [isEditing, setIsEditing] = useState(isNew);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -61,9 +75,15 @@ export function BillDialog({
       sum + (parseFloat(p.quantity) || 0) * (parseFloat(p.priceAtSale) || 0),
     0,
   );
+  const vatDiscount = Math.max(0, Number(invoice.discount) || 0);
+  const vatTaxableAmount = Math.max(0, totalPurchased - vatDiscount);
+  const vatAmount = vatTaxableAmount * 0.13;
+  const billTotal = form.billType === "vat"
+    ? vatTaxableAmount + vatAmount
+    : totalPurchased;
   const amountPaidNum = parseFloat(form.amountPaid) || 0;
-  const amountDue = totalPurchased - amountPaidNum;
-  const status = computeStatus(totalPurchased, amountPaidNum);
+  const amountDue = billTotal - amountPaidNum;
+  const status = computeStatus(billTotal, amountPaidNum);
 
   // Clamp the selected row into range as items change (derived — no effect).
   const maxItemIndex = Math.max(0, form.products.length - 1);
@@ -131,6 +151,26 @@ export function BillDialog({
   async function handleSave() {
     if (isSaving) return;
 
+    if (form.billType === "vat") {
+      const validationErrors = validateInvoiceDraft({
+        date: form.date,
+        nameOfExpense: form.name || invoice.buyerName,
+        invoice,
+        items: form.products.map((item) => ({
+          productName: item.productName,
+          base: item.base,
+          bucketSize: item.bucketSize,
+          quantity: item.quantity,
+          costPrice: item.priceAtSale,
+        })),
+      });
+      setInvoiceErrors(validationErrors);
+      if (Object.keys(validationErrors).length > 0) {
+        showToast("Review the highlighted VAT invoice fields.", "error");
+        return;
+      }
+    }
+
     const customerName = form.name.trim() || "Unknown";
     const customerPhone = form.phone.trim() || "0";
     if(isNew && customers.find((customer) => customer.name === customerName && customer.phone === customerPhone) ){
@@ -145,14 +185,32 @@ export function BillDialog({
       return;
     }
 
+    const submittedItems = form.billType === "vat"
+      ? form.products.map((item) => ({
+          ...item,
+          priceAtSale: item.priceAtSale ?? item.costPrice,
+        }))
+      : form.products;
+    const finalInvoice = form.billType === "vat"
+      ? {
+          ...invoice,
+          discount: vatDiscount,
+          tax: vatAmount,
+          taxableAmount: vatTaxableAmount,
+        }
+      : null;
     const billPayload = {
       date: form.date,
       paymentMethod: form.paymentMethod,
-      totalPurchased,
+      totalPurchased: billTotal,
       amountPaid: amountPaidNum,
       amountDue,
       status,
-      products: form.products.map((item) => ({
+      billType: form.billType,
+      panNumber: form.panNumber || "",
+      billNumber: form.billNumber || "",
+      invoiceData: finalInvoice,
+      products: submittedItems.map((item) => ({
         ...item,
         purchaseDate: item.purchaseDate || form.date,
       })),
@@ -173,9 +231,30 @@ export function BillDialog({
         await window.db.editCustomerBill(form.customerId, customer, form.id, billPayload);
       }
 
+      let invoiceDefaultsSaved = true;
+      if (form.billType === "vat") {
+        try {
+          await window.db.updateInvoiceDefaults({
+            shopName: invoice.shopName || "",
+            shopAddress: invoice.shopAddress || "",
+            shopTelephone: invoice.shopTelephone || "",
+            invoiceNumber: invoice.invoiceNumber || "",
+            tpinNumber: invoice.tpinNumber || "",
+          });
+        } catch (error) {
+          console.error("VAT invoice defaults update failed:", error);
+          invoiceDefaultsSaved = false;
+        }
+      }
+
       setIsEditing(false);
       onSaved?.();
-      showToast("Bill saved successfully.", "success");
+      showToast(
+        invoiceDefaultsSaved
+          ? "Bill saved successfully."
+          : "Bill saved, but VAT invoice defaults could not be updated.",
+        invoiceDefaultsSaved ? "success" : "error",
+      );
     } catch (error) {
       console.error("Bill save failed:", error);
       showToast(error?.message || "Failed to save bill. Your changes are still available.", "error");
@@ -194,6 +273,7 @@ export function BillDialog({
     actionsRef.current = {
       showPanel,
       isEditing,
+      isVatInvoice: form.billType === "vat",
       save: handleSave,
       close: onClose,
       closePanel: () => setShowPanel(false),
@@ -216,6 +296,7 @@ export function BillDialog({
   useEffect(() => {
     function onKey(e) {
       const a = actionsRef.current;
+      if (a.isVatInvoice) return;
       // Ctrl/Cmd+S → save
       if (
         (e.ctrlKey || e.metaKey) &&
@@ -269,6 +350,107 @@ export function BillDialog({
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
+
+  function updateInvoice(nextInvoice) {
+    const next = typeof nextInvoice === "function" ? nextInvoice(invoice) : nextInvoice;
+    setInvoice(next);
+    setForm((formCurrent) => ({
+      ...formCurrent,
+      name: next.buyerName ?? formCurrent.name,
+      address: next.buyerAddress ?? formCurrent.address,
+      paymentMethod: next.paymentMode ?? formCurrent.paymentMethod,
+    }));
+  }
+
+  function updateVatItems(nextItems) {
+    setForm((current) => ({
+      ...current,
+      products: nextItems.map((item) => ({
+        productName: item.productName,
+        base: item.base,
+        bucketSize: item.bucketSize,
+        quantity: item.quantity,
+        priceAtSale: item.costPrice,
+        purchaseDate: form.date,
+      })),
+    }));
+  }
+
+  if (form.billType === "vat" && isEditing) {
+    return (
+      <div className="bill-page-shell bill-vat-page-shell">
+        <ExpenseInvoiceEditor
+          details={{ id: form.id || "new" }}
+          nameOfExpense={form.name || ""}
+          setNameOfExpense={(name) => {
+            setForm((current) => ({ ...current, name }));
+            setInvoice((current) => ({ ...current, buyerName: name }));
+            setInvoiceErrors((current) => ({ ...current, nameOfExpense: undefined }));
+          }}
+          invoice={invoice}
+          setInvoice={updateInvoice}
+          date={form.date}
+          setDate={(date) => setForm((current) => ({ ...current, date }))}
+          items={form.products.map((item) => ({
+            productName: item.productName,
+            base: item.base,
+            bucketSize: item.bucketSize,
+            quantity: item.quantity,
+            costPrice: item.priceAtSale,
+          }))}
+          setItems={updateVatItems}
+          isSaving={isSaving}
+          onSave={handleSave}
+          onCancel={onClose}
+          onClose={onClose}
+          recordLabel="Buyer’s name"
+          backLabel="Back to Bills"
+          accountingNote={false}
+          enableShortcuts
+          errors={invoiceErrors}
+          setErrors={setInvoiceErrors}
+          billTypeControl={
+            <label className="invoice-bill-type-control">
+              Bill type
+              <select
+                value={form.billType}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, billType: event.target.value }))
+                }
+              >
+                <option value="default">Default</option>
+                <option value="pan">PAN</option>
+                <option value="vat">VAT</option>
+              </select>
+            </label>
+          }
+          extraControls={
+            <div className="invoice-billing-payments">
+              <label htmlFor="vat-amount-paid">Amount paid</label>
+              <input
+                id="vat-amount-paid"
+                className="invoice-nav-field"
+                type="number"
+                min="0"
+                step="any"
+                value={form.amountPaid ?? ""}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, amountPaid: event.target.value }))
+                }
+              />
+              <span>Amount due</span>
+              <strong>
+                {Math.max(0, billTotal - amountPaidNum).toLocaleString("en-NP", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </strong>
+            </div>
+          }
+        />
+      </div>
+    );
+  }
 
   const overlayStyle = asPage
     ? {
@@ -360,6 +542,51 @@ export function BillDialog({
                   <option>Credit</option>
                 </select>
               </div>
+              <div className="field">
+                <label htmlFor="bill-type">Bill Type</label>
+                <select
+                  id="bill-type"
+                  value={form.billType}
+                  disabled={locked}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, billType: event.target.value }))
+                  }
+                >
+                  <option value="default">Default bill</option>
+                  <option value="pan">PAN bill</option>
+                  <option value="vat">VAT bill</option>
+                </select>
+              </div>
+              {form.billType === "pan" && (
+                <>
+                  <div className="field">
+                    <label htmlFor="bill-pan-number">PAN Number</label>
+                    <input
+                      id="bill-pan-number"
+                      type="text"
+                      value={form.panNumber || ""}
+                      onChange={(event) =>
+                        setForm((current) => ({ ...current, panNumber: event.target.value }))
+                      }
+                      disabled={locked}
+                      placeholder="PAN number"
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="bill-reference-number">Bill Number</label>
+                    <input
+                      id="bill-reference-number"
+                      type="text"
+                      value={form.billNumber || ""}
+                      onChange={(event) =>
+                        setForm((current) => ({ ...current, billNumber: event.target.value }))
+                      }
+                      disabled={locked}
+                      placeholder="Bill number"
+                    />
+                  </div>
+                </>
+              )}
               <div className="field field-full">
                 <label htmlFor="bill-customer-notes">Customer Notes</label>
                 <textarea

@@ -220,10 +220,12 @@ export function addBill(db, customerId, bill) {
   const run = db.transaction(() => {
     const result = db
       .prepare(`
-        INSERT INTO bills (customer_id, date, payment_method, total_purchased, amount_paid, amount_due, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `)
-      .run(
+      INSERT INTO bills (
+        customer_id, date, payment_method, total_purchased, amount_paid, amount_due,
+        status, bill_type, pan_number, bill_number, invoice_data
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `)
+    .run(
         normalizedBill.customerId,
         normalizedBill.date,
         normalizedBill.paymentMethod,
@@ -231,6 +233,10 @@ export function addBill(db, customerId, bill) {
         normalizedBill.amountPaid,
         normalizedBill.amountDue,
         normalizedBill.status,
+        normalizedBill.billType,
+        normalizedBill.panNumber,
+        normalizedBill.billNumber,
+        normalizedBill.invoiceData ? JSON.stringify(normalizedBill.invoiceData) : null,
       );
     const billId = result.lastInsertRowid;
 

@@ -23,6 +23,7 @@ export function SalesDetailDialog({ day, onClose }) {
               <thead>
                 <tr>
                   <th>Customer</th>
+                  <th>Type</th>
                   <th>Product</th>
                   <th>Base</th>
                   <th>Size</th>
@@ -35,6 +36,7 @@ export function SalesDetailDialog({ day, onClose }) {
                 {day.items.map((item, i) => (
                   <tr key={i}>
                     <td>{item.customerName}</td>
+                    <td>{({ default: "Default", pan: "PAN", vat: "VAT" })[item.billType] || "Default"}</td>
                     <td>{item.name}</td>
                     <td>{item.base || "—"}</td>
                     <td>{item.bucketSize || "—"}</td>

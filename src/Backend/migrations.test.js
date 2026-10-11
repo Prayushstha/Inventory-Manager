@@ -7,8 +7,8 @@ test("migrates a fresh database once and records its schema version", () => {
   const db = new Database(":memory:");
 
   try {
-    assert.equal(migrateDatabase(db), 2);
-    assert.equal(db.pragma("user_version", { simple: true }), 2);
+    assert.equal(migrateDatabase(db), 3);
+    assert.equal(db.pragma("user_version", { simple: true }), 3);
     assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE name = 'products'").get());
     assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE name = 'expenses'").get());
     assert.ok(
@@ -21,7 +21,11 @@ test("migrates a fresh database once and records its schema version", () => {
         .all()
         .some((column) => column.name === "invoice_data"),
     );
-    assert.equal(migrateDatabase(db), 2);
+    const billColumns = db.prepare("PRAGMA table_info(bills)").all();
+    for (const column of ["bill_type", "pan_number", "bill_number", "invoice_data"]) {
+      assert.ok(billColumns.some((row) => row.name === column));
+    }
+    assert.equal(migrateDatabase(db), 3);
   } finally {
     db.close();
   }
@@ -45,7 +49,7 @@ test("upgrades a legacy bill_items table without losing its rows", () => {
       VALUES (7, 'Tea', 2, 12.5);
     `);
 
-    assert.equal(migrateDatabase(db), 2);
+    assert.equal(migrateDatabase(db), 3);
     assert.deepEqual(
       db.prepare("SELECT bill_id, product_name, quantity, price_at_sale, cost_price FROM bill_items").get(),
       {
@@ -78,7 +82,7 @@ test("adds invoice metadata to an existing version 1 expenses table", () => {
       PRAGMA user_version = 1;
     `);
 
-    assert.equal(migrateDatabase(db), 2);
+    assert.equal(migrateDatabase(db), 3);
     assert.deepEqual(
       db.prepare("SELECT date, label, amount, type, invoice_data FROM expenses").get(),
       {
@@ -88,6 +92,36 @@ test("adds invoice metadata to an existing version 1 expenses table", () => {
         type: "Import",
         invoice_data: null,
       },
+    );
+  } finally {
+    db.close();
+  }
+});
+
+test("adds bill type and tax invoice fields to existing bills", () => {
+  const db = new Database(":memory:");
+
+  try {
+    db.exec(`
+      CREATE TABLE bills (
+        id INTEGER PRIMARY KEY,
+        customer_id INTEGER NOT NULL,
+        date TEXT NOT NULL,
+        payment_method TEXT,
+        total_purchased REAL NOT NULL,
+        amount_paid REAL NOT NULL,
+        amount_due REAL NOT NULL,
+        status TEXT NOT NULL
+      );
+      INSERT INTO bills (id, customer_id, date, total_purchased, amount_paid, amount_due, status)
+      VALUES (1, 1, '2026-10-10', 20, 0, 20, 'Due');
+      PRAGMA user_version = 2;
+    `);
+
+    assert.equal(migrateDatabase(db), 3);
+    assert.deepEqual(
+      db.prepare("SELECT bill_type, pan_number, bill_number, invoice_data FROM bills WHERE id = 1").get(),
+      { bill_type: "default", pan_number: null, bill_number: null, invoice_data: null },
     );
   } finally {
     db.close();

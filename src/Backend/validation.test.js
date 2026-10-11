@@ -44,6 +44,37 @@ test("validateBillPayload checks totals and payment consistency", () => {
   assert.equal(result.products[0].base, "A");
 });
 
+test("validateBillPayload includes VAT and discount in VAT bill total", () => {
+  const result = validateBillPayload(1, {
+    date: "2026-10-10",
+    billType: "vat",
+    totalPurchased: 24.86,
+    amountPaid: 10,
+    amountDue: 14.86,
+    paymentMethod: "Cash",
+    invoiceData: { discount: 2, tax: 2.86 },
+    products: [
+      { productName: "Tea", base: "A", bucketSize: 1, quantity: 2, priceAtSale: 12 },
+    ],
+  });
+
+  assert.equal(result.totalPurchased, 24.86);
+  assert.equal(result.invoiceData.taxableAmount, 22);
+  assert.equal(result.invoiceData.tax, 2.86);
+  assert.equal(result.billType, "vat");
+  assert.throws(
+    () => validateBillPayload(1, {
+      date: "2026-10-10",
+      billType: "vat",
+      totalPurchased: 24,
+      amountPaid: 0,
+      amountDue: 24,
+      products: [{ productName: "Tea", base: "A", bucketSize: 1, quantity: 2, priceAtSale: 12 }],
+    }),
+    /items and applicable tax\/discount/,
+  );
+});
+
 test("validateExpensePayload accepts valid data and rejects invalid type", () => {
   const general = validateExpensePayload({ date: "2026-10-10", nameOfExpense: "Rent", amountOfExpense: 500, typeOfExpense: "General" });
   const taxes = validateExpensePayload({ date: "2026-10-10", nameOfExpense: "Tax", amountOfExpense: 250, typeOfExpense: "Taxes" });

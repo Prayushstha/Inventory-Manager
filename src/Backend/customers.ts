@@ -11,6 +11,9 @@ type CustomerDatas = {
   amountDue: number;
   totalDue: number;
   status: string;
+  billType: "default" | "pan" | "vat";
+  panNumber?: string;
+  billNumber?: string;
   products: [];
 };
 const today = () => new Date().toISOString().split("T")[0];
@@ -21,6 +24,10 @@ export const emptyBill = {
   address: "",
   date: today(),
   notes: "",
+  billType: "default",
+  panNumber: "",
+  billNumber: "",
+  invoiceData: null,
   paymentMethod: "Cash",
   sellingPrice: "",
   amountPaid: "",

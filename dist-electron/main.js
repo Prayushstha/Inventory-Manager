@@ -544,9 +544,15 @@ function O(e, t) {
 	w(Number.isInteger(n) && n > 0, "A valid customer is required.");
 	let r = T(t.date);
 	w(r.length > 0, "Bill date is required.");
-	let i = E(t.totalPurchased, "Total purchased", { min: 0 }), a = E(t.amountPaid, "Amount paid", { min: 0 }), o = E(t.amountDue, "Amount due", { min: 0 });
+	let i = T(t.billType ?? t.bill_type ?? "default").toLowerCase();
+	w([
+		"default",
+		"pan",
+		"vat"
+	].includes(i), "Bill type must be Default, PAN, or VAT.");
+	let a = E(t.totalPurchased, "Total purchased", { min: 0 }), o = E(t.amountPaid, "Amount paid", { min: 0 }), s = E(t.amountDue, "Amount due", { min: 0 });
 	w(Array.isArray(t.products) && t.products.length > 0, "Bill must contain at least one product.");
-	let s = 0, c = t.products.map((e, t) => {
+	let c = 0, l = t.products.map((e, t) => {
 		let n = T(e?.productName ?? e?.product_name), r = T(e?.base), i = E(e?.bucketSize ?? e?.bucket_size, `Item ${t + 1} bucket size`, {
 			min: 1e-4,
 			allowZero: !1
@@ -554,7 +560,7 @@ function O(e, t) {
 			min: 1e-4,
 			allowZero: !1
 		}), o = E(e?.priceAtSale ?? e?.price_at_sale ?? 0, `Item ${t + 1} price`, { min: 0 });
-		return w(n.length > 0, `Item ${t + 1} product name is required.`), w(r.length > 0, `Item ${t + 1} base is required.`), s += a * o, {
+		return w(n.length > 0, `Item ${t + 1} product name is required.`), w(r.length > 0, `Item ${t + 1} base is required.`), c += a * o, {
 			...e,
 			productName: n,
 			base: r,
@@ -562,16 +568,32 @@ function O(e, t) {
 			quantity: a,
 			priceAtSale: o
 		};
-	});
-	return w(Math.abs(s - i) < .01, "Bill total does not match the sum of item prices."), w(Math.abs(a + o - i) < .01, "Bill payment values must add up to the total purchased."), {
+	}), u = c, d = null;
+	if (i === "vat") {
+		d = t.invoiceData && typeof t.invoiceData == "object" ? t.invoiceData : {};
+		let e = E(d.discount ?? 0, "Invoice discount", { min: 0 });
+		w(e <= c, "Invoice discount cannot exceed the item subtotal.");
+		let n = c - e, r = E(d.tax ?? n * .13, "VAT amount", { min: 0 });
+		w(Math.abs(r - n * .13) < .01, "VAT must equal 13% of the taxable amount."), u = n + r, d = {
+			...d,
+			discount: e,
+			tax: r,
+			taxableAmount: n
+		};
+	}
+	return w(Math.abs(u - a) < .01, "Bill total does not match its items and applicable tax/discount."), w(Math.abs(o + s - a) < .01, "Bill payment values must add up to the total purchased."), {
 		date: r,
 		paymentMethod: T(t.paymentMethod, ""),
-		totalPurchased: i,
-		amountPaid: a,
-		amountDue: o,
+		totalPurchased: a,
+		amountPaid: o,
+		amountDue: s,
 		status: T(t.status, "Open"),
-		products: c,
-		customerId: n
+		products: l,
+		customerId: n,
+		billType: i,
+		panNumber: T(t.panNumber ?? t.pan_number ?? ""),
+		billNumber: T(t.billNumber ?? t.bill_number ?? ""),
+		invoiceData: d
 	};
 }
 function k(e) {
@@ -617,17 +639,33 @@ function A(e) {
 }
 //#endregion
 //#region src/Backend/migrations.js
-var j = [{
-	version: 1,
-	up(e) {
-		e.exec("\n        CREATE TABLE IF NOT EXISTS products (\n          id TEXT PRIMARY KEY,\n          name TEXT NOT NULL,\n          images TEXT\n        );\n\n        CREATE TABLE IF NOT EXISTS variants (\n          id INTEGER PRIMARY KEY AUTOINCREMENT,\n          product_id TEXT NOT NULL,\n          bucket_size REAL NOT NULL,\n          landing REAL,\n          sales REAL,\n          mp REAL,\n          FOREIGN KEY (product_id) REFERENCES products(id)\n        );\n\n        CREATE TABLE IF NOT EXISTS bases (\n          id INTEGER PRIMARY KEY AUTOINCREMENT,\n          product_id TEXT NOT NULL,\n          name TEXT NOT NULL,\n          FOREIGN KEY (product_id) REFERENCES products(id)\n        );\n\n        CREATE TABLE IF NOT EXISTS base_stock (\n          base_id INTEGER NOT NULL,\n          variant_id INTEGER NOT NULL,\n          stock REAL NOT NULL DEFAULT 0,\n          PRIMARY KEY (base_id, variant_id),\n          FOREIGN KEY (base_id) REFERENCES bases(id),\n          FOREIGN KEY (variant_id) REFERENCES variants(id)\n        );\n\n        CREATE TABLE IF NOT EXISTS customers (\n          id INTEGER PRIMARY KEY AUTOINCREMENT,\n          name TEXT NOT NULL,\n          phone TEXT,\n          address TEXT,\n          notes TEXT\n        );\n\n        CREATE TABLE IF NOT EXISTS expenses (\n          id INTEGER PRIMARY KEY AUTOINCREMENT,\n          date TEXT NOT NULL,\n          label TEXT NOT NULL,\n          amount REAL NOT NULL,\n          type TEXT DEFAULT 'General'\n        );\n\n        CREATE TABLE IF NOT EXISTS expense_items (\n          id INTEGER PRIMARY KEY AUTOINCREMENT,\n          expense_id INTEGER NOT NULL,\n          product_name TEXT NOT NULL,\n          base TEXT,\n          bucket_size REAL,\n          quantity REAL NOT NULL,\n          cost_price REAL NOT NULL,\n          FOREIGN KEY (expense_id) REFERENCES expenses(id)\n        );\n\n        CREATE TABLE IF NOT EXISTS bills (\n          id INTEGER PRIMARY KEY AUTOINCREMENT,\n          customer_id INTEGER NOT NULL,\n          date TEXT NOT NULL,\n          payment_method TEXT,\n          total_purchased REAL NOT NULL,\n          amount_paid REAL NOT NULL,\n          amount_due REAL NOT NULL,\n          status TEXT NOT NULL,\n          FOREIGN KEY (customer_id) REFERENCES customers(id)\n        );\n\n        CREATE TABLE IF NOT EXISTS bill_activity (\n          id INTEGER PRIMARY KEY AUTOINCREMENT,\n          bill_id INTEGER NOT NULL,\n          type TEXT NOT NULL,\n          date TEXT NOT NULL,\n          amount REAL NOT NULL DEFAULT 0,\n          payment_method TEXT,\n          note TEXT,\n          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n          FOREIGN KEY (bill_id) REFERENCES bills(id)\n        );\n\n        CREATE TABLE IF NOT EXISTS bill_items (\n          id INTEGER PRIMARY KEY AUTOINCREMENT,\n          bill_id INTEGER NOT NULL,\n          product_name TEXT NOT NULL,\n          base TEXT,\n          bucket_size REAL,\n          quantity REAL NOT NULL,\n          price_at_sale REAL NOT NULL,\n          cost_price REAL DEFAULT 0,\n          FOREIGN KEY (bill_id) REFERENCES bills(id)\n        );\n      "), e.prepare("PRAGMA table_info(bill_items)").all().some((e) => e.name === "cost_price") || e.exec("ALTER TABLE bill_items ADD COLUMN cost_price REAL DEFAULT 0");
+var j = [
+	{
+		version: 1,
+		up(e) {
+			e.exec("\n        CREATE TABLE IF NOT EXISTS products (\n          id TEXT PRIMARY KEY,\n          name TEXT NOT NULL,\n          images TEXT\n        );\n\n        CREATE TABLE IF NOT EXISTS variants (\n          id INTEGER PRIMARY KEY AUTOINCREMENT,\n          product_id TEXT NOT NULL,\n          bucket_size REAL NOT NULL,\n          landing REAL,\n          sales REAL,\n          mp REAL,\n          FOREIGN KEY (product_id) REFERENCES products(id)\n        );\n\n        CREATE TABLE IF NOT EXISTS bases (\n          id INTEGER PRIMARY KEY AUTOINCREMENT,\n          product_id TEXT NOT NULL,\n          name TEXT NOT NULL,\n          FOREIGN KEY (product_id) REFERENCES products(id)\n        );\n\n        CREATE TABLE IF NOT EXISTS base_stock (\n          base_id INTEGER NOT NULL,\n          variant_id INTEGER NOT NULL,\n          stock REAL NOT NULL DEFAULT 0,\n          PRIMARY KEY (base_id, variant_id),\n          FOREIGN KEY (base_id) REFERENCES bases(id),\n          FOREIGN KEY (variant_id) REFERENCES variants(id)\n        );\n\n        CREATE TABLE IF NOT EXISTS customers (\n          id INTEGER PRIMARY KEY AUTOINCREMENT,\n          name TEXT NOT NULL,\n          phone TEXT,\n          address TEXT,\n          notes TEXT\n        );\n\n        CREATE TABLE IF NOT EXISTS expenses (\n          id INTEGER PRIMARY KEY AUTOINCREMENT,\n          date TEXT NOT NULL,\n          label TEXT NOT NULL,\n          amount REAL NOT NULL,\n          type TEXT DEFAULT 'General'\n        );\n\n        CREATE TABLE IF NOT EXISTS expense_items (\n          id INTEGER PRIMARY KEY AUTOINCREMENT,\n          expense_id INTEGER NOT NULL,\n          product_name TEXT NOT NULL,\n          base TEXT,\n          bucket_size REAL,\n          quantity REAL NOT NULL,\n          cost_price REAL NOT NULL,\n          FOREIGN KEY (expense_id) REFERENCES expenses(id)\n        );\n\n        CREATE TABLE IF NOT EXISTS bills (\n          id INTEGER PRIMARY KEY AUTOINCREMENT,\n          customer_id INTEGER NOT NULL,\n          date TEXT NOT NULL,\n          payment_method TEXT,\n          total_purchased REAL NOT NULL,\n          amount_paid REAL NOT NULL,\n          amount_due REAL NOT NULL,\n          status TEXT NOT NULL,\n          FOREIGN KEY (customer_id) REFERENCES customers(id)\n        );\n\n        CREATE TABLE IF NOT EXISTS bill_activity (\n          id INTEGER PRIMARY KEY AUTOINCREMENT,\n          bill_id INTEGER NOT NULL,\n          type TEXT NOT NULL,\n          date TEXT NOT NULL,\n          amount REAL NOT NULL DEFAULT 0,\n          payment_method TEXT,\n          note TEXT,\n          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n          FOREIGN KEY (bill_id) REFERENCES bills(id)\n        );\n\n        CREATE TABLE IF NOT EXISTS bill_items (\n          id INTEGER PRIMARY KEY AUTOINCREMENT,\n          bill_id INTEGER NOT NULL,\n          product_name TEXT NOT NULL,\n          base TEXT,\n          bucket_size REAL,\n          quantity REAL NOT NULL,\n          price_at_sale REAL NOT NULL,\n          cost_price REAL DEFAULT 0,\n          FOREIGN KEY (bill_id) REFERENCES bills(id)\n        );\n      "), e.prepare("PRAGMA table_info(bill_items)").all().some((e) => e.name === "cost_price") || e.exec("ALTER TABLE bill_items ADD COLUMN cost_price REAL DEFAULT 0");
+		}
+	},
+	{
+		version: 2,
+		up(e) {
+			e.prepare("PRAGMA table_info(expenses)").all().some((e) => e.name === "invoice_data") || e.exec("ALTER TABLE expenses ADD COLUMN invoice_data TEXT");
+		}
+	},
+	{
+		version: 3,
+		up(e) {
+			if (!e.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'bills'").get()) return;
+			let t = e.prepare("PRAGMA table_info(bills)").all();
+			for (let [n, r] of [
+				["bill_type", "TEXT NOT NULL DEFAULT 'default'"],
+				["pan_number", "TEXT"],
+				["bill_number", "TEXT"],
+				["invoice_data", "TEXT"]
+			]) t.some((e) => e.name === n) || e.exec(`ALTER TABLE bills ADD COLUMN ${n} ${r}`);
+		}
 	}
-}, {
-	version: 2,
-	up(e) {
-		e.prepare("PRAGMA table_info(expenses)").all().some((e) => e.name === "invoice_data") || e.exec("ALTER TABLE expenses ADD COLUMN invoice_data TEXT");
-	}
-}];
+];
 function M(e) {
 	let t = e.pragma("user_version", { simple: !0 }), n = j.at(-1)?.version ?? 0;
 	if (t > n) throw Error(`Database schema version ${t} is newer than supported version ${n}.`);
@@ -837,7 +875,7 @@ function je(e, t, n) {
 	let r = O(t, n);
 	if (!e.prepare("SELECT id FROM customers WHERE id = ?").get(r.customerId)) throw Error("Customer not found.");
 	return e.transaction(() => {
-		let t = e.prepare("\n        INSERT INTO bills (customer_id, date, payment_method, total_purchased, amount_paid, amount_due, status)\n        VALUES (?, ?, ?, ?, ?, ?, ?)\n      ").run(r.customerId, r.date, r.paymentMethod, r.totalPurchased, r.amountPaid, r.amountDue, r.status).lastInsertRowid;
+		let t = e.prepare("\n      INSERT INTO bills (\n        customer_id, date, payment_method, total_purchased, amount_paid, amount_due,\n        status, bill_type, pan_number, bill_number, invoice_data\n      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\n    ").run(r.customerId, r.date, r.paymentMethod, r.totalPurchased, r.amountPaid, r.amountDue, r.status, r.billType, r.panNumber, r.billNumber, r.invoiceData ? JSON.stringify(r.invoiceData) : null).lastInsertRowid;
 		L(e, t, {
 			type: "sale",
 			date: r.date,
@@ -1001,7 +1039,11 @@ var Be = {
 		"total_purchased",
 		"amount_paid",
 		"amount_due",
-		"status"
+		"status",
+		"bill_type",
+		"pan_number",
+		"bill_number",
+		"invoice_data"
 	],
 	bill_activity: [
 		"id",
@@ -1299,7 +1341,7 @@ function yt(e, t) {
 		let t = J.prepare("SELECT * FROM bill_items WHERE bill_id = ?").all(e);
 		for (let e of t) $(e.product_name, e.base, e.bucket_size, e.quantity);
 		let i = Number(n.total_purchased || 0), a = Number(n.amount_paid || 0), o = r.totalPurchased - i, s = r.amountPaid - a;
-		J.prepare("\n      UPDATE bills SET date = ?, payment_method = ?, total_purchased = ?, amount_paid = ?, amount_due = ?, status = ?\n      WHERE id = ?\n    ").run(r.date, r.paymentMethod, r.totalPurchased, r.amountPaid, r.amountDue, r.status, e), J.prepare("DELETE FROM bill_items WHERE bill_id = ?").run(e);
+		J.prepare("\n      UPDATE bills SET\n        date = ?, payment_method = ?, total_purchased = ?, amount_paid = ?, amount_due = ?,\n        status = ?, bill_type = ?, pan_number = ?, bill_number = ?, invoice_data = ?\n      WHERE id = ?\n    ").run(r.date, r.paymentMethod, r.totalPurchased, r.amountPaid, r.amountDue, r.status, r.billType, r.panNumber, r.billNumber, r.invoiceData ? JSON.stringify(r.invoiceData) : null, e), J.prepare("DELETE FROM bill_items WHERE bill_id = ?").run(e);
 		for (let t of r.products) {
 			let n = Nt(t.productName, t.bucketSize);
 			J.prepare("\n      INSERT INTO bill_items (bill_id, product_name, base, bucket_size, quantity, price_at_sale, cost_price)\n      VALUES (?, ?, ?, ?, ?, ?, ?)\n    ").run(e, t.productName, t.base, t.bucketSize, t.quantity, t.priceAtSale, n), $(t.productName, t.base, t.bucketSize, -t.quantity);
@@ -1356,9 +1398,13 @@ function wt() {
 			let n = J.prepare("SELECT amount_due FROM bills WHERE customer_id = ?").all(e.customer_id);
 			t[e.customer_id] = n.reduce((e, t) => e + t.amount_due, 0);
 		}
-		let i = r.reduce((e, t) => e + (t.cost_price || 0) * t.quantity, 0), a = e.total_purchased, o = a - i;
+		let i = r.reduce((e, t) => e + (t.cost_price || 0) * t.quantity, 0), a = e.total_purchased, o = e.invoice_data ? JSON.parse(e.invoice_data) : null, s = a - (Number(o?.tax) || 0) - i;
 		return {
 			id: e.id,
+			billType: e.bill_type || "default",
+			panNumber: e.pan_number || "",
+			billNumber: e.bill_number || "",
+			invoiceData: o,
 			customer: {
 				id: n.id,
 				name: n.name,
@@ -1382,7 +1428,7 @@ function wt() {
 			})),
 			sellingPrice: a,
 			costPrice: i,
-			netGain: o
+			netGain: s
 		};
 	});
 }
@@ -1393,33 +1439,35 @@ function Tt(e) {
 		let e = t.getDay(), r = t.getDate() - e + (e === 0 ? -6 : 1);
 		n = new Date(t.getFullYear(), t.getMonth(), r).toISOString().slice(0, 10);
 	} else n = e === "all" ? "0000-01-01" : `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-01`;
-	let r = J.prepare("SELECT * FROM bills WHERE date >= ?").all(n), i = 0, a = 0, o = 0, s = {};
+	let r = J.prepare("SELECT * FROM bills WHERE date >= ?").all(n), i = 0, a = 0, o = 0, s = 0, c = {};
 	for (let e of r) {
 		let t = J.prepare("SELECT * FROM bill_items WHERE bill_id = ?").all(e.id);
-		i += e.total_purchased, a += t.reduce((e, t) => e + (t.cost_price || 0) * t.quantity, 0), o += e.amount_due;
-		for (let e of t) s[e.product_name] = (s[e.product_name] || 0) + e.quantity;
+		i += e.total_purchased;
+		let n = e.invoice_data ? JSON.parse(e.invoice_data) : null;
+		o += Number(n?.tax) || 0, a += t.reduce((e, t) => e + (t.cost_price || 0) * t.quantity, 0), s += e.amount_due;
+		for (let e of t) c[e.product_name] = (c[e.product_name] || 0) + e.quantity;
 	}
-	let c = i - a, l = J.prepare("SELECT * FROM expenses WHERE date >= ?").all(n), u = l.reduce((e, t) => e + t.amount, 0), d = "-", f = 0;
-	for (let [e, t] of Object.entries(s)) t > f && (f = t, d = e);
-	let p = r.map((e) => ({
+	let l = i - o - a, u = J.prepare("SELECT * FROM expenses WHERE date >= ?").all(n), d = u.reduce((e, t) => e + t.amount, 0), f = "-", p = 0;
+	for (let [e, t] of Object.entries(c)) t > p && (p = t, f = e);
+	let m = r.map((e) => ({
 		label: `Sale #${e.id}`,
 		date: e.date,
 		amount: e.total_purchased
-	})), m = l.map((e) => ({
+	})), h = u.map((e) => ({
 		label: e.label,
 		date: e.date,
 		amount: -e.amount
-	})), h = [...p, ...m].sort((e, t) => new Date(t.date) - new Date(e.date)).slice(0, 8);
+	})), g = [...m, ...h].sort((e, t) => new Date(t.date) - new Date(e.date)).slice(0, 8);
 	return {
 		totalEarned: i,
-		totalExpenses: u,
-		totalDue: o,
-		totalProfit: c,
-		netPosition: c - u,
+		totalExpenses: d,
+		totalDue: s,
+		totalProfit: l,
+		netPosition: l - d,
 		totalSales: r.length,
-		profitPerSale: r.length > 0 ? c / r.length : 0,
-		topCategory: d,
-		recentActivity: h
+		profitPerSale: r.length > 0 ? l / r.length : 0,
+		topCategory: f,
+		recentActivity: g
 	};
 }
 function Et(e, t = 5) {

@@ -44,6 +44,12 @@ export function ExpenseInvoiceEditor({
   errors = {},
   setErrors,
   isDirty = false,
+  recordLabel = "Import record",
+  accountingNote = true,
+  enableShortcuts = true,
+  billTypeControl,
+  extraControls,
+  backLabel = "Back to Expenses",
 }) {
   const itemRefs = useRef([]);
   const editorRef = useRef(null);
@@ -126,7 +132,7 @@ export function ExpenseInvoiceEditor({
     onSave,
     onClose: onCancel,
     onAddItem: handleAddItem,
-    enabled: true,
+    enabled: enableShortcuts,
   });
 
   useEffect(() => {
@@ -254,7 +260,7 @@ export function ExpenseInvoiceEditor({
       <div className="expense-record-toolbar">
         <button className="btn-secondary" type="button" onClick={onClose}>
           <i className="ti ti-arrow-left" aria-hidden="true" />
-          <span>Back to Expenses</span>
+          <span>{backLabel}</span>
         </button>
         <span className="invoice-shortcut-hint">
           <kbd>Ctrl</kbd>+<kbd>S</kbd> Save <span>·</span>
@@ -262,6 +268,7 @@ export function ExpenseInvoiceEditor({
           <kbd>Ctrl</kbd>+<kbd>D</kbd> Duplicate row <span>·</span>
           <kbd>Esc</kbd> Cancel
         </span>
+        {billTypeControl}
         {isDirty && <span className="invoice-draft-status" role="status">Draft saved locally</span>}
       </div>
 
@@ -342,7 +349,7 @@ export function ExpenseInvoiceEditor({
               </div>
             </div>
             <div className="invoice-record-name">
-              <label htmlFor="invoice-record-name">Import record</label>
+              <label htmlFor="invoice-record-name">{recordLabel}</label>
               <input
                 id="invoice-record-name"
                 type="text"
@@ -507,9 +514,12 @@ export function ExpenseInvoiceEditor({
           <button className="add-row-btn" type="button" onClick={handleAddItem}>
             + Add item
           </button>
-          <p className="invoice-accounting-note">
-            Tax and discount are shown on this invoice only; the recorded import amount and stock cost use item quantity × rate.
-          </p>
+          {accountingNote && (
+            <p className="invoice-accounting-note">
+              Tax and discount are shown on this invoice only; the recorded import amount and stock cost use item quantity × rate.
+            </p>
+          )}
+          {extraControls}
 
           <footer className="invoice-footer">
             <div>E. &amp; O.E.</div>

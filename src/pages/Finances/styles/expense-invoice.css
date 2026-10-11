@@ -668,6 +668,48 @@
   font-size: 12px;
 }
 
+.invoice-bill-type-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted-foreground);
+  font-family: var(--font-sans);
+  font-size: 13px;
+}
+
+.invoice-bill-type-control select {
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--card);
+  color: var(--foreground);
+}
+
+.invoice-billing-payments {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 200px) auto auto;
+  align-items: center;
+  justify-content: end;
+  gap: 10px;
+  margin-top: 18px;
+  font-family: var(--font-sans);
+}
+
+.invoice-billing-payments input {
+  min-height: 34px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--card);
+  color: var(--foreground);
+}
+
+.invoice-billing-payments strong {
+  min-width: 100px;
+  text-align: right;
+}
+
 @media (max-width: 600px) {
   .expense-invoice {
     padding: 14px 10px;

@@ -28,6 +28,7 @@ function groupSalesByDay(sales) {
         ...p,
         customerName: sale.customer.name,
         billId: sale.id,
+        billType: sale.billType || "default",
       });
     }
   }

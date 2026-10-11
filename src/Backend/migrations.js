@@ -114,6 +114,27 @@ const migrations = [
       }
     },
   },
+  {
+    version: 3,
+    up(db) {
+      const tableExists = db.prepare(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'bills'",
+      ).get();
+      if (!tableExists) return;
+      const billColumns = db.prepare("PRAGMA table_info(bills)").all();
+      const additions = [
+        ["bill_type", "TEXT NOT NULL DEFAULT 'default'"],
+        ["pan_number", "TEXT"],
+        ["bill_number", "TEXT"],
+        ["invoice_data", "TEXT"],
+      ];
+      for (const [column, definition] of additions) {
+        if (!billColumns.some((row) => row.name === column)) {
+          db.exec(`ALTER TABLE bills ADD COLUMN ${column} ${definition}`);
+        }
+      }
+    },
+  },
 ];
 
 export function migrateDatabase(db) {

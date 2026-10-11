@@ -12,6 +12,7 @@ export function Billing() {
   const [isNewBill, setIsNewBill] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
+  const [invoiceDefaults, setInvoiceDefaults] = useState({});
   const { confirm, ConfirmDialogComponent } = useConfirm();
   const { handleAsync } = useErrorHandler();
 
@@ -30,6 +31,19 @@ export function Billing() {
       }
     }
     fetchCustomers();
+    return () => { cancelled = true; };
+  }, [handleAsync]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadInvoiceDefaults() {
+      const settings = await handleAsync(
+        () => window.db.getAppSettings(),
+        "Failed to load invoice defaults",
+      );
+      if (!cancelled && settings) setInvoiceDefaults(settings.invoiceDefaults || {});
+    }
+    loadInvoiceDefaults();
     return () => { cancelled = true; };
   }, [handleAsync]);
 
@@ -63,6 +77,10 @@ export function Billing() {
       amountPaid: bill.amount_paid,
       date: bill.date,
       paymentMethod: bill.payment_method,
+      billType: bill.bill_type || "default",
+      panNumber: bill.pan_number || "",
+      billNumber: bill.bill_number || "",
+      invoiceData: bill.invoice_data ? JSON.parse(bill.invoice_data) : null,
       status: bill.status,
       products: bill.products,
     })),
@@ -82,16 +100,18 @@ export function Billing() {
       "Failed to load application defaults",
     );
     if (!appSettings) return;
+    setInvoiceDefaults(appSettings.invoiceDefaults || {});
 
     setSelectedBill({
       ...emptyBill,
       paymentMethod: appSettings.defaultPaymentMethod,
+      invoiceDefaults: appSettings.invoiceDefaults || invoiceDefaults,
     });
     setIsNewBill(true);
   };
 
   const openExisting = (customer) => {
-    setSelectedBill({ ...customer });
+    setSelectedBill({ ...customer, invoiceDefaults });
     setIsNewBill(false);
   };
 

@@ -118,6 +118,50 @@ test("creates a bill, records its activity and cost, and deducts stock", () => {
   }
 });
 
+test("stores VAT bill metadata and records VAT-inclusive sales total", () => {
+  const db = createDatabase();
+
+  try {
+    addInventoryProduct(db, product);
+    const customerId = db
+      .prepare("INSERT INTO customers (name) VALUES (?)")
+      .run("VAT Customer").lastInsertRowid;
+    const billId = addBill(db, customerId, {
+      date: "2026-10-10",
+      paymentMethod: "Cash",
+      billType: "vat",
+      totalPurchased: 24.86,
+      amountPaid: 10,
+      amountDue: 14.86,
+      status: "Partial",
+      invoiceData: {
+        shopName: "StockWise",
+        invoiceNumber: "VAT-001",
+        discount: 2,
+        tax: 2.86,
+      },
+      products: [{
+        productName: "Tea",
+        base: "AC1",
+        bucketSize: 1,
+        quantity: 2,
+        priceAtSale: 12,
+      }],
+    });
+
+    const savedBill = db.prepare(
+      "SELECT bill_type, total_purchased, amount_due, invoice_data FROM bills WHERE id = ?",
+    ).get(billId);
+    assert.equal(savedBill.bill_type, "vat");
+    assert.equal(savedBill.total_purchased, 24.86);
+    assert.equal(savedBill.amount_due, 14.86);
+    assert.equal(JSON.parse(savedBill.invoice_data).invoiceNumber, "VAT-001");
+    assert.equal(db.prepare("SELECT stock FROM base_stock").get().stock, 6);
+  } finally {
+    db.close();
+  }
+});
+
 test("rolls back bill rows and stock changes when saving a bill item fails", () => {
   const db = createDatabase();
 
