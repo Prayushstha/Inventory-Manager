@@ -4,7 +4,7 @@ import { ProductCard } from "./Components/ProductCard.jsx";
 import { useState, useEffect } from "react";
 import { useErrorHandler } from "../../hooks/useErrorHandler";
 
-export function DashboardPage({ isDark, setIsDark }) {
+export function DashboardPage() {
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState([]);
   const { handleAsync } = useErrorHandler();
@@ -31,8 +31,6 @@ export function DashboardPage({ isDark, setIsDark }) {
   return (
     <>
       <NavBar
-        isDark={isDark}
-        setIsDark={setIsDark}
         search={search}
         setSearch={setSearch}
       />

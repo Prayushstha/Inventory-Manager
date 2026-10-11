@@ -7,7 +7,18 @@ function fileName(filePath) {
       return filePath.split(/[\\/]/).pop();
 }
 
-export function SettingsPage() {
+const APPEARANCE_THEMES = [
+      { value: "lara-light", label: "Lara" },
+      { value: "lara-dark", label: "Lara dark" },
+      { value: "claude-light", label: "Claude +" },
+      { value: "claude-dark", label: "Claude dark" },
+      { value: "zen-light", label: "Zen" },
+      { value: "zen-dark", label: "Zen dark" },
+      { value: "auto-blog-light", label: "Auto Blog" },
+      { value: "auto-blog-dark", label: "Auto Blog dark" },
+];
+
+export function SettingsPage({ appearanceTheme, appearanceMode, setAppearance }) {
       const [busy, setBusy] = useState("");
       const [settings, setSettings] = useState(null);
       const showToast = useToast();
@@ -75,6 +86,23 @@ export function SettingsPage() {
             }
       }
 
+      async function handleAppearanceThemeChange(event) {
+            const selected = event.target.value;
+            const mode = selected.endsWith("-dark") ? "dark" : "light";
+            const theme = selected.slice(0, -(mode.length + 1));
+            setBusy("appearance");
+            try {
+                  const updatedSettings = await window.db.updateAppearanceSettings(theme, mode);
+                  setSettings(updatedSettings);
+                  setAppearance(updatedSettings);
+                  showToast("Appearance updated.", "success");
+            } catch (error) {
+                  showToast(error.message || "Could not update the appearance theme.", "error");
+            } finally {
+                  setBusy("");
+            }
+      }
+
       async function handleOpenDataDirectory() {
             try {
                   await window.db.openDataDirectory();
@@ -108,6 +136,27 @@ export function SettingsPage() {
                   <header className="settings-header">
                         <h1>Settings</h1>
                   </header>
+                  <section className="settings-section" aria-labelledby="appearance-settings-title">
+                        <div className="settings-section-heading">
+                              <h2 id="appearance-settings-title">Appearance</h2>
+                              <p>Choose the color theme used throughout StockWise.</p>
+                        </div>
+                        <div className="settings-field">
+                              <label htmlFor="appearance-theme">Color theme</label>
+                              <select
+                                    id="appearance-theme"
+                                    value={`${appearanceTheme || settings?.appearanceTheme || "lara"}-${appearanceMode || settings?.appearanceMode || "dark"}`}
+                                    onChange={handleAppearanceThemeChange}
+                                    disabled={!settings || Boolean(busy)}
+                              >
+                                    {APPEARANCE_THEMES.map((theme) => (
+                                          <option key={theme.value} value={theme.value}>
+                                                {theme.label}
+                                          </option>
+                                    ))}
+                              </select>
+                        </div>
+                  </section>
                   <section className="settings-section" aria-labelledby="defaults-settings-title">
                         <div className="settings-section-heading">
                               <h2 id="defaults-settings-title">App Defaults</h2>

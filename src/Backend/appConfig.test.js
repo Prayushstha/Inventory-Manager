@@ -41,11 +41,15 @@ test("loads defaults and persists validated settings", () => {
       ...loadAppConfig(configPath),
       invoiceDefaults,
       inventoryAddItemMode: "bill",
+      appearanceTheme: "claude",
+      appearanceMode: "light",
     });
     assert.equal(updatedConfig.invoiceDefaults.shopName, "StockWise Store");
     assert.equal(updatedConfig.invoiceDefaults.invoiceNumber, "INV-01");
     assert.deepEqual(loadAppConfig(configPath).invoiceDefaults, updatedConfig.invoiceDefaults);
     assert.equal(loadAppConfig(configPath).inventoryAddItemMode, "bill");
+    assert.equal(loadAppConfig(configPath).appearanceTheme, "claude");
+    assert.equal(loadAppConfig(configPath).appearanceMode, "light");
     assert.deepEqual(defaultInvoiceDefaults(), {
       shopName: "",
       shopAddress: "",
@@ -76,6 +80,14 @@ test("rejects malformed settings and unsupported payment defaults", () => {
     assert.throws(
       () => saveAppConfig(configPath, { inventoryAddItemMode: "unknown" }),
       /Inventory add item mode must be/,
+    );
+    assert.throws(
+      () => saveAppConfig(configPath, { appearanceTheme: "unknown" }),
+      /Appearance theme must be one of/,
+    );
+    assert.throws(
+      () => saveAppConfig(configPath, { appearanceMode: "automatic" }),
+      /Appearance mode must be/,
     );
   } finally {
     fs.rmSync(directory, { recursive: true, force: true });

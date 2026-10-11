@@ -11,33 +11,60 @@ import "./index.css";
 
 import { useState, useEffect } from "react";
 import { Billing } from "./pages/Billing/billing";
+import { useToast } from "./hooks/ToastContext";
 
 function App() {
-  const [isDark, setIsDark] = useState(true);
-  
+  const [appearanceTheme, setAppearanceTheme] = useState("lara");
+  const [appearanceMode, setAppearanceMode] = useState("dark");
+  const showToast = useToast();
 
   useEffect(() => {
-    if (isDark) {
-      document.documentElement.setAttribute("data-theme", "dark");
-    } else {
-      document.documentElement.removeAttribute("data-theme");
-    }
-  }, [isDark]);
+    let cancelled = false;
+    window.db.getAppSettings()
+      .then((settings) => {
+        if (!cancelled) {
+          setAppearanceTheme(settings.appearanceTheme);
+          setAppearanceMode(settings.appearanceMode);
+        }
+      })
+      .catch((error) => {
+        console.error("Appearance settings load failed:", error);
+        showToast(error?.message || "Could not load appearance settings.", "error");
+      });
+    return () => { cancelled = true; };
+  }, [showToast]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.setAttribute("data-theme", appearanceTheme);
+    root.setAttribute("data-mode", appearanceMode);
+  }, [appearanceTheme, appearanceMode]);
+
+  function setAppearance(settings) {
+    setAppearanceTheme(settings.appearanceTheme);
+    setAppearanceMode(settings.appearanceMode);
+  }
 
   return (
     <HashRouter>
       <div className="main-container" spellCheck={true}>
-        <SideBar isDark={isDark} />
+        <SideBar isDark={appearanceMode === "dark"} />
         <div className="main-content">
           <Routes>
-            <Route
-              path="/"
-              element={<DashboardPage isDark={isDark} setIsDark={setIsDark} />}
-            />
+            <Route path="/" element={<DashboardPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/finances" element={<FinancePage />} />
-            <Route path="/inventory" element={<InventoryPage isDark={isDark} setIsDark={setIsDark}/>} />
-            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/inventory" element={<InventoryPage />} />
+            <Route
+              path="/settings"
+              element={
+                <SettingsPage
+                  appearanceTheme={appearanceTheme}
+                  appearanceMode={appearanceMode}
+                  setAppearance={setAppearance}
+                />
+              }
+            />
             <Route path="/billing" element={<Billing />} />
           </Routes>
         </div>

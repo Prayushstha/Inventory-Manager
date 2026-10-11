@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useToast } from "../hooks/ToastContext";
 
 export function NavBar({
-  isDark,
-  setIsDark,
   isInventoryPage,
   fetchProducts,
   search,
@@ -108,18 +106,6 @@ export function NavBar({
           />
         </div>
 
-        <div className="toggle-switch">
-          <label className="switch-label">
-            <input
-              className="checkbox"
-              type="checkbox"
-              checked={isDark}
-              onChange={(e) => setIsDark(e.target.checked)}
-            />
-
-            <span className="slider"></span>
-          </label>
-        </div>
       </div>
       {isInventoryPage ? (
         <>

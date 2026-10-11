@@ -99,6 +99,16 @@ export function updateInventoryAddItemMode(inventoryAddItemMode) {
   return getAppSettings();
 }
 
+export function updateAppearanceSettings(appearanceTheme, appearanceMode) {
+  const nextConfig = saveAppConfig(appConfigPath, {
+    ...appConfig,
+    appearanceTheme,
+    appearanceMode,
+  });
+  appConfig = nextConfig;
+  return getAppSettings();
+}
+
 export async function setLocalDataDirectory(destinationDirectory) {
   if (typeof destinationDirectory !== "string" || !destinationDirectory.trim()) {
     throw new Error("A data directory is required.");

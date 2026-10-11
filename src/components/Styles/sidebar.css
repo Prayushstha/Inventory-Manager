@@ -47,7 +47,7 @@
 .logo-name {
   font-size: 15px;
   font-weight: 600;
-  color: var(--color-primary);
+  color: var(--sidebar-foreground);
   white-space: nowrap;
   opacity: 1;
   transition: opacity 0.12s ease;
@@ -72,7 +72,7 @@
   padding: 9px 10px;
   border-radius: 8px;
   font-size: 14px;
-  color: var(--color-secondary);
+  color: var(--sidebar-foreground);
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
@@ -88,19 +88,19 @@
 }
 
 .nav-link:hover {
-  background: var(--background-primary);
-  color: var(--color-primary);
+  background: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
 }
 
 .nav-link.active {
-  background: var(--sidebar-accent);
-  color: var(--sidebar-primary);
+  background: var(--sidebar-primary);
+  color: var(--sidebar-primary-foreground);
   font-weight: 600;
   border: 1px solid var(--border-color);
 }
 
 .nav-link.active i {
-  color: var(--sidebar-primary);
+  color: var(--sidebar-primary-foreground);
 }
 
 .link-label {
@@ -147,8 +147,8 @@
   height: 26px;
   border-radius: 50%;
   border: 1px solid var(--border-color);
-  background: var(--background-primary);
-  color: var(--color-secondary);
+  background: var(--sidebar);
+  color: var(--sidebar-foreground);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -158,8 +158,8 @@
 }
 
 .toggle-btn:hover {
-  background: var(--background-secondary);
-  color: var(--color-primary);
+  background: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
 }
 
 .toggle-btn i {

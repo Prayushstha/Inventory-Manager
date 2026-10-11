@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useErrorHandler } from "../../hooks/useErrorHandler";
 import { NewImportExpensePage } from "../Finances/Components/NewImportExpensePage";
 
-export function InventoryPage({ isDark, setIsDark }) {
+export function InventoryPage() {
   const isInventoryPage = true;
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
@@ -69,8 +69,6 @@ export function InventoryPage({ isDark, setIsDark }) {
     <>
       <div className="product-list-container">
         <NavBar
-          isDark={isDark}
-          setIsDark={setIsDark}
           isInventoryPage={isInventoryPage}
           fetchProducts={fetchProducts}
           search={search}

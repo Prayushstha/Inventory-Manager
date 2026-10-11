@@ -4,6 +4,8 @@ import { randomUUID } from "node:crypto";
 
 export const DEFAULT_PAYMENT_METHOD = "Cash";
 export const PAYMENT_METHODS = ["Cash", "UPI", "Card", "Credit"];
+export const APPEARANCE_THEMES = ["lara", "claude", "zen", "auto-blog"];
+export const APPEARANCE_MODES = ["light", "dark"];
 
 export function defaultInvoiceDefaults() {
   return {
@@ -21,6 +23,8 @@ export function defaultAppConfig() {
     dataDirectory: null,
     invoiceDefaults: defaultInvoiceDefaults(),
     inventoryAddItemMode: null,
+    appearanceTheme: "lara",
+    appearanceMode: "dark",
   };
 }
 
@@ -61,7 +65,24 @@ function validateAppConfig(config) {
     throw new Error('Inventory add item mode must be "default", "bill", or null.');
   }
 
-  return { defaultPaymentMethod, dataDirectory, invoiceDefaults: defaults, inventoryAddItemMode };
+  const appearanceTheme = config.appearanceTheme ?? "lara";
+  if (!APPEARANCE_THEMES.includes(appearanceTheme)) {
+    throw new Error(`Appearance theme must be one of: ${APPEARANCE_THEMES.join(", ")}.`);
+  }
+
+  const appearanceMode = config.appearanceMode ?? "dark";
+  if (!APPEARANCE_MODES.includes(appearanceMode)) {
+    throw new Error('Appearance mode must be "light" or "dark".');
+  }
+
+  return {
+    defaultPaymentMethod,
+    dataDirectory,
+    invoiceDefaults: defaults,
+    inventoryAddItemMode,
+    appearanceTheme,
+    appearanceMode,
+  };
 }
 
 export function loadAppConfig(configPath) {
