@@ -56,4 +56,9 @@ contextBridge.exposeInMainWorld("db", {
   deleteVariant: (variantId) => ipcRenderer.invoke('db:deleteVariant', variantId),
   getTopProducts: (period) => ipcRenderer.invoke("db:getTopProducts", period),
   getTopCustomers: (period) => ipcRenderer.invoke("db:getTopCustomers", period),
+  getAppSettings: () => ipcRenderer.invoke("settings:get"),
+  updateDefaultPaymentMethod: (paymentMethod) =>
+    ipcRenderer.invoke("settings:updateDefaultPaymentMethod", paymentMethod),
+  openDataDirectory: () => ipcRenderer.invoke("settings:openDataDirectory"),
+  changeDataDirectory: () => ipcRenderer.invoke("settings:changeDataDirectory"),
 });

@@ -1,5 +1,5 @@
 /* global process */
-import { app, BrowserWindow, ipcMain, dialog, protocol, net, Menu } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, protocol, net, Menu, shell } from "electron";
 import { fileURLToPath } from "url";
 import path from "path";
 import { pathToFileURL } from "url";
@@ -44,6 +44,9 @@ import {
   saveInventoryProductChanges,
   addCustomerBill,
   editCustomerBill,
+  getAppSettings,
+  setLocalDataDirectory,
+  updateDefaultPaymentMethod,
 } from "../src/Backend/server.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -196,6 +199,31 @@ app.whenReady().then(() => {
       app.exit(0);
     }, 1000);
     return restoreResult;
+  });
+  ipcMain.handle("settings:get", () => getAppSettings());
+  ipcMain.handle("settings:updateDefaultPaymentMethod", (_, paymentMethod) =>
+    updateDefaultPaymentMethod(paymentMethod),
+  );
+  ipcMain.handle("settings:openDataDirectory", async () => {
+    const error = await shell.openPath(getAppSettings().dataDirectory);
+    if (error) throw new Error(`Could not open the data folder: ${error}`);
+  });
+  ipcMain.handle("settings:changeDataDirectory", async (event) => {
+    const result = await dialog.showOpenDialog(
+      BrowserWindow.fromWebContents(event.sender),
+      {
+        title: "Choose an Empty StockWise Data Folder",
+        properties: ["openDirectory"],
+      },
+    );
+    if (result.canceled || result.filePaths.length === 0) return null;
+
+    const settings = await setLocalDataDirectory(result.filePaths[0]);
+    setTimeout(() => {
+      app.relaunch();
+      app.exit(0);
+    }, 1200);
+    return settings;
   });
   ipcMain.handle("dialog:pickExcelFile", async () => {
     const result = await dialog.showOpenDialog({

@@ -10,7 +10,7 @@ This roadmap is intentionally focused on improvements that matter most for a sma
 - [x] Add backup and restore flow for local SQLite data
 - [x] Review and harden error handling around failed database or import actions
 - [x] Add test coverage for core business flows: product add/edit/delete, bill creation, expense import
-- [ ] Improve settings and configuration handling for app defaults and local storage paths
+- [x] Improve settings and configuration handling for app defaults and local storage paths
 
 ### Why it matters
 This app is already feature-rich enough to be useful, but reliability is the main factor that determines whether it becomes trusted business software.

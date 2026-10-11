@@ -35,6 +35,62 @@
   font-size: 0.875rem;
 }
 
+.settings-field {
+  display: grid;
+  max-width: 320px;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.settings-field label,
+.settings-path > span {
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.settings-field select {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--background-secondary);
+  color: var(--color-primary);
+  font: inherit;
+}
+
+.settings-field select:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.settings-path-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.settings-path {
+  display: grid;
+  min-width: min(100%, 320px);
+  flex: 1;
+  gap: 7px;
+}
+
+.settings-path code {
+  overflow-wrap: anywhere;
+  color: var(--color-primary);
+  font-size: 0.825rem;
+}
+
+.settings-note {
+  margin-top: 10px;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+}
+
 .settings-action-row {
   display: flex;
   flex-wrap: wrap;
@@ -91,5 +147,14 @@
   .settings-action-row {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .settings-path-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .settings-path {
+    margin-bottom: 4px;
   }
 }

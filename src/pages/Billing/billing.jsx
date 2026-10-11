@@ -76,8 +76,17 @@ export function Billing() {
       c.phone.includes(search),
   );
 
-  const openNew = () => {
-    setSelectedBill({ ...emptyBill });
+  const openNew = async () => {
+    const appSettings = await handleAsync(
+      () => window.db.getAppSettings(),
+      "Failed to load application defaults",
+    );
+    if (!appSettings) return;
+
+    setSelectedBill({
+      ...emptyBill,
+      paymentMethod: appSettings.defaultPaymentMethod,
+    });
     setIsNewBill(true);
   };
 

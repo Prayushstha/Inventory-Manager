@@ -14,6 +14,12 @@ import {
   normalizeText,
 } from "./validation.js";
 import { migrateDatabase } from "./migrations.js";
+import {
+  copyDatabaseToDirectory,
+  loadAppConfig,
+  resolveDataDirectory,
+  saveAppConfig,
+} from "./appConfig.js";
 import { saveInventoryProduct } from "./inventoryWrites.js";
 import {
   addBill as createBill,
@@ -30,14 +36,21 @@ import {
   stageDatabaseRestore,
 } from "./databaseBackup.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const appConfigPath = path.join(app.getPath("userData"), "settings.json");
+let appConfig = loadAppConfig(appConfigPath);
+let dataDirectory = resolveDataDirectory({
+  config: appConfig,
+  isPackaged: app.isPackaged,
+  userDataPath: app.getPath("userData"),
+  developmentPath: path.join(__dirname, "../", "Database"),
+});
 
-const dbPath = app.isPackaged
-  ? path.join(app.getPath("userData"), "inventory.db")
-  : path.join(__dirname, "../", "Database", "inventory.db");
+let dbPath = path.join(dataDirectory, "inventory.db");
 
 let db;
 
 function openDatabase() {
+  fs.mkdirSync(dataDirectory, { recursive: true });
   db = new Database(dbPath);
   migrateDatabase(db);
 }
@@ -50,6 +63,53 @@ export function backupDatabase(destinationPath) {
 
 export function saveInventoryProductChanges(product) {
   return saveInventoryProduct(db, product);
+}
+
+export function getAppSettings() {
+  return { ...appConfig, dataDirectory };
+}
+
+export function updateDefaultPaymentMethod(paymentMethod) {
+  const nextConfig = saveAppConfig(appConfigPath, {
+    ...appConfig,
+    defaultPaymentMethod: paymentMethod,
+  });
+  appConfig = nextConfig;
+  return getAppSettings();
+}
+
+export async function setLocalDataDirectory(destinationDirectory) {
+  if (typeof destinationDirectory !== "string" || !destinationDirectory.trim()) {
+    throw new Error("A data directory is required.");
+  }
+
+  const destination = path.resolve(destinationDirectory);
+  if (destination === dataDirectory) {
+    throw new Error("Choose a different folder from the current data directory.");
+  }
+
+  await copyDatabaseToDirectory(db, dataDirectory, destination);
+  let nextConfig;
+  try {
+    nextConfig = saveAppConfig(appConfigPath, {
+      ...appConfig,
+      dataDirectory: destination,
+    });
+  } catch (error) {
+    try {
+      fs.rmSync(path.join(destination, "inventory.db"), { force: true });
+      fs.rmSync(path.join(destination, "images"), { recursive: true, force: true });
+    } catch (cleanupError) {
+      throw new AggregateError(
+        [error, cleanupError],
+        "Could not save the new data folder setting or clean up its copied files.",
+        { cause: cleanupError },
+      );
+    }
+    throw error;
+  }
+  appConfig = nextConfig;
+  return { ...appConfig, dataDirectory: destination };
 }
 
 export async function restoreDatabase(sourcePath) {
@@ -177,9 +237,7 @@ export function addBaseStock(baseId, variantId, stock) {
 }
 export function copyImageToDatabase(sourcePath) {
   const fileName = path.basename(sourcePath);
-  const destDir = app.isPackaged
-    ? path.join(app.getPath("userData"), "images", "product-images")
-    : path.join(__dirname, "../", "Database", "images", "product-images");
+  const destDir = path.join(dataDirectory, "images", "product-images");
   const destPath = path.join(destDir, fileName);
 
   if (!fs.existsSync(destDir)) {
@@ -194,12 +252,7 @@ export function copyImageToDatabase(sourcePath) {
 }
 export function resolveImagePath(relativePath) {
   if (!relativePath) return null;
-
-  const baseDir = app.isPackaged
-    ? app.getPath("userData")
-    : path.join(__dirname, "../", "Database");
-
-  return path.join(baseDir, relativePath);
+  return path.join(dataDirectory, relativePath);
 }
 export function addCustomer(customer) {
   const validatedCustomer = validateCustomer(customer);
