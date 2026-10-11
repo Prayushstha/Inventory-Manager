@@ -40,10 +40,12 @@ test("loads defaults and persists validated settings", () => {
     const updatedConfig = saveAppConfig(configPath, {
       ...loadAppConfig(configPath),
       invoiceDefaults,
+      inventoryAddItemMode: "bill",
     });
     assert.equal(updatedConfig.invoiceDefaults.shopName, "StockWise Store");
     assert.equal(updatedConfig.invoiceDefaults.invoiceNumber, "INV-01");
     assert.deepEqual(loadAppConfig(configPath).invoiceDefaults, updatedConfig.invoiceDefaults);
+    assert.equal(loadAppConfig(configPath).inventoryAddItemMode, "bill");
     assert.deepEqual(defaultInvoiceDefaults(), {
       shopName: "",
       shopAddress: "",
@@ -70,6 +72,10 @@ test("rejects malformed settings and unsupported payment defaults", () => {
     assert.throws(
       () => saveAppConfig(configPath, { invoiceDefaults: { shopName: 42 } }),
       /Invoice default "shopName" must be text/,
+    );
+    assert.throws(
+      () => saveAppConfig(configPath, { inventoryAddItemMode: "unknown" }),
+      /Inventory add item mode must be/,
     );
   } finally {
     fs.rmSync(directory, { recursive: true, force: true });

@@ -89,6 +89,15 @@ export function updateInvoiceDefaults(invoiceDefaults) {
   return getAppSettings();
 }
 
+export function updateInventoryAddItemMode(inventoryAddItemMode) {
+  const nextConfig = saveAppConfig(appConfigPath, {
+    ...appConfig,
+    inventoryAddItemMode,
+  });
+  appConfig = nextConfig;
+  return getAppSettings();
+}
+
 export async function setLocalDataDirectory(destinationDirectory) {
   if (typeof destinationDirectory !== "string" || !destinationDirectory.trim()) {
     throw new Error("A data directory is required.");

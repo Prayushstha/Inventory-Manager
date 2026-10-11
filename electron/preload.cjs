@@ -64,6 +64,8 @@ contextBridge.exposeInMainWorld("db", {
     ipcRenderer.invoke("settings:updateDefaultPaymentMethod", paymentMethod),
   updateInvoiceDefaults: (invoiceDefaults) =>
     ipcRenderer.invoke("settings:updateInvoiceDefaults", invoiceDefaults),
+  updateInventoryAddItemMode: (mode) =>
+    ipcRenderer.invoke("settings:updateInventoryAddItemMode", mode),
   openDataDirectory: () => ipcRenderer.invoke("settings:openDataDirectory"),
   changeDataDirectory: () => ipcRenderer.invoke("settings:changeDataDirectory"),
 });

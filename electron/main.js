@@ -50,6 +50,7 @@ import {
   setLocalDataDirectory,
   updateDefaultPaymentMethod,
   updateInvoiceDefaults,
+  updateInventoryAddItemMode,
 } from "../src/Backend/server.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -213,6 +214,9 @@ app.whenReady().then(() => {
   );
   ipcMain.handle("settings:updateInvoiceDefaults", (_, invoiceDefaults) =>
     updateInvoiceDefaults(invoiceDefaults),
+  );
+  ipcMain.handle("settings:updateInventoryAddItemMode", (_, mode) =>
+    updateInventoryAddItemMode(mode),
   );
   ipcMain.handle("settings:openDataDirectory", async () => {
     const error = await shell.openPath(getAppSettings().dataDirectory);

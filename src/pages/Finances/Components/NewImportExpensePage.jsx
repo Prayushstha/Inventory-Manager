@@ -20,6 +20,7 @@ export function NewImportExpensePage({
   setDate,
   onCancel,
   onSaved,
+  draftKey = "new",
 }) {
   const showToast = useToast();
   const [invoice, setInvoice] = useState(null);
@@ -31,6 +32,7 @@ export function NewImportExpensePage({
   const [baseline, setBaseline] = useState(null);
   const [initialDate] = useState(date);
   const [initialExpenseName] = useState(nameOfExpense);
+  const storageKey = `stockwise:import-invoice:${draftKey}`;
   const draftValue = JSON.stringify({ date, nameOfExpense, invoice, items });
   const isDirty = Boolean(baseline && draftValue !== JSON.stringify(baseline));
 
@@ -79,7 +81,7 @@ export function NewImportExpensePage({
       });
       let restored = false;
       try {
-        const draft = JSON.parse(sessionStorage.getItem("stockwise:import-invoice:new") || "null");
+        const draft = JSON.parse(sessionStorage.getItem(storageKey) || "null");
         if (draft?.invoice && Array.isArray(draft.items)) {
           setInvoice(draft.invoice);
           setItems(draft.items);
@@ -95,19 +97,19 @@ export function NewImportExpensePage({
       setDraftReady(true);
     });
     return () => { cancelled = true; };
-  }, [showToast, initialDate, initialExpenseName, setDate, setNameOfExpense]);
+  }, [showToast, initialDate, initialExpenseName, setDate, setNameOfExpense, storageKey]);
 
   useEffect(() => {
     if (!draftReady || !invoice) return;
     if (!isDirty) {
-      sessionStorage.removeItem("stockwise:import-invoice:new");
+      sessionStorage.removeItem(storageKey);
       return;
     }
     sessionStorage.setItem(
-      "stockwise:import-invoice:new",
+      storageKey,
       draftValue,
     );
-  }, [date, nameOfExpense, invoice, items, draftReady, isDirty, draftValue]);
+  }, [date, nameOfExpense, invoice, items, draftReady, isDirty, draftValue, storageKey]);
 
   async function handleSave() {
     if (isSaving) return;
@@ -147,7 +149,7 @@ export function NewImportExpensePage({
         defaultsSaved = false;
       }
 
-      sessionStorage.removeItem("stockwise:import-invoice:new");
+      sessionStorage.removeItem(storageKey);
       onSaved?.();
       showToast(
         defaultsSaved

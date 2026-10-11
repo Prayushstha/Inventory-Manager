@@ -20,6 +20,7 @@ export function defaultAppConfig() {
     defaultPaymentMethod: DEFAULT_PAYMENT_METHOD,
     dataDirectory: null,
     invoiceDefaults: defaultInvoiceDefaults(),
+    inventoryAddItemMode: null,
   };
 }
 
@@ -55,7 +56,12 @@ function validateAppConfig(config) {
     defaults[key] = value.trim();
   }
 
-  return { defaultPaymentMethod, dataDirectory, invoiceDefaults: defaults };
+  const inventoryAddItemMode = config.inventoryAddItemMode ?? null;
+  if (inventoryAddItemMode !== null && !["default", "bill"].includes(inventoryAddItemMode)) {
+    throw new Error('Inventory add item mode must be "default", "bill", or null.');
+  }
+
+  return { defaultPaymentMethod, dataDirectory, invoiceDefaults: defaults, inventoryAddItemMode };
 }
 
 export function loadAppConfig(configPath) {

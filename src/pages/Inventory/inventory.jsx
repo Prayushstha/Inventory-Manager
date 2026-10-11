@@ -3,11 +3,17 @@ import { NavBar } from "../../components/navbar";
 import { ProductsTable } from "./Components/ProductsTable";
 import { useState, useEffect } from "react";
 import { useErrorHandler } from "../../hooks/useErrorHandler";
+import { NewImportExpensePage } from "../Finances/Components/NewImportExpensePage";
 
 export function InventoryPage({ isDark, setIsDark }) {
   const isInventoryPage = true;
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
+  const [showBillAddPage, setShowBillAddPage] = useState(false);
+  const [billDraft, setBillDraft] = useState({
+    nameOfExpense: "Inventory import",
+    date: new Date().toISOString().slice(0, 10),
+  });
   const { handleAsync } = useErrorHandler();
 
   async function fetchProducts() {
@@ -40,6 +46,25 @@ export function InventoryPage({ isDark, setIsDark }) {
     p.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  if (showBillAddPage) {
+    return (
+      <NewImportExpensePage
+        nameOfExpense={billDraft.nameOfExpense}
+        setNameOfExpense={(nameOfExpense) =>
+          setBillDraft((current) => ({ ...current, nameOfExpense }))
+        }
+        date={billDraft.date}
+        setDate={(date) => setBillDraft((current) => ({ ...current, date }))}
+        draftKey="inventory"
+        onCancel={() => setShowBillAddPage(false)}
+        onSaved={() => {
+          setShowBillAddPage(false);
+          fetchProducts();
+        }}
+      />
+    );
+  }
+
   return (
     <>
       <div className="product-list-container">
@@ -50,6 +75,7 @@ export function InventoryPage({ isDark, setIsDark }) {
           fetchProducts={fetchProducts}
           search={search}
           setSearch={setSearch}
+          onStartBillAdd={() => setShowBillAddPage(true)}
         />
         <ProductsTable products={filteredProducts} fetchProducts={fetchProducts} />
       </div>
