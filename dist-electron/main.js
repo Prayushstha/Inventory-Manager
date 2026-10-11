@@ -1885,11 +1885,94 @@ async function createBillsPdf(db) {
 	return createPdfBuffer((document) => {
 		bills.forEach((bill, index) => {
 			if (index > 0) document.addPage();
+			const billItems = itemsByBill.get(bill.id) || [];
+			const billType = String(bill.bill_type || "default").toLowerCase();
+			let invoiceData = null;
+			if (billType === "vat" && bill.invoice_data) try {
+				const parsed = JSON.parse(bill.invoice_data);
+				if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) invoiceData = parsed;
+			} catch {
+				invoiceData = null;
+			}
+			if (billType === "vat" && invoiceData) {
+				const itemAmount = billItems.reduce((sum, item) => sum + Number(item.quantity || 0) * Number(item.price_at_sale || 0), 0);
+				const discount = Number(invoiceData.discount || 0);
+				const taxableAmount = Number(invoiceData.taxableAmount ?? itemAmount - discount);
+				const vatPercent = Number(invoiceData.vatPercent || 0);
+				const tax = Number(invoiceData.tax ?? taxableAmount * vatPercent / 100);
+				const grandTotal = taxableAmount + tax;
+				document.fillColor("#111").fontSize(20).text(invoiceData.shopName || "StockWise", { align: "center" });
+				document.fontSize(10);
+				document.text(invoiceData.shopAddress || "", { align: "center" });
+				document.text(invoiceData.shopTelephone ? `Tel: ${invoiceData.shopTelephone}` : "", { align: "center" });
+				document.moveDown();
+				document.fontSize(15).text("VAT Invoice", { align: "center" });
+				document.moveDown();
+				document.fontSize(10);
+				document.text(`Invoice Number: ${invoiceData.invoiceNumber || bill.bill_number || bill.id}`);
+				document.text(`TPIN: ${invoiceData.tpinNumber || "—"}`);
+				document.text(`Date: ${bill.date}`, document.page.width - 180, document.y - 24, {
+					width: 135,
+					align: "right"
+				});
+				document.moveDown();
+				document.text(`Buyer Name: ${invoiceData.buyerName || bill.customer_name || "Unknown"}`);
+				document.text(`Buyer Address: ${invoiceData.buyerAddress || bill.customer_address || "—"}`);
+				document.text(`Buyer TPIN: ${invoiceData.buyerTpin || "—"}`);
+				document.text(`Mode of Payment: ${invoiceData.paymentMode || bill.payment_method || "—"}`);
+				document.moveDown();
+				const startX = document.x;
+				const columns = [
+					["S.N.", 35],
+					["Particulars", 245],
+					["Qty", 55],
+					["Rate", 80],
+					["Amount (Rs. and Ps.)", 105]
+				];
+				document.font("Helvetica-Bold");
+				let x = startX;
+				for (const [label, width] of columns) {
+					document.text(label, x, document.y, { width });
+					x += width;
+				}
+				document.moveDown(.8);
+				document.font("Helvetica");
+				billItems.forEach((item, itemIndex) => {
+					x = startX;
+					const values = [
+						String(itemIndex + 1),
+						[
+							item.product_name,
+							item.base || "",
+							item.bucket_size ? `Size: ${item.bucket_size}` : ""
+						].filter(Boolean).join(" — "),
+						String(item.quantity),
+						money(item.price_at_sale),
+						money(item.quantity * item.price_at_sale)
+					];
+					const rowY = document.y;
+					columns.forEach(([, width], columnIndex) => {
+						document.text(values[columnIndex], x, rowY, { width });
+						x += width;
+					});
+					document.moveDown(.8);
+				});
+				document.moveDown();
+				document.font("Helvetica-Bold").text(`Amount: ${money(itemAmount)}`, { align: "right" });
+				document.font("Helvetica").text(`Discount: ${money(discount)}`, { align: "right" });
+				document.text(`Taxable Amount: ${money(taxableAmount)}`, { align: "right" });
+				document.text(`VAT: ${vatPercent}%`, { align: "right" });
+				document.text(`Tax: ${money(tax)}`, { align: "right" });
+				document.font("Helvetica-Bold").text(`Grand Total: ${money(grandTotal)}`, { align: "right" });
+				document.font("Helvetica");
+				return;
+			}
 			document.fillColor("#111").fontSize(20).text("StockWise", { align: "center" });
 			document.fontSize(15).text("Sales Bill", { align: "center" });
 			document.moveDown();
 			document.fontSize(10);
 			document.text(`Bill No: ${bill.bill_number || bill.id}`);
+			if (billType === "pan") document.text(`PAN Number: ${bill.pan_number || "—"}`);
 			document.text(`Date: ${bill.date}`);
 			document.text(`Bill Type: ${bill.bill_type || "default"}`);
 			document.text(`Payment Method: ${bill.payment_method || "—"}`);
@@ -1915,7 +1998,7 @@ async function createBillsPdf(db) {
 			}
 			document.moveDown(.8);
 			document.font("Helvetica");
-			for (const item of itemsByBill.get(bill.id) || []) {
+			for (const item of billItems) {
 				x = startX;
 				const values = [
 					item.product_name,
