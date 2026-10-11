@@ -82,7 +82,7 @@ export function BillDialog({
     ? vatTaxableAmount + vatAmount
     : totalPurchased;
   const amountPaidNum = parseFloat(form.amountPaid) || 0;
-  const amountDue = billTotal - amountPaidNum;
+  const amountDue = Math.max(0, billTotal - amountPaidNum);
   const status = computeStatus(billTotal, amountPaidNum);
 
   // Clamp the selected row into range as items change (derived — no effect).
@@ -182,6 +182,10 @@ export function BillDialog({
 
     if (form.products.length === 0) {
       showToast("Please add at least one product.", "error");
+      return;
+    }
+    if (amountPaidNum > billTotal) {
+      showToast("Amount paid cannot exceed the bill total.", "error");
       return;
     }
 

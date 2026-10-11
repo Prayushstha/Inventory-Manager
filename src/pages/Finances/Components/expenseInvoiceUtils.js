@@ -9,19 +9,20 @@ export function formatInvoiceNumber(value) {
     : "0000.00";
 }
 
-export function validateInvoiceDraft({ date, nameOfExpense, invoice, items }) {
-  const errors = { items: items.map(() => ({})) };
+export function validateInvoiceDraft({ date, nameOfExpense, invoice = {}, items = [] }) {
+  const safeItems = Array.isArray(items) ? items : [];
+  const errors = { items: safeItems.map(() => ({})) };
   if (!String(date ?? "").trim()) errors.date = "Invoice date is required.";
   if (!String(nameOfExpense ?? "").trim()) errors.nameOfExpense = "Import description is required.";
   if (!String(invoice.invoiceNumber ?? "").trim()) {
     errors.invoiceNumber = "Invoice number is required.";
   }
 
-  if (!Array.isArray(items) || items.length === 0) {
+  if (safeItems.length === 0) {
     errors.items = [{}];
     errors.itemList = "Add at least one imported item.";
   } else {
-    items.forEach((item, index) => {
+    safeItems.forEach((item, index) => {
       if (!String(item.productName ?? "").trim()) errors.items[index].productName = "Description is required.";
       if (!String(item.base ?? "").trim()) errors.items[index].base = "HS code/base is required.";
 
@@ -40,7 +41,7 @@ export function validateInvoiceDraft({ date, nameOfExpense, invoice, items }) {
     });
   }
 
-  const amount = items.reduce(
+  const amount = safeItems.reduce(
     (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.costPrice) || 0),
     0,
   );

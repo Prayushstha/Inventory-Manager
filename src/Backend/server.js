@@ -24,6 +24,7 @@ import { saveInventoryProduct } from "./inventoryWrites.js";
 import {
   addBill as createBill,
   addInventoryProduct,
+  adjustStock as adjustInventoryStock,
   deleteInventoryProduct,
   editImportExpense as updateImportExpense,
   getNextInvoiceNumber as suggestNextInvoiceNumber,
@@ -396,7 +397,7 @@ export function deleteBill(billId) {
       .prepare(`SELECT * FROM bill_items WHERE bill_id = ?`)
       .all(billId);
     for (const item of items) {
-      adjustStock(item.product_name, item.base, item.bucket_size, item.quantity);
+      adjustInventoryStock(db, item.product_name, item.base, item.bucket_size, item.quantity);
     }
 
     db.prepare(`DELETE FROM bill_items WHERE bill_id = ?`).run(billId);
@@ -436,7 +437,7 @@ export function editBill(billId, bill) {
   const run = db.transaction(() => {
     const oldItems = db.prepare(`SELECT * FROM bill_items WHERE bill_id = ?`).all(billId);
     for (const item of oldItems) {
-      adjustStock(item.product_name, item.base, item.bucket_size, item.quantity);
+      adjustInventoryStock(db, item.product_name, item.base, item.bucket_size, item.quantity);
     }
 
     const previousTotal = Number(billRecord.total_purchased || 0);
@@ -485,7 +486,7 @@ export function editBill(billId, bill) {
         costPrice,
       );
 
-      adjustStock(item.productName, item.base, item.bucketSize, -item.quantity);
+      adjustInventoryStock(db, item.productName, item.base, item.bucketSize, -item.quantity);
     }
 
     if (Math.abs(totalDelta) > 0.01) {
@@ -518,34 +519,6 @@ export function editCustomerBill(customerId, customer, billId, bill) {
     editBill(billId, bill);
   });
   run();
-}
-function adjustStock(productName, baseName, bucketSize, deltaQty) {
-  const pName = productName ? String(productName).trim() : "";
-  const bName = baseName ? String(baseName).trim() : "";
-  const bSize = parseFloat(bucketSize) || 0;
-
-  const product = db
-    .prepare(`SELECT * FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE`)
-    .get(pName);
-  if (!product) return;
-
-  const variant = db
-    .prepare(
-      `SELECT * FROM variants WHERE product_id = ? AND ABS(bucket_size - ?) < 0.001`,
-    )
-    .get(product.id, bSize);
-  if (!variant) return;
-
-  const base = db
-    .prepare(
-      `SELECT * FROM bases WHERE product_id = ? AND TRIM(name) = TRIM(?) COLLATE NOCASE`,
-    )
-    .get(product.id, bName);
-  if (!base) return;
-
-  db.prepare(
-    `UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?`,
-  ).run(deltaQty, base.id, variant.id);
 }
 export function addExpense(expense) {
   const validatedExpense = validateExpensePayload(expense);
@@ -824,7 +797,7 @@ export function getTopCustomers(period, limit = 5) {
 
 function reverseImportItemFromStock(item) {
   // item here comes from an expense_items row (snake_case columns)
-  adjustStock(item.product_name, item.base, item.bucket_size, -item.quantity);
+  adjustInventoryStock(db, item.product_name, item.base, item.bucket_size, -item.quantity);
 }
 
 export function recordImportExpense(expenseMeta, items) {

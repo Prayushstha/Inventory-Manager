@@ -40,3 +40,15 @@ test("returns field-level validation errors for incomplete and invalid values", 
     },
   );
 });
+
+test("reports missing items instead of throwing for an incomplete draft", () => {
+  assert.deepEqual(
+    validateInvoiceDraft({}),
+    {
+      date: "Invoice date is required.",
+      nameOfExpense: "Import description is required.",
+      invoiceNumber: "Invoice number is required.",
+      itemList: "Add at least one imported item.",
+    },
+  );
+});

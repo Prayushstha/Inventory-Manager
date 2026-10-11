@@ -11,6 +11,7 @@ This roadmap is intentionally focused on improvements that matter most for a sma
 - [x] Review and harden error handling around failed database or import actions
 - [x] Add test coverage for core business flows: product add/edit/delete, bill creation, expense import
 - [x] Improve settings and configuration handling for app defaults and local storage paths
+- [x] Persist Default, PAN, and VAT bill types and VAT invoice metadata
 
 ### Why it matters
 This app is already feature-rich enough to be useful, but reliability is the main factor that determines whether it becomes trusted business software.
@@ -24,7 +25,8 @@ This app is already feature-rich enough to be useful, but reliability is the mai
 - [ ] Inventory audit / stock count reconciliation
 - [ ] Stock valuation report based on cost and current inventory value
 - [ ] Better customer payment tracking with partial payments and outstanding aging
-- [ ] Tax-aware billing calculations and invoice totals
+- [x] Tax-aware billing calculations and invoice totals
+- [ ] Tax reporting and reconciliation (VAT collected, discounts, PAN/VAT bill-number sequences)
 - [ ] Export options for sales, products, customers, and expenses (CSV / Excel)
 - [ ] Printable invoice and receipt templates
 - [ ] Search and filter improvements for products, bills, and customers
@@ -43,6 +45,7 @@ These features improve day-to-day reliability and help local businesses use the 
 - [ ] Supplier / import cost analysis
 - [ ] Dashboard customization with key business KPIs
 - [ ] Better comparison views for monthly and yearly performance
+- [ ] Filter sales and financial reports by Default, PAN, and VAT bill type
 
 ### Goal
 Move from simple transaction recording to actionable business reporting.
@@ -57,6 +60,8 @@ Move from simple transaction recording to actionable business reporting.
 - [ ] Quick actions for frequent tasks: duplicate, restore, export, delete
 - [x] Theme and layout polish for desktop usability
 - [ ] Keyboard shortcut documentation and better accessibility for form-heavy screens
+- [ ] Add end-to-end UI tests for invoice creation/editing, stock changes, and sales reporting
+- [ ] Track bill edit history and retain an audit trail for changes to totals, tax, and payment details
 
 ### Goal
 Streamline repetitive actions and reduce mistakes during daily usage.
@@ -106,4 +111,4 @@ These are valid long-term ideas, but they should come after the app is stable, t
 
 ## Current status
 
-The project already has a solid base: a desktop app, local database storage, inventory management, billing, expenses, and analytics. The most important next step is not building a large SaaS product, but turning this into a dependable business tool with stable data handling and practical reporting.
+The project already has a solid base: a desktop app, local database storage, inventory management, billing, expenses, and analytics. The main remaining opportunities are stronger tax-aware reporting, auditable financial changes, and automated UI-level regression coverage for connected invoice workflows.

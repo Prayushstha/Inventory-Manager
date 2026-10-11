@@ -161,7 +161,7 @@ export function deleteInventoryProduct(db, id) {
   run();
 }
 
-function adjustStock(db, productName, baseName, bucketSize, deltaQty) {
+export function adjustStock(db, productName, baseName, bucketSize, deltaQty) {
   const pName = productName ? String(productName).trim() : "";
   const bName = baseName ? String(baseName).trim() : "";
   const bSize = parseFloat(bucketSize) || 0;
