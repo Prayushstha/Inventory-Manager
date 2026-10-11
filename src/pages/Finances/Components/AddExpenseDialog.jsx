@@ -11,13 +11,20 @@ const emptyImportItem = {
   costPrice: "",
 };
 
-export function AddExpenseDialog({ onClose, onSaved, asPage = false }) {
+export function AddExpenseDialog({
+  onClose,
+  onSaved,
+  onSelectImport,
+  initialNameOfExpense = "",
+  initialDate = new Date().toISOString().slice(0, 10),
+  asPage = false,
+}) {
   const showToast = useToast();
   const [isSaving, setIsSaving] = useState(false);
-  const [nameOfExpense, setNameOfExpense] = useState("");
+  const [nameOfExpense, setNameOfExpense] = useState(initialNameOfExpense);
   const [typeOfExpense, setTypeOfExpense] = useState("General");
   const [amountOfExpense, setAmountOfExpense] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(initialDate);
 
   const [importItems, setImportItems] = useState([]);
   const [itemForm, setItemForm] = useState(emptyImportItem);
@@ -33,10 +40,14 @@ export function AddExpenseDialog({ onClose, onSaved, asPage = false }) {
   const importFields = [productNameRef, baseRef, bucketSizeRef, quantityRef, costPriceRef];
 
   const isImport = typeOfExpense === "Import";
-  const importTotal = importItems.reduce(
-    (sum, i) => sum + (parseFloat(i.quantity) || 0) * (parseFloat(i.costPrice) || 0),
-    0,
-  );
+  function handleTypeChange(event) {
+    const nextType = event.target.value;
+    if (nextType === "Import" && onSelectImport) {
+      onSelectImport(nameOfExpense, date);
+      return;
+    }
+    setTypeOfExpense(nextType);
+  }
 
   function handleAddItem() {
     if (!itemForm.productName || !itemForm.base || !itemForm.bucketSize || !itemForm.quantity || !itemForm.costPrice) {
@@ -97,7 +108,7 @@ export function AddExpenseDialog({ onClose, onSaved, asPage = false }) {
     fields: isImport ? importFields : undefined,
     currentFieldIndex,
     onFieldChange: setCurrentFieldIndex,
-    enabled: true,
+    enabled: !isImport,
   });
 
   const overlayStyle = asPage
@@ -142,7 +153,7 @@ export function AddExpenseDialog({ onClose, onSaved, asPage = false }) {
             </div>
             <div className="field">
               <label>Type</label>
-              <select value={typeOfExpense} onChange={(e) => setTypeOfExpense(e.target.value)}>
+              <select value={typeOfExpense} onChange={handleTypeChange}>
                 <option value="Import">Import</option>
                 <option value="General">General</option>
                 <option value="Taxes">Taxes</option>
@@ -152,10 +163,9 @@ export function AddExpenseDialog({ onClose, onSaved, asPage = false }) {
               <label>Amount (NPR)</label>
               <input
                 type="number"
-                value={isImport ? importTotal : amountOfExpense}
+                value={amountOfExpense}
                 onChange={(e) => setAmountOfExpense(e.target.value)}
                 placeholder="0"
-                disabled={isImport}
               />
             </div>
             <div className="field">

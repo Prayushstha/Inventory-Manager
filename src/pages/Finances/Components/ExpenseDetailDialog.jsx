@@ -173,6 +173,7 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
                 <th rowSpan="2">S.N.</th>
                 <th rowSpan="2">H.S. Code</th>
                 <th rowSpan="2">Particulars</th>
+                <th rowSpan="2">Size</th>
                 <th rowSpan="2">Qty.</th>
                 <th rowSpan="2">Rate</th>
                 <th colSpan="2">Amount</th>
@@ -195,12 +196,8 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
                   <tr key={item ? `${item.productName}-${index}` : `empty-${index}`}>
                     <td>{index + 1}</td>
                     <td>{displayText(item?.base)}</td>
-                    <td>
-                      <span>{displayText(item?.productName)}</span>
-                      <small className="invoice-item-size">
-                        Size: {displayText(item?.bucketSize)}
-                      </small>
-                    </td>
+                    <td>{displayText(item?.productName)}</td>
+                    <td>{formatInvoiceNumber(item?.bucketSize)}</td>
                     <td>{formatInvoiceNumber(quantity)}</td>
                     <td>{formatInvoiceNumber(rate)}</td>
                     <td>{rupees}</td>
@@ -323,6 +320,8 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
     return (
       <ExpenseInvoiceEditor
         details={details}
+        nameOfExpense={nameOfExpense}
+        setNameOfExpense={setNameOfExpense}
         invoice={invoice}
         setInvoice={setInvoice}
         date={date}

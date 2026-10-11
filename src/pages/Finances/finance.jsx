@@ -8,6 +8,7 @@ import { NetPosition } from "./Components/NetPosition";
 import { StatCard } from "../Analytics/Components/StatCard";
 import { AddExpenseDialog } from "./Components/AddExpenseDialog";
 import { ExpenseDetailDialog } from "./Components/ExpenseDetailDialog";
+import { NewImportExpensePage } from "./Components/NewImportExpensePage";
 
 function fmt(n) {
   return new Intl.NumberFormat("en-NP", {
@@ -37,6 +38,11 @@ export function FinancePage() {
   const [overviewPeriod, setOverviewPeriod] = useState(2);
   const [data, setData] = useState(null);
   const [showAddExpense, setShowAddExpense] = useState(false);
+  const [showImportPage, setShowImportPage] = useState(false);
+  const [importDraft, setImportDraft] = useState({
+    nameOfExpense: "",
+    date: new Date().toISOString().slice(0, 10),
+  });
   const [selectedExpenseId, setSelectedExpenseId] = useState(null);
 
   async function fetchSummary() {
@@ -56,7 +62,25 @@ export function FinancePage() {
 
   return (
     <>
-      {selectedExpenseId ? (
+      {showImportPage ? (
+        <NewImportExpensePage
+          nameOfExpense={importDraft.nameOfExpense}
+          setNameOfExpense={(nameOfExpense) =>
+            setImportDraft((current) => ({ ...current, nameOfExpense }))
+          }
+          date={importDraft.date}
+          setDate={(date) => setImportDraft((current) => ({ ...current, date }))}
+          onCancel={() => {
+            setShowImportPage(false);
+            setShowAddExpense(true);
+          }}
+          onSaved={() => {
+            setShowImportPage(false);
+            setShowAddExpense(false);
+            fetchSummary();
+          }}
+        />
+      ) : selectedExpenseId ? (
         <ExpenseDetailDialog
           expenseId={selectedExpenseId}
           onClose={() => setSelectedExpenseId(null)}
@@ -102,9 +126,16 @@ export function FinancePage() {
         </>
       )}
 
-      {!selectedExpenseId && showAddExpense && (
+      {!selectedExpenseId && !showImportPage && showAddExpense && (
         <AddExpenseDialog
           onClose={() => setShowAddExpense(false)}
+          onSelectImport={(nameOfExpense, date) => {
+            setImportDraft({ nameOfExpense, date });
+            setShowAddExpense(false);
+            setShowImportPage(true);
+          }}
+          initialNameOfExpense={importDraft.nameOfExpense}
+          initialDate={importDraft.date}
           onSaved={() => {
             setShowAddExpense(false);
             fetchSummary();

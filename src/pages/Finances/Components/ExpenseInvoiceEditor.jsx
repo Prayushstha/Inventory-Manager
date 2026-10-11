@@ -28,6 +28,8 @@ function updateItem(setItems, index, key, value) {
 
 export function ExpenseInvoiceEditor({
   details,
+  nameOfExpense,
+  setNameOfExpense,
   invoice,
   setInvoice,
   date,
@@ -71,6 +73,23 @@ export function ExpenseInvoiceEditor({
   });
 
   useEffect(() => {
+    function handleFieldNavigation(event) {
+      const currentField = event.target.closest?.(".invoice-nav-field");
+      if (event.shiftKey && event.key === "Enter") return;
+      if (!currentField || !(event.key === "Enter" || event.key === "ArrowLeft" || event.key === "ArrowRight")) {
+        return;
+      }
+
+      event.preventDefault();
+      const fields = Array.from(
+        document.querySelectorAll(".expense-invoice-edit .invoice-nav-field"),
+      );
+      const currentIndex = fields.indexOf(currentField);
+      const direction = event.key === "ArrowLeft" ? -1 : 1;
+      const nextField = fields[currentIndex + direction];
+      nextField?.focus();
+    }
+
     function handleDuplicateItem(event) {
       if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "d") return;
       const row = event.target.closest?.("[data-invoice-item-row]");
@@ -89,8 +108,12 @@ export function ExpenseInvoiceEditor({
       setTimeout(() => itemRefs.current[index + 1]?.base?.focus(), 0);
     }
 
+    document.addEventListener("keydown", handleFieldNavigation);
     document.addEventListener("keydown", handleDuplicateItem);
-    return () => document.removeEventListener("keydown", handleDuplicateItem);
+    return () => {
+      document.removeEventListener("keydown", handleFieldNavigation);
+      document.removeEventListener("keydown", handleDuplicateItem);
+    };
   }, [setItems]);
 
   function invoiceField(key, label, placeholder, className = "") {
@@ -100,6 +123,7 @@ export function ExpenseInvoiceEditor({
         <input
           id={`invoice-${key}`}
           type="text"
+          className="invoice-nav-field"
           value={invoice[key] ?? ""}
           placeholder={placeholder}
           onChange={(event) => setInvoiceValue(key, event.target.value)}
@@ -164,6 +188,7 @@ export function ExpenseInvoiceEditor({
                 <input
                   id="invoice-number"
                   type="text"
+                  className="invoice-nav-field"
                   value={invoice.invoiceNumber ?? ""}
                   placeholder="Invoice number"
                   onChange={(event) => setInvoiceValue("invoiceNumber", event.target.value)}
@@ -174,6 +199,7 @@ export function ExpenseInvoiceEditor({
                 <input
                   id="invoice-tpin"
                   type="text"
+                  className="invoice-nav-field"
                   maxLength={9}
                   value={invoice.tpinNumber ?? ""}
                   placeholder="9 digit TPIN"
@@ -186,6 +212,7 @@ export function ExpenseInvoiceEditor({
               <input
                 id="invoice-date"
                 type="date"
+                className="invoice-nav-field"
                 value={date ?? ""}
                 onChange={(event) => setDate(event.target.value)}
               />
@@ -201,6 +228,7 @@ export function ExpenseInvoiceEditor({
                 <label htmlFor="invoice-payment-mode">Mode of Payment</label>
                 <select
                   id="invoice-payment-mode"
+                  className="invoice-nav-field"
                   value={invoice.paymentMode || "Cash"}
                   onChange={(event) => setInvoiceValue("paymentMode", event.target.value)}
                 >
@@ -211,15 +239,38 @@ export function ExpenseInvoiceEditor({
                 </select>
               </div>
             </div>
+            <div className="invoice-record-name">
+              <label htmlFor="invoice-record-name">Import record</label>
+              <input
+                id="invoice-record-name"
+                type="text"
+                className="invoice-nav-field"
+                value={nameOfExpense}
+                placeholder="Import description"
+                onChange={(event) => setNameOfExpense(event.target.value)}
+              />
+            </div>
           </section>
 
           <div className="table-wrap invoice-edit-table-wrap">
             <table className="invoice-items invoice-items-edit">
+              <colgroup>
+                <col className="invoice-col-sn" />
+                <col className="invoice-col-code" />
+                <col className="invoice-col-particulars" />
+                <col className="invoice-col-size" />
+                <col className="invoice-col-qty" />
+                <col className="invoice-col-rate" />
+                <col className="invoice-col-amount" />
+                <col className="invoice-col-paisa" />
+                <col className="invoice-col-actions" />
+              </colgroup>
               <thead>
                 <tr>
                   <th rowSpan="2">S.N.</th>
                   <th rowSpan="2">H.S. Code</th>
                   <th className="left" rowSpan="2">Particulars</th>
+                  <th rowSpan="2">Size</th>
                   <th rowSpan="2">Qty.</th>
                   <th rowSpan="2">Rate</th>
                   <th colSpan="2">Amount</th>
@@ -238,13 +289,13 @@ export function ExpenseInvoiceEditor({
                   return (
                     <tr key={`${details.id}-item-${index}`} data-invoice-item-row={index}>
                       <td className="sn">{index + 1}</td>
-                      <td>{itemInput(index, "base", "—")}</td>
+                      <td>{itemInput(index, "base", "—", "invoice-nav-field")}</td>
                       <td className="invoice-particulars">
-                        {itemInput(index, "productName", "Item description", "left")}
-                        {itemInput(index, "bucketSize", "Size", "invoice-size-input", "number")}
+                        {itemInput(index, "productName", "Item description", "left invoice-nav-field")}
                       </td>
-                      <td>{itemInput(index, "quantity", "0", "", "number")}</td>
-                      <td>{itemInput(index, "costPrice", "0.00", "", "number")}</td>
+                      <td>{itemInput(index, "bucketSize", "0.00", "invoice-nav-field", "number")}</td>
+                      <td>{itemInput(index, "quantity", "0", "invoice-nav-field", "number")}</td>
+                      <td>{itemInput(index, "costPrice", "0.00", "invoice-nav-field", "number")}</td>
                       <td className="invoice-calculated">{rupees}</td>
                       <td className="invoice-calculated">{paisa}</td>
                       <td className="invoice-row-action">
@@ -263,11 +314,12 @@ export function ExpenseInvoiceEditor({
               </tbody>
               <tbody className="invoice-summary">
                 <tr className="summary-row">
-                  <td colSpan="3" rowSpan="5" className="invoice-words-cell">
+                  <td colSpan="4" rowSpan="5" className="invoice-words-cell">
                     <label htmlFor="invoice-words">Rupees in words</label>
                     <input
                       id="invoice-words"
                       type="text"
+                      className="invoice-nav-field"
                       value={invoice.amountInWords ?? ""}
                       placeholder="Amount in words"
                       onChange={(event) => setInvoiceValue("amountInWords", event.target.value)}
@@ -282,6 +334,7 @@ export function ExpenseInvoiceEditor({
                   <td className="summary-value" colSpan="2">
                     <input
                       type="number"
+                      className="invoice-nav-field"
                       min="0"
                       step="any"
                       aria-label="Discount"
