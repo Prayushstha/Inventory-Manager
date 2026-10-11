@@ -8,15 +8,21 @@ const require = createRequire(import.meta.url);
 const XLSX = require("xlsx");
 import { randomUUID } from "crypto";
 import {
-  validateProduct,
   validateCustomer,
   validateBillPayload,
   validateExpensePayload,
-  validateImportItems,
   normalizeText,
 } from "./validation.js";
 import { migrateDatabase } from "./migrations.js";
 import { saveInventoryProduct } from "./inventoryWrites.js";
+import {
+  addBill as createBill,
+  addInventoryProduct,
+  deleteInventoryProduct,
+  editImportExpense as updateImportExpense,
+  recordImportExpense as createImportExpense,
+  updateInventoryProduct,
+} from "./businessFlows.js";
 import { deleteExpenseAndRestoreStock, deleteVariantAndStock } from "./inventoryDeletes.js";
 import {
   activateStagedDatabase,
@@ -87,68 +93,7 @@ export async function restoreDatabase(sourcePath) {
 }
 
 export function addProduct(product) {
-  const validatedProduct = validateProduct(product);
-  const productId = validatedProduct.id || randomUUID();
-
-  const hasDuplicate = db
-    .prepare(`SELECT 1 FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE`)
-    .get(validatedProduct.name);
-
-  if (hasDuplicate) {
-    throw new Error(`Product "${validatedProduct.name}" already exists.`);
-  }
-
-  const run = db.transaction(() => {
-    db.prepare(`INSERT INTO products (id, name, images) VALUES (?, ?, ?)`).run(
-      productId,
-      validatedProduct.name,
-      validatedProduct.images,
-    );
-
-    for (const variant of validatedProduct.variants) {
-      const result = db
-        .prepare(
-          `INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`,
-        )
-        .run(
-          productId,
-          variant.bucket_size,
-          variant.landing,
-          variant.sales,
-          variant.mp,
-        );
-
-      if (!result.lastInsertRowid) {
-        throw new Error("Failed to create a product variant.");
-      }
-    }
-
-    for (const base of validatedProduct.bases) {
-      const baseResult = db
-        .prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`)
-        .run(productId, base.name);
-      const baseId = baseResult.lastInsertRowid;
-
-      for (let i = 0; i < base.stocks.length; i++) {
-        const variant = db
-          .prepare(
-            `SELECT id FROM variants WHERE product_id = ? LIMIT 1 OFFSET ?`,
-          )
-          .get(productId, i);
-
-        if (!variant) {
-          throw new Error(`Variant lookup failed while saving base "${base.name}".`);
-        }
-
-        db.prepare(
-          `INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`,
-        ).run(baseId, variant.id, base.stocks[i]);
-      }
-    }
-  });
-
-  run();
-  return productId;
+  return addInventoryProduct(db, product);
 }
 
 export function getProducts() {
@@ -182,113 +127,11 @@ export function getProducts() {
 }
 
 export function deleteProduct(id) {
-  if (!id) {
-    throw new Error("Product id is required.");
-  }
-
-  const product = db.prepare(`SELECT 1 FROM products WHERE id = ?`).get(id);
-  if (!product) {
-    throw new Error("Product not found.");
-  }
-
-  const run = db.transaction(() => {
-    const variants = db
-      .prepare(`SELECT id FROM variants WHERE product_id = ?`)
-      .all(id);
-    const bases = db.prepare(`SELECT id FROM bases WHERE product_id = ?`).all(id);
-
-    for (const variant of variants) {
-      db.prepare(`DELETE FROM base_stock WHERE variant_id = ?`).run(variant.id);
-    }
-    for (const base of bases) {
-      db.prepare(`DELETE FROM base_stock WHERE base_id = ?`).run(base.id);
-    }
-
-    db.prepare(`DELETE FROM variants WHERE product_id = ?`).run(id);
-    db.prepare(`DELETE FROM bases WHERE product_id = ?`).run(id);
-    db.prepare(`DELETE FROM products WHERE id = ?`).run(id);
-  });
-
-  run();
+  deleteInventoryProduct(db, id);
 }
 
 export function editProduct(id, product) {
-  if (!id) {
-    throw new Error("Product id is required.");
-  }
-
-  const existingProduct = db.prepare(`SELECT id FROM products WHERE id = ?`).get(id);
-  if (!existingProduct) {
-    throw new Error("Product not found.");
-  }
-
-  const validatedProduct = validateProduct(product);
-  const normalizedName = validatedProduct.name;
-
-  const duplicateFromAnotherRecord = db
-    .prepare(`SELECT id FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE AND id != ?`)
-    .get(normalizedName, id);
-
-  if (duplicateFromAnotherRecord) {
-    throw new Error(`Another product already uses the name "${normalizedName}".`);
-  }
-
-  const run = db.transaction(() => {
-    db.prepare(`UPDATE products SET name = ?, images = ? WHERE id = ?`).run(
-      normalizedName,
-      validatedProduct.images,
-      id,
-    );
-
-    const existingVariants = db
-      .prepare(`SELECT id FROM variants WHERE product_id = ?`)
-      .all(id);
-
-    for (const variant of existingVariants) {
-      db.prepare(`DELETE FROM base_stock WHERE variant_id = ?`).run(variant.id);
-    }
-
-    db.prepare(`DELETE FROM variants WHERE product_id = ?`).run(id);
-
-    const oldBases = db
-      .prepare(`SELECT id FROM bases WHERE product_id = ?`)
-      .all(id);
-    for (const base of oldBases) {
-      db.prepare(`DELETE FROM base_stock WHERE base_id = ?`).run(base.id);
-    }
-    db.prepare(`DELETE FROM bases WHERE product_id = ?`).run(id);
-
-    for (const variant of validatedProduct.variants) {
-      db.prepare(
-        `INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`,
-      ).run(id, variant.bucket_size, variant.landing, variant.sales, variant.mp);
-    }
-
-    for (const base of validatedProduct.bases) {
-      const baseResult = db
-        .prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`)
-        .run(id, base.name);
-      const baseId = baseResult.lastInsertRowid;
-
-      for (let i = 0; i < base.stocks.length; i++) {
-        const variant = db
-          .prepare(
-            `SELECT id FROM variants WHERE product_id = ? LIMIT 1 OFFSET ?`,
-          )
-          .get(id, i);
-
-        if (!variant) {
-          throw new Error(`Variant lookup failed while updating base "${base.name}".`);
-        }
-
-        db.prepare(
-          `INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`,
-        ).run(baseId, variant.id, base.stocks[i]);
-      }
-    }
-  });
-
-  run();
+  updateInventoryProduct(db, id, product);
 }
 export function getProductByName(name) {
   return db.prepare(`SELECT * FROM products WHERE name = ?`).get(name);
@@ -408,75 +251,7 @@ export function getBillActivity(billId) {
 }
 
 export function addBill(customerId, bill) {
-  const normalizedBill = validateBillPayload(customerId, bill);
-  const customer = db.prepare(`SELECT id FROM customers WHERE id = ?`).get(normalizedBill.customerId);
-  if (!customer) {
-    throw new Error("Customer not found.");
-  }
-
-  const run = db.transaction(() => {
-    const result = db
-      .prepare(
-        `
-      INSERT INTO bills (customer_id, date, payment_method, total_purchased, amount_paid, amount_due, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `,
-      )
-      .run(
-        normalizedBill.customerId,
-        normalizedBill.date,
-        normalizedBill.paymentMethod,
-        normalizedBill.totalPurchased,
-        normalizedBill.amountPaid,
-        normalizedBill.amountDue,
-        normalizedBill.status,
-      );
-
-    const billId = result.lastInsertRowid;
-
-    addBillActivity(billId, {
-      type: "sale",
-      date: normalizedBill.date,
-      amount: normalizedBill.totalPurchased,
-      paymentMethod: normalizedBill.paymentMethod,
-      note: "Initial bill entry",
-    });
-
-    for (const item of normalizedBill.products) {
-      const costPrice = getLandingPrice(item.productName, item.bucketSize);
-
-      db.prepare(
-        `
-      INSERT INTO bill_items (bill_id, product_name, base, bucket_size, quantity, price_at_sale, cost_price)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `,
-      ).run(
-        billId,
-        item.productName,
-        item.base,
-        item.bucketSize,
-        item.quantity,
-        item.priceAtSale,
-        costPrice,
-      );
-
-      adjustStock(item.productName, item.base, item.bucketSize, -item.quantity);
-    }
-
-    if (normalizedBill.amountPaid > 0) {
-      addBillActivity(billId, {
-        type: "payment",
-        date: normalizedBill.date,
-        amount: normalizedBill.amountPaid,
-        paymentMethod: normalizedBill.paymentMethod,
-        note: "Payment recorded on bill creation",
-      });
-    }
-
-    return billId;
-  });
-
-  return run();
+  return createBill(db, customerId, bill);
 }
 
 export function getCustomers() {
@@ -952,187 +727,17 @@ export function getTopCustomers(period, limit = 5) {
   return topCustomers;
 }
 
-function applyImportItemToStock(item) {
-  const productName = item.productName ? String(item.productName).trim() : "";
-  const baseName = item.base ? String(item.base).trim() : "";
-  const bucketSize = parseFloat(item.bucketSize) || 0;
-  const quantity = parseFloat(item.quantity) || 0;
-  const costPrice = parseFloat(item.costPrice) || 0;
-
-  // 1. Find or create Product (trimmed & case-insensitive)
-  let product = db
-    .prepare(`SELECT * FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE`)
-    .get(productName);
-
-  let productId;
-  if (!product) {
-    productId = randomUUID();
-    db.prepare(`INSERT INTO products (id, name, images) VALUES (?, ?, ?)`).run(
-      productId,
-      productName,
-      "",
-    );
-  } else {
-    productId = product.id;
-  }
-
-  // 2. Find or create Variant (tolerant float comparison)
-  let variant = db
-    .prepare(
-      `SELECT * FROM variants WHERE product_id = ? AND ABS(bucket_size - ?) < 0.001`,
-    )
-    .get(productId, bucketSize);
-
-  let variantId;
-  if (!variant) {
-    const result = db
-      .prepare(
-        `INSERT INTO variants (product_id, bucket_size, landing, sales, mp) VALUES (?, ?, ?, ?, ?)`,
-      )
-      .run(productId, bucketSize, costPrice, 0, 0);
-    variantId = result.lastInsertRowid;
-  } else {
-    variantId = variant.id;
-    db.prepare(`UPDATE variants SET landing = ? WHERE id = ?`).run(
-      costPrice,
-      variantId,
-    );
-  }
-
-  // 3. Find or create Base (trimmed & case-insensitive)
-  let base = db
-    .prepare(
-      `SELECT * FROM bases WHERE product_id = ? AND TRIM(name) = TRIM(?) COLLATE NOCASE`,
-    )
-    .get(productId, baseName);
-
-  let baseId;
-  if (!base) {
-    const result = db
-      .prepare(`INSERT INTO bases (product_id, name) VALUES (?, ?)`)
-      .run(productId, baseName);
-    baseId = result.lastInsertRowid;
-  } else {
-    baseId = base.id;
-  }
-
-  // 4. Update or Insert Stock in base_stock
-  const existingStock = db
-    .prepare(`SELECT * FROM base_stock WHERE base_id = ? AND variant_id = ?`)
-    .get(baseId, variantId);
-
-  if (!existingStock) {
-    db.prepare(
-      `INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)`,
-    ).run(baseId, variantId, quantity);
-  } else {
-    db.prepare(
-      `UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?`,
-    ).run(quantity, baseId, variantId);
-  }
-}
-
 function reverseImportItemFromStock(item) {
   // item here comes from an expense_items row (snake_case columns)
   adjustStock(item.product_name, item.base, item.bucket_size, -item.quantity);
 }
 
 export function recordImportExpense(expenseMeta, items) {
-  const validatedExpenseMeta = validateExpensePayload({
-    ...expenseMeta,
-    typeOfExpense: "Import",
-  });
-  const validatedItems = validateImportItems(items);
-
-  const totalCost = validatedItems.reduce(
-    (sum, i) => sum + i.costPrice * i.quantity,
-    0,
-  );
-
-  let expenseId;
-
-  const run = db.transaction(() => {
-    for (const item of validatedItems) {
-      applyImportItemToStock(item);
-    }
-
-    const result = db
-      .prepare(
-        `INSERT INTO expenses (date, label, amount, type) VALUES (?, ?, ?, ?)`,
-      )
-      .run(validatedExpenseMeta.date, validatedExpenseMeta.nameOfExpense, totalCost, "Import");
-    expenseId = result.lastInsertRowid;
-
-    for (const item of validatedItems) {
-      db.prepare(
-        `
-        INSERT INTO expense_items (expense_id, product_name, base, bucket_size, quantity, cost_price)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `,
-      ).run(
-        expenseId,
-        item.productName,
-        item.base,
-        item.bucketSize,
-        item.quantity,
-        item.costPrice,
-      );
-    }
-  });
-
-  run();
-
-  return { id: expenseId, totalCost };
+  return createImportExpense(db, expenseMeta, items);
 }
 
 export function editImportExpense(expenseId, expenseMeta, newItems) {
-  const expenseExists = db.prepare(`SELECT id FROM expenses WHERE id = ?`).get(expenseId);
-  if (!expenseExists) {
-    throw new Error("Expense not found.");
-  }
-
-  const validatedExpenseMeta = validateExpensePayload({
-    ...expenseMeta,
-    typeOfExpense: "Import",
-  });
-  const validatedItems = validateImportItems(newItems);
-  const oldItems = db
-    .prepare(`SELECT * FROM expense_items WHERE expense_id = ?`)
-    .all(expenseId);
-
-  const totalCost = validatedItems.reduce((sum, i) => sum + i.costPrice * i.quantity, 0);
-
-  const run = db.transaction(() => {
-    for (const item of oldItems) {
-      reverseImportItemFromStock(item);
-    }
-    db.prepare(`DELETE FROM expense_items WHERE expense_id = ?`).run(expenseId);
-
-    for (const item of validatedItems) {
-      applyImportItemToStock(item);
-      db.prepare(
-        `
-        INSERT INTO expense_items (expense_id, product_name, base, bucket_size, quantity, cost_price)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `,
-      ).run(
-        expenseId,
-        item.productName,
-        item.base,
-        item.bucketSize,
-        item.quantity,
-        item.costPrice,
-      );
-    }
-
-    db.prepare(
-      `UPDATE expenses SET date = ?, label = ?, amount = ? WHERE id = ?`,
-    ).run(validatedExpenseMeta.date, validatedExpenseMeta.nameOfExpense, totalCost, expenseId);
-  });
-
-  run();
-
-  return totalCost;
+  return updateImportExpense(db, expenseId, expenseMeta, newItems);
 }
 
 export function editExpense(id, expense) {

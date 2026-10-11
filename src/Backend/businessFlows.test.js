@@ -1,0 +1,254 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import Database from "better-sqlite3";
+import {
+  addBill,
+  addInventoryProduct,
+  deleteInventoryProduct,
+  editImportExpense,
+  recordImportExpense,
+  updateInventoryProduct,
+} from "./businessFlows.js";
+import { migrateDatabase } from "./migrations.js";
+
+function createDatabase() {
+  const db = new Database(":memory:");
+  migrateDatabase(db);
+  return db;
+}
+
+const product = {
+  id: "product-tea",
+  name: "Tea",
+  images: "",
+  variants: [{ bucket_size: 1, landing: 10, sales: 12, mp: 14 }],
+  bases: [{ name: "AC1", stocks: [8] }],
+};
+
+test("adds, edits, and deletes a product with its variant, base, and stock", () => {
+  const db = createDatabase();
+
+  try {
+    const id = addInventoryProduct(db, product);
+    assert.equal(id, "product-tea");
+    assert.deepEqual(
+      db.prepare(`
+        SELECT p.name, v.bucket_size, v.landing, b.name AS base, s.stock
+        FROM products p
+        JOIN variants v ON v.product_id = p.id
+        JOIN bases b ON b.product_id = p.id
+        JOIN base_stock s ON s.base_id = b.id AND s.variant_id = v.id
+        WHERE p.id = ?
+      `).get(id),
+      { name: "Tea", bucket_size: 1, landing: 10, base: "AC1", stock: 8 },
+    );
+
+    updateInventoryProduct(db, id, {
+      ...product,
+      name: "Green Tea",
+      variants: [{ bucket_size: 2, landing: 15, sales: 18, mp: 20 }],
+      bases: [{ name: "AC2", stocks: [6] }],
+    });
+    assert.equal(db.prepare("SELECT name FROM products WHERE id = ?").get(id).name, "Green Tea");
+    assert.deepEqual(
+      db.prepare(`
+        SELECT v.bucket_size, v.landing, b.name AS base, s.stock
+        FROM variants v
+        JOIN bases b ON b.product_id = v.product_id
+        JOIN base_stock s ON s.base_id = b.id AND s.variant_id = v.id
+        WHERE v.product_id = ?
+      `).get(id),
+      { bucket_size: 2, landing: 15, base: "AC2", stock: 6 },
+    );
+
+    deleteInventoryProduct(db, id);
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM products").get().count, 0);
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM variants").get().count, 0);
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM bases").get().count, 0);
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM base_stock").get().count, 0);
+  } finally {
+    db.close();
+  }
+});
+
+test("creates a bill, records its activity and cost, and deducts stock", () => {
+  const db = createDatabase();
+
+  try {
+    addInventoryProduct(db, product);
+    const customerId = db
+      .prepare("INSERT INTO customers (name) VALUES (?)")
+      .run("Customer").lastInsertRowid;
+
+    const billId = addBill(db, customerId, {
+      date: "2026-10-10",
+      paymentMethod: "Cash",
+      totalPurchased: 24,
+      amountPaid: 10,
+      amountDue: 14,
+      status: "Open",
+      products: [{
+        productName: "Tea",
+        base: "AC1",
+        bucketSize: 1,
+        quantity: 2,
+        priceAtSale: 12,
+      }],
+    });
+
+    assert.deepEqual(
+      db.prepare("SELECT total_purchased, amount_paid, amount_due, status FROM bills WHERE id = ?")
+        .get(billId),
+      { total_purchased: 24, amount_paid: 10, amount_due: 14, status: "Open" },
+    );
+    assert.deepEqual(
+      db.prepare("SELECT product_name, quantity, price_at_sale, cost_price FROM bill_items WHERE bill_id = ?")
+        .get(billId),
+      { product_name: "Tea", quantity: 2, price_at_sale: 12, cost_price: 10 },
+    );
+    assert.deepEqual(
+      db.prepare("SELECT type, amount FROM bill_activity WHERE bill_id = ? ORDER BY id").all(billId),
+      [{ type: "sale", amount: 24 }, { type: "payment", amount: 10 }],
+    );
+    assert.equal(db.prepare("SELECT stock FROM base_stock").get().stock, 6);
+  } finally {
+    db.close();
+  }
+});
+
+test("rolls back bill rows and stock changes when saving a bill item fails", () => {
+  const db = createDatabase();
+
+  try {
+    addInventoryProduct(db, product);
+    const customerId = db
+      .prepare("INSERT INTO customers (name) VALUES (?)")
+      .run("Customer").lastInsertRowid;
+    db.exec(`
+      CREATE TRIGGER reject_bill_item BEFORE INSERT ON bill_items
+      BEGIN SELECT RAISE(ABORT, 'bill item rejected'); END;
+    `);
+
+    assert.throws(
+      () => addBill(db, customerId, {
+        date: "2026-10-10",
+        paymentMethod: "Cash",
+        totalPurchased: 12,
+        amountPaid: 12,
+        amountDue: 0,
+        status: "Paid",
+        products: [{
+          productName: "Tea",
+          base: "AC1",
+          bucketSize: 1,
+          quantity: 1,
+          priceAtSale: 12,
+        }],
+      }),
+      /bill item rejected/,
+    );
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM bills").get().count, 0);
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM bill_activity").get().count, 0);
+    assert.equal(db.prepare("SELECT stock FROM base_stock").get().stock, 8);
+  } finally {
+    db.close();
+  }
+});
+
+test("imports expenses, creates stock records, and accumulates repeat imports", () => {
+  const db = createDatabase();
+
+  try {
+    const firstImport = recordImportExpense(
+      db,
+      { date: "2026-10-10", nameOfExpense: "Tea shipment" },
+      [{ productName: "Tea", base: "AC1", bucketSize: 1, quantity: 3, costPrice: 10 }],
+    );
+    assert.deepEqual(firstImport, { id: 1, totalCost: 30 });
+    assert.deepEqual(
+      db.prepare("SELECT label, amount, type FROM expenses WHERE id = ?").get(firstImport.id),
+      { label: "Tea shipment", amount: 30, type: "Import" },
+    );
+    assert.deepEqual(
+      db.prepare("SELECT product_name, base, bucket_size, quantity, cost_price FROM expense_items WHERE expense_id = ?")
+        .get(firstImport.id),
+      { product_name: "Tea", base: "AC1", bucket_size: 1, quantity: 3, cost_price: 10 },
+    );
+
+    const secondImport = recordImportExpense(
+      db,
+      { date: "2026-10-11", nameOfExpense: "More tea" },
+      [{ productName: " tea ", base: " ac1 ", bucketSize: 1, quantity: 2, costPrice: 11 }],
+    );
+    assert.equal(secondImport.totalCost, 22);
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM products").get().count, 1);
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM variants").get().count, 1);
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM bases").get().count, 1);
+    assert.equal(db.prepare("SELECT stock FROM base_stock").get().stock, 5);
+    assert.equal(db.prepare("SELECT landing FROM variants").get().landing, 11);
+  } finally {
+    db.close();
+  }
+});
+
+test("rolls back imported expense, item, and stock changes when item insertion fails", () => {
+  const db = createDatabase();
+
+  try {
+    db.exec(`
+      CREATE TRIGGER reject_expense_item BEFORE INSERT ON expense_items
+      BEGIN SELECT RAISE(ABORT, 'expense item rejected'); END;
+    `);
+
+    assert.throws(
+      () => recordImportExpense(
+        db,
+        { date: "2026-10-10", nameOfExpense: "Tea shipment" },
+        [{ productName: "Tea", base: "AC1", bucketSize: 1, quantity: 3, costPrice: 10 }],
+      ),
+      /expense item rejected/,
+    );
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM products").get().count, 0);
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM variants").get().count, 0);
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM bases").get().count, 0);
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM base_stock").get().count, 0);
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM expenses").get().count, 0);
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM expense_items").get().count, 0);
+  } finally {
+    db.close();
+  }
+});
+
+test("edits an import expense and replaces its stock impact", () => {
+  const db = createDatabase();
+
+  try {
+    const { id } = recordImportExpense(
+      db,
+      { date: "2026-10-10", nameOfExpense: "Original shipment" },
+      [{ productName: "Tea", base: "AC1", bucketSize: 1, quantity: 3, costPrice: 10 }],
+    );
+
+    assert.equal(
+      editImportExpense(
+        db,
+        id,
+        { date: "2026-10-11", nameOfExpense: "Corrected shipment" },
+        [{ productName: "Tea", base: "AC1", bucketSize: 1, quantity: 5, costPrice: 8 }],
+      ),
+      40,
+    );
+    assert.deepEqual(
+      db.prepare("SELECT date, label, amount, type FROM expenses WHERE id = ?").get(id),
+      { date: "2026-10-11", label: "Corrected shipment", amount: 40, type: "Import" },
+    );
+    assert.equal(
+      db.prepare("SELECT quantity FROM expense_items WHERE expense_id = ?").get(id).quantity,
+      5,
+    );
+    assert.equal(db.prepare("SELECT stock FROM base_stock").get().stock, 5);
+    assert.equal(db.prepare("SELECT landing FROM variants").get().landing, 8);
+  } finally {
+    db.close();
+  }
+});
