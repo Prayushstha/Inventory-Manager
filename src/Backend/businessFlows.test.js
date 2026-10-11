@@ -6,6 +6,8 @@ import {
   addInventoryProduct,
   deleteInventoryProduct,
   editImportExpense,
+  getNextInvoiceNumber,
+  isInvoiceNumberAvailable,
   recordImportExpense,
   updateInventoryProduct,
 } from "./businessFlows.js";
@@ -256,6 +258,41 @@ test("edits an import expense and replaces its stock impact", () => {
     );
     assert.equal(db.prepare("SELECT stock FROM base_stock").get().stock, 5);
     assert.equal(db.prepare("SELECT landing FROM variants").get().landing, 8);
+  } finally {
+    db.close();
+  }
+});
+
+test("suggests sequential invoice numbers and rejects duplicates", () => {
+  const db = createDatabase();
+
+  try {
+    const { id } = recordImportExpense(
+      db,
+      {
+        date: "2026-10-10",
+        nameOfExpense: "Tea shipment",
+        invoiceData: { invoiceNumber: "INV-009" },
+      },
+      [{ productName: "Tea", base: "AC1", bucketSize: 1, quantity: 1, costPrice: 10 }],
+    );
+
+    assert.equal(getNextInvoiceNumber(db, "INV-009"), "INV-010");
+    assert.equal(isInvoiceNumberAvailable(db, "inv-009"), false);
+    assert.equal(isInvoiceNumberAvailable(db, "INV-009", id), true);
+    assert.throws(
+      () => recordImportExpense(
+        db,
+        {
+          date: "2026-10-11",
+          nameOfExpense: "Another shipment",
+          invoiceData: { invoiceNumber: "INV-009" },
+        },
+        [{ productName: "Tea", base: "AC1", bucketSize: 1, quantity: 1, costPrice: 10 }],
+      ),
+      /invoice number is already in use/i,
+    );
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM expenses").get().count, 1);
   } finally {
     db.close();
   }

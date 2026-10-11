@@ -8,3 +8,54 @@ export function formatInvoiceNumber(value) {
       })
     : "0000.00";
 }
+
+export function validateInvoiceDraft({ date, nameOfExpense, invoice, items }) {
+  const errors = { items: items.map(() => ({})) };
+  if (!String(date ?? "").trim()) errors.date = "Invoice date is required.";
+  if (!String(nameOfExpense ?? "").trim()) errors.nameOfExpense = "Import description is required.";
+  if (!String(invoice.invoiceNumber ?? "").trim()) {
+    errors.invoiceNumber = "Invoice number is required.";
+  }
+
+  if (!Array.isArray(items) || items.length === 0) {
+    errors.items = [{}];
+    errors.itemList = "Add at least one imported item.";
+  } else {
+    items.forEach((item, index) => {
+      if (!String(item.productName ?? "").trim()) errors.items[index].productName = "Description is required.";
+      if (!String(item.base ?? "").trim()) errors.items[index].base = "HS code/base is required.";
+
+      const size = Number(item.bucketSize);
+      const quantity = Number(item.quantity);
+      const cost = Number(item.costPrice);
+      if (!String(item.bucketSize ?? "").trim() || !Number.isFinite(size) || size <= 0) {
+        errors.items[index].bucketSize = "Enter a size greater than zero.";
+      }
+      if (!String(item.quantity ?? "").trim() || !Number.isFinite(quantity) || quantity <= 0) {
+        errors.items[index].quantity = "Enter a quantity greater than zero.";
+      }
+      if (!String(item.costPrice ?? "").trim() || !Number.isFinite(cost) || cost < 0) {
+        errors.items[index].costPrice = "Enter a valid non-negative rate.";
+      }
+    });
+  }
+
+  const amount = items.reduce(
+    (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.costPrice) || 0),
+    0,
+  );
+  const discount = Number(invoice.discount);
+  if (String(invoice.discount ?? "").trim() && (!Number.isFinite(discount) || discount < 0)) {
+    errors.discount = "Discount must be a non-negative amount.";
+  } else if (discount > amount) {
+    errors.discount = "Discount cannot exceed the invoice amount.";
+  }
+
+  return Object.fromEntries(
+    Object.entries(errors).filter(([key, value]) =>
+      key === "items"
+        ? value.some((row) => Object.keys(row).length > 0)
+        : Boolean(value),
+    ),
+  );
+}

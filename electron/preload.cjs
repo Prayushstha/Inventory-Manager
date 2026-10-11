@@ -4,6 +4,9 @@ contextBridge.exposeInMainWorld("db", {
   addProduct: (product) => ipcRenderer.invoke("db:addProduct", product),
   saveInventoryProduct: (product) => ipcRenderer.invoke("db:saveInventoryProduct", product),
   getProducts: () => ipcRenderer.invoke("db:getProducts"),
+  getNextInvoiceNumber: () => ipcRenderer.invoke("db:getNextInvoiceNumber"),
+  isInvoiceNumberAvailable: (number, excludeExpenseId) =>
+    ipcRenderer.invoke("db:isInvoiceNumberAvailable", number, excludeExpenseId),
   editProduct: (id, product) =>
     ipcRenderer.invoke("db:editProduct", id, product),
   deleteProduct: (id) => ipcRenderer.invoke("db:deleteProduct", id),

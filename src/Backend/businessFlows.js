@@ -341,6 +341,53 @@ function serializeInvoiceData(invoiceData) {
   return JSON.stringify(invoiceData);
 }
 
+function storedInvoiceNumbers(db, excludeExpenseId) {
+  return db.prepare(`
+    SELECT id, invoice_data FROM expenses
+    WHERE type = 'Import' AND invoice_data IS NOT NULL
+  `).all()
+    .filter((row) => row.id !== Number(excludeExpenseId))
+    .map((row) => {
+      try {
+        return JSON.parse(row.invoice_data)?.invoiceNumber;
+      } catch (error) {
+        throw new Error(`Invoice details for import ${row.id} are corrupted.`, { cause: error });
+      }
+    })
+    .filter((value) => typeof value === "string" && value.trim())
+    .map((value) => value.trim());
+}
+
+export function isInvoiceNumberAvailable(db, invoiceNumber, excludeExpenseId) {
+  const normalizedNumber = String(invoiceNumber ?? "").trim().toLocaleLowerCase();
+  if (!normalizedNumber) return false;
+  return !storedInvoiceNumbers(db, excludeExpenseId)
+    .some((value) => value.toLocaleLowerCase() === normalizedNumber);
+}
+
+export function getNextInvoiceNumber(db, previousNumber = "") {
+  const preferred = String(previousNumber ?? "").trim();
+  const match = /^(.*?)(\d+)$/.exec(preferred);
+  const prefix = match?.[1] ?? "";
+  const width = match?.[2]?.length ?? 1;
+  const previousSequence = match ? Number(match[2]) : 0;
+  const matchingSequences = storedInvoiceNumbers(db)
+    .map((value) => {
+      const numberMatch = /^(.*?)(\d+)$/.exec(value);
+      return numberMatch && numberMatch[1].toLocaleLowerCase() === prefix.toLocaleLowerCase()
+        ? Number(numberMatch[2])
+        : 0;
+    });
+
+  let nextSequence = Math.max(previousSequence, ...matchingSequences) + 1;
+  let candidate = `${prefix}${String(nextSequence).padStart(width, "0")}`;
+  while (!isInvoiceNumberAvailable(db, candidate)) {
+    nextSequence += 1;
+    candidate = `${prefix}${String(nextSequence).padStart(width, "0")}`;
+  }
+  return candidate;
+}
+
 export function recordImportExpense(db, expenseMeta, items) {
   const validatedItems = validateImportItems(items);
   const totalCost = validatedItems.reduce((sum, item) => sum + item.costPrice * item.quantity, 0);
@@ -351,6 +398,11 @@ export function recordImportExpense(db, expenseMeta, items) {
   });
 
   const run = db.transaction(() => {
+    const invoiceNumber = expenseMeta.invoiceData?.invoiceNumber;
+    if (invoiceNumber && !isInvoiceNumberAvailable(db, invoiceNumber)) {
+      throw new Error("This invoice number is already in use. Choose another number.");
+    }
+
     for (const item of validatedItems) {
       applyImportItemToStock(db, item);
     }
@@ -400,11 +452,16 @@ export function editImportExpense(db, expenseId, expenseMeta, newItems) {
     typeOfExpense: "Import",
   });
   const invoiceData = serializeInvoiceData(expenseMeta.invoiceData);
+  const invoiceNumber = expenseMeta.invoiceData?.invoiceNumber;
   const oldItems = db
     .prepare("SELECT * FROM expense_items WHERE expense_id = ?")
     .all(expenseId);
 
   const run = db.transaction(() => {
+    if (invoiceNumber && !isInvoiceNumberAvailable(db, invoiceNumber, expenseId)) {
+      throw new Error("This invoice number is already in use. Choose another number.");
+    }
+
     for (const item of oldItems) {
       reverseImportItemFromStock(db, item);
     }

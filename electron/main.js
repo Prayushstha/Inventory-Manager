@@ -6,6 +6,8 @@ import { pathToFileURL } from "url";
 import {
   addProduct,
   getProducts,
+  getNextInvoiceNumber,
+  isInvoiceNumberAvailable,
   getExpenseDetails,
   editExpense,
   deleteBaseStock,
@@ -116,6 +118,10 @@ app.whenReady().then(() => {
   ipcMain.handle("db:addProduct", (_, product) => addProduct(product));
   ipcMain.handle("db:saveInventoryProduct", (_, product) => saveInventoryProductChanges(product));
   ipcMain.handle("db:getProducts", () => getProducts());
+  ipcMain.handle("db:getNextInvoiceNumber", () => getNextInvoiceNumber());
+  ipcMain.handle("db:isInvoiceNumberAvailable", (_, number, excludeExpenseId) =>
+    isInvoiceNumberAvailable(number, excludeExpenseId),
+  );
   ipcMain.handle("db:deleteProduct", (_, id) => deleteProduct(id));
   ipcMain.handle("db:editProduct", (_, id, product) =>
     editProduct(id, product),

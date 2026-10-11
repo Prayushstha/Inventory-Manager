@@ -26,6 +26,8 @@ import {
   addInventoryProduct,
   deleteInventoryProduct,
   editImportExpense as updateImportExpense,
+  getNextInvoiceNumber as suggestNextInvoiceNumber,
+  isInvoiceNumberAvailable as checkInvoiceNumberAvailable,
   recordImportExpense as createImportExpense,
   updateInventoryProduct,
 } from "./businessFlows.js";
@@ -193,6 +195,14 @@ export function getProducts() {
   }
 
   return products;
+}
+
+export function getNextInvoiceNumber() {
+  return suggestNextInvoiceNumber(db, appConfig.invoiceDefaults?.invoiceNumber);
+}
+
+export function isInvoiceNumberAvailable(invoiceNumber, excludeExpenseId) {
+  return checkInvoiceNumberAvailable(db, invoiceNumber, excludeExpenseId);
 }
 
 export function deleteProduct(id) {

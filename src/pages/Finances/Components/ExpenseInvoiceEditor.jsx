@@ -40,8 +40,12 @@ export function ExpenseInvoiceEditor({
   onSave,
   onCancel,
   onClose,
+  products = [],
+  errors = {},
+  setErrors,
 }) {
   const itemRefs = useRef([]);
+  const editorRef = useRef(null);
   const amount = items.reduce(
     (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.costPrice) || 0),
     0,
@@ -53,6 +57,56 @@ export function ExpenseInvoiceEditor({
 
   function setInvoiceValue(key, value) {
     setInvoice((current) => ({ ...current, [key]: value }));
+    setErrors?.((current) => ({ ...current, [key]: undefined }));
+  }
+
+  function setItemValue(index, key, value) {
+    updateItem(setItems, index, key, value);
+    setErrors?.((current) => ({
+      ...current,
+      items: current.items?.map((row, itemIndex) =>
+        itemIndex === index ? { ...row, [key]: undefined } : row,
+      ),
+    }));
+  }
+
+  function productForName(name) {
+    return products.find(
+      (product) => product.name.trim().toLocaleLowerCase() === name.trim().toLocaleLowerCase(),
+    );
+  }
+
+  function updateProduct(index, value) {
+    const product = productForName(value);
+    const currentItem = items[index];
+    const sizeExists = product?.variants?.some(
+      (variant) => Number(variant.bucket_size) === Number(currentItem.bucketSize),
+    );
+    const bucketSize = sizeExists
+      ? currentItem.bucketSize
+      : product?.variants?.length === 1
+        ? String(product.variants[0].bucket_size)
+        : currentItem.bucketSize;
+    const variant = product?.variants?.find(
+      (option) => Number(option.bucket_size) === Number(bucketSize),
+    );
+    setItems((current) => current.map((item, itemIndex) =>
+      itemIndex === index
+        ? {
+            ...item,
+            productName: value,
+            base: product?.bases?.length === 1 ? product.bases[0].name : item.base,
+            bucketSize,
+            costPrice: variant && !item.costPrice ? String(variant.landing) : item.costPrice,
+          }
+        : item,
+    ));
+    setErrors?.((current) => ({
+      ...current,
+      items: current.items?.map((row, itemIndex) =>
+        itemIndex === index ? { ...row, productName: undefined } : row,
+      ),
+    }));
   }
 
   function handleAddItem() {
@@ -76,13 +130,23 @@ export function ExpenseInvoiceEditor({
     function handleFieldNavigation(event) {
       const currentField = event.target.closest?.(".invoice-nav-field");
       if (event.shiftKey && event.key === "Enter") return;
-      if (!currentField || !(event.key === "Enter" || event.key === "ArrowLeft" || event.key === "ArrowRight")) {
+      if (!currentField || !editorRef.current?.contains(currentField)) {
+        return;
+      }
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        if (!(currentField instanceof HTMLInputElement) || currentField.type !== "text") return;
+        const { selectionStart, selectionEnd, value } = currentField;
+        const atBoundary = event.key === "ArrowLeft"
+          ? selectionStart === 0 && selectionEnd === 0
+          : selectionStart === value.length && selectionEnd === value.length;
+        if (!atBoundary) return;
+      } else if (event.key !== "Enter") {
         return;
       }
 
       event.preventDefault();
       const fields = Array.from(
-        document.querySelectorAll(".expense-invoice-edit .invoice-nav-field"),
+        editorRef.current.querySelectorAll(".invoice-nav-field"),
       );
       const currentIndex = fields.indexOf(currentField);
       const direction = event.key === "ArrowLeft" ? -1 : 1;
@@ -108,15 +172,17 @@ export function ExpenseInvoiceEditor({
       setTimeout(() => itemRefs.current[index + 1]?.base?.focus(), 0);
     }
 
-    document.addEventListener("keydown", handleFieldNavigation);
+    const editor = editorRef.current;
+    editor?.addEventListener("keydown", handleFieldNavigation);
     document.addEventListener("keydown", handleDuplicateItem);
     return () => {
-      document.removeEventListener("keydown", handleFieldNavigation);
+      editor?.removeEventListener("keydown", handleFieldNavigation);
       document.removeEventListener("keydown", handleDuplicateItem);
     };
   }, [setItems]);
 
   function invoiceField(key, label, placeholder, className = "") {
+    const error = errors[key];
     return (
       <div className={`invoice-edit-field ${className}`}>
         <label htmlFor={`invoice-${key}`}>{label}</label>
@@ -126,37 +192,49 @@ export function ExpenseInvoiceEditor({
           className="invoice-nav-field"
           value={invoice[key] ?? ""}
           placeholder={placeholder}
+          aria-invalid={Boolean(error)}
           onChange={(event) => setInvoiceValue(key, event.target.value)}
         />
+        {error && <small className="invoice-field-error">{error}</small>}
       </div>
     );
   }
 
-  function itemInput(index, key, placeholder, className = "", type = "text") {
+  function itemInput(index, key, placeholder, className = "", type = "text", list, onValueChange) {
+    const error = errors.items?.[index]?.[key];
     return (
-      <input
-        ref={(element) => {
-          itemRefs.current[index] = { ...itemRefs.current[index], [key]: element };
-        }}
-        type={type}
-        min={
-          key === "quantity" || key === "bucketSize"
-            ? "0.0001"
-            : type === "number"
-              ? "0"
-              : undefined
-        }
-        step={type === "number" ? "any" : undefined}
-        className={className}
-        value={items[index][key] ?? ""}
-        placeholder={placeholder}
-        onChange={(event) => updateItem(setItems, index, key, event.target.value)}
-      />
+      <>
+        <input
+          ref={(element) => {
+            itemRefs.current[index] = { ...itemRefs.current[index], [key]: element };
+          }}
+          type={type}
+          min={
+            key === "quantity" || key === "bucketSize"
+              ? "0.0001"
+              : type === "number"
+                ? "0"
+                : undefined
+          }
+          step={type === "number" ? "any" : undefined}
+          className={className}
+          value={items[index][key] ?? ""}
+          placeholder={placeholder}
+          list={list}
+          aria-invalid={Boolean(error)}
+          onChange={(event) =>
+            onValueChange
+              ? onValueChange(index, event.target.value)
+              : setItemValue(index, key, event.target.value)
+          }
+        />
+        {error && <small className="invoice-field-error">{error}</small>}
+      </>
     );
   }
 
   return (
-    <main className="expense-record-page">
+    <main className="expense-record-page" ref={editorRef}>
       <div className="expense-record-toolbar">
         <button className="btn-secondary" type="button" onClick={onClose}>
           <i className="ti ti-arrow-left" aria-hidden="true" />
@@ -247,8 +325,13 @@ export function ExpenseInvoiceEditor({
                 className="invoice-nav-field"
                 value={nameOfExpense}
                 placeholder="Import description"
-                onChange={(event) => setNameOfExpense(event.target.value)}
+                aria-invalid={Boolean(errors.nameOfExpense)}
+                onChange={(event) => {
+                  setNameOfExpense(event.target.value);
+                  setErrors?.((current) => ({ ...current, nameOfExpense: undefined }));
+                }}
               />
+              {errors.nameOfExpense && <small className="invoice-field-error">{errors.nameOfExpense}</small>}
             </div>
           </section>
 
@@ -289,11 +372,36 @@ export function ExpenseInvoiceEditor({
                   return (
                     <tr key={`${details.id}-item-${index}`} data-invoice-item-row={index}>
                       <td className="sn">{index + 1}</td>
-                      <td>{itemInput(index, "base", "—", "invoice-nav-field")}</td>
-                      <td className="invoice-particulars">
-                        {itemInput(index, "productName", "Item description", "left invoice-nav-field")}
+                      <td>
+                        {itemInput(index, "base", "—", "invoice-nav-field", "text", `invoice-bases-${index}`)}
+                        <datalist id={`invoice-bases-${index}`}>
+                          {(productForName(item.productName)?.bases || []).map((base) => (
+                            <option key={base.id ?? base.name} value={base.name} />
+                          ))}
+                        </datalist>
                       </td>
-                      <td>{itemInput(index, "bucketSize", "0.00", "invoice-nav-field", "number")}</td>
+                      <td className="invoice-particulars">
+                        {itemInput(
+                          index,
+                          "productName",
+                          "Item description",
+                          "left invoice-nav-field",
+                          "text",
+                          `invoice-products-${index}`,
+                          updateProduct,
+                        )}
+                        <datalist id={`invoice-products-${index}`}>
+                          {products.map((product) => <option key={product.id} value={product.name} />)}
+                        </datalist>
+                      </td>
+                      <td>
+                        {itemInput(index, "bucketSize", "0.00", "invoice-nav-field", "number", `invoice-sizes-${index}`)}
+                        <datalist id={`invoice-sizes-${index}`}>
+                          {(productForName(item.productName)?.variants || []).map((variant) => (
+                            <option key={variant.id} value={variant.bucket_size} />
+                          ))}
+                        </datalist>
+                      </td>
                       <td>{itemInput(index, "quantity", "0", "invoice-nav-field", "number")}</td>
                       <td>{itemInput(index, "costPrice", "0.00", "invoice-nav-field", "number")}</td>
                       <td className="invoice-calculated">{rupees}</td>
