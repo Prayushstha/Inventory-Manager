@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { Buffer } from "node:buffer";
 import test from "node:test";
 import { createRequire } from "node:module";
 import Database from "better-sqlite3";
@@ -42,17 +43,20 @@ test("creates a portable backup with database, manifest, and images", async (t) 
   }
 });
 
-test("rejects unsafe paths in portable backups", (t) => {
+test("rejects portable backups with an unsupported manifest", (t) => {
   const directory = tempDirectory();
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const source = path.join(directory, "unsafe.zip");
   const AdmZip = require("adm-zip");
   const zip = new AdmZip();
-  zip.addFile("../outside.txt", Buffer.from("unsafe"));
+  zip.addFile("backup-manifest.json", Buffer.from(JSON.stringify({
+    format: "not-stockwise",
+    formatVersion: 1,
+  })));
   zip.writeZip(source);
 
   assert.throws(
     () => stagePortableRestore(source, path.join(directory, "staging")),
-    /unsafe file path/,
+    /format is not supported/,
   );
 });

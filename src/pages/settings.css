@@ -171,6 +171,31 @@
   font-size: 0.8rem;
 }
 
+.settings-portable-backup {
+  display: grid;
+  gap: 4px;
+  margin-top: 22px;
+  padding: 16px;
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--primary) 8%, var(--background-primary));
+}
+
+.settings-portable-backup strong {
+  font-size: 0.9rem;
+}
+
+.settings-portable-backup p {
+  margin: 5px 0 0;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.settings-portable-backup .settings-action-row {
+  margin-top: 12px;
+}
+
 .settings-action-row {
   display: flex;
   flex-wrap: wrap;

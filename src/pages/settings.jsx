@@ -93,7 +93,6 @@ export function SettingsPage({ appearanceTheme, appearanceMode, setAppearance })
                               "success",
                         );
                   }
-                  }
             } catch (error) {
                   showToast(error.message || "Could not restore the database backup.", "error");
             } finally {
@@ -497,6 +496,13 @@ export function SettingsPage({ appearanceTheme, appearanceMode, setAppearance })
                                     <i className="ti ti-database-import" aria-hidden="true" />
                                     <span>{busy === "restore" ? "Restoring..." : "Restore Backup"}</span>
                               </button>
+                        </div>
+                        <div className="settings-portable-backup">
+                              <div>
+                                    <strong>Move this profile to another computer</strong>
+                                    <p>Creates one portable ZIP with your database and product images. Restore it on another StockWise installation.</p>
+                              </div>
+                              <div className="settings-action-row">
                               <button
                                     className="settings-action settings-action-primary"
                                     type="button"
@@ -515,8 +521,8 @@ export function SettingsPage({ appearanceTheme, appearanceMode, setAppearance })
                                     <i className="ti ti-package-import" aria-hidden="true" />
                                     <span>{busy === "portable-restore" ? "Restoring..." : "Restore Portable Backup"}</span>
                               </button>
+                              </div>
                         </div>
-                        <p className="settings-note">Portable backup includes your database and product images in one ZIP. Use it to move this profile to another computer.</p>
                   </section>
                   <section className="settings-section" aria-labelledby="export-settings-title">
                         <div className="settings-section-heading">
