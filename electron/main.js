@@ -61,6 +61,17 @@ import {
 } from "../src/Backend/server.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+if (!gotSingleInstanceLock) {
+  app.quit();
+}
+
+function restartApplication() {
+  for (const window of BrowserWindow.getAllWindows()) window.destroy();
+  app.relaunch();
+  app.exit(0);
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
@@ -109,6 +120,7 @@ protocol.registerSchemesAsPrivileged([
   },
 ]);
 app.whenReady().then(() => {
+  if (!gotSingleInstanceLock) return;
   Menu.setApplicationMenu(null);
   protocol.handle("app-image", (request) => {
     try {
@@ -210,10 +222,7 @@ app.whenReady().then(() => {
     if (result.canceled || result.filePaths.length === 0) return null;
 
     const restoreResult = await restoreDatabase(result.filePaths[0]);
-    setTimeout(() => {
-      app.relaunch();
-      app.exit(0);
-    }, 1000);
+    process.nextTick(restartApplication);
     return restoreResult;
   });
   ipcMain.handle("db:createPortableBackup", async (event) => {
@@ -233,7 +242,7 @@ app.whenReady().then(() => {
     });
     if (result.canceled || result.filePaths.length === 0) return null;
     const restoreResult = await restorePortableDatabase(result.filePaths[0]);
-    setTimeout(() => { app.relaunch(); app.exit(0); }, 1000);
+    process.nextTick(restartApplication);
     return restoreResult;
   });
   ipcMain.handle("settings:pickExportDirectory", async (event) => {
@@ -292,10 +301,7 @@ app.whenReady().then(() => {
     if (result.canceled || result.filePaths.length === 0) return null;
 
     const settings = await setLocalDataDirectory(result.filePaths[0]);
-    setTimeout(() => {
-      app.relaunch();
-      app.exit(0);
-    }, 1200);
+    process.nextTick(restartApplication);
     return settings;
   });
   ipcMain.handle("dialog:pickExcelFile", async () => {
@@ -343,6 +349,14 @@ app.whenReady().then(() => {
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
+});
+
+app.on("second-instance", () => {
+  const [window] = BrowserWindow.getAllWindows();
+  if (window) {
+    if (window.isMinimized()) window.restore();
+    window.focus();
+  }
 });
 
 app.on("activate", () => {
