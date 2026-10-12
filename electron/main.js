@@ -44,6 +44,8 @@ import {
   backupDatabase,
   exportDatabase,
   restoreDatabase,
+  createPortableDatabaseBackup,
+  restorePortableDatabase,
   saveInventoryProductChanges,
   addCustomerBill,
   editCustomerBill,
@@ -212,6 +214,26 @@ app.whenReady().then(() => {
       app.relaunch();
       app.exit(0);
     }, 1000);
+    return restoreResult;
+  });
+  ipcMain.handle("db:createPortableBackup", async (event) => {
+    const result = await dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender), {
+      title: "Create Portable StockWise Backup",
+      defaultPath: `StockWise-Portable-Backup-${new Date().toISOString().slice(0, 10)}.zip`,
+      filters: [{ name: "StockWise Portable Backup", extensions: ["zip"] }],
+    });
+    if (result.canceled || !result.filePath) return null;
+    return { filePath: await createPortableDatabaseBackup(result.filePath, app.getVersion()) };
+  });
+  ipcMain.handle("db:restorePortableBackup", async (event) => {
+    const result = await dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender), {
+      title: "Restore Portable StockWise Backup",
+      properties: ["openFile"],
+      filters: [{ name: "StockWise Portable Backup", extensions: ["zip"] }],
+    });
+    if (result.canceled || result.filePaths.length === 0) return null;
+    const restoreResult = await restorePortableDatabase(result.filePaths[0]);
+    setTimeout(() => { app.relaunch(); app.exit(0); }, 1000);
     return restoreResult;
   });
   ipcMain.handle("settings:pickExportDirectory", async (event) => {

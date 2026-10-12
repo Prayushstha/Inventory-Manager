@@ -44,6 +44,7 @@ import {
   stageDatabaseRestore,
 } from "./databaseBackup.js";
 import { exportData as createDataExport } from "./dataExport.js";
+import { createPortableBackup, stagePortableRestore } from "./portableBackup.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const appConfigPath = path.join(app.getPath("userData"), "settings.json");
 let appConfig = loadAppConfig(appConfigPath);
@@ -92,6 +93,10 @@ export function backupDatabase(destinationPath) {
 
 export function exportDatabase(destinationPath, selections, appVersion) {
   return createDataExport(db, destinationPath, selections, appVersion);
+}
+
+export function createPortableDatabaseBackup(destinationPath, appVersion) {
+  return createPortableBackup(db, dataDirectory, destinationPath, appVersion);
 }
 
 export function saveInventoryProductChanges(product) {
@@ -326,6 +331,51 @@ export async function restoreDatabase(sourcePath) {
     }
 
     return { recoveryBackupPath: recoveryPath };
+  } finally {
+    fs.rmSync(stagingDirectory, { recursive: true, force: true });
+  }
+}
+
+export async function restorePortableDatabase(sourcePath) {
+  const stagingDirectory = fs.mkdtempSync(path.join(path.dirname(dbPath), ".stockwise-portable-restore-"));
+  const stagedDatabasePath = path.join(stagingDirectory, "restored.db");
+  const stagedImagesPath = path.join(stagingDirectory, "images");
+  const previousDatabasePath = path.join(stagingDirectory, "previous.db");
+  const previousImagesPath = path.join(stagingDirectory, "previous-images");
+  const recoveryName = `StockWise-Recovery-${new Date().toISOString().replace(/[:.]/g, "-")}-${randomUUID()}.db`;
+  const recoveryPath = path.join(path.dirname(dbPath), recoveryName);
+  let replacedImages = false;
+
+  try {
+    const staged = stagePortableRestore(sourcePath, stagingDirectory);
+    await stageDatabaseRestore(staged.databasePath, stagedDatabasePath);
+    if (staged.imagesPath) fs.cpSync(staged.imagesPath, stagedImagesPath, { recursive: true });
+    await createDatabaseBackup(db, recoveryPath);
+
+    db.close();
+    try {
+      fs.renameSync(dbPath, previousDatabasePath);
+      const activeImagesPath = path.join(dataDirectory, "images");
+      if (fs.existsSync(activeImagesPath)) {
+        fs.renameSync(activeImagesPath, previousImagesPath);
+        replacedImages = true;
+      }
+      fs.renameSync(stagedDatabasePath, dbPath);
+      if (fs.existsSync(stagedImagesPath)) fs.renameSync(stagedImagesPath, activeImagesPath);
+      openDatabase();
+    } catch (error) {
+      if (db?.open) db.close();
+      if (fs.existsSync(dbPath)) fs.rmSync(dbPath, { force: true });
+      if (fs.existsSync(previousDatabasePath)) fs.renameSync(previousDatabasePath, dbPath);
+      if (replacedImages && fs.existsSync(previousImagesPath)) {
+        fs.rmSync(path.join(dataDirectory, "images"), { recursive: true, force: true });
+        fs.renameSync(previousImagesPath, path.join(dataDirectory, "images"));
+      }
+      openDatabase();
+      throw error;
+    }
+
+    return { recoveryBackupPath: recoveryPath, includesImages: Boolean(staged.imagesPath) };
   } finally {
     fs.rmSync(stagingDirectory, { recursive: true, force: true });
   }

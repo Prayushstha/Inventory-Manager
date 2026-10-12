@@ -93,8 +93,43 @@ export function SettingsPage({ appearanceTheme, appearanceMode, setAppearance })
                               "success",
                         );
                   }
+                  }
             } catch (error) {
                   showToast(error.message || "Could not restore the database backup.", "error");
+            } finally {
+                  setBusy("");
+            }
+      }
+
+      async function handleCreatePortableBackup() {
+            setBusy("portable-backup");
+            try {
+                  const result = await window.db.createPortableBackup();
+                  if (result) showToast(`Portable backup saved as ${fileName(result.filePath)}.`, "success");
+            } catch (error) {
+                  showToast(error.message || "Could not create the portable backup.", "error");
+            } finally {
+                  setBusy("");
+            }
+      }
+
+      async function handleRestorePortableBackup() {
+            const accepted = await confirm(
+                  "Restore replaces this profile's database and product images, then restarts StockWise. A recovery database backup will be created first. Continue?",
+            );
+            if (!accepted) return;
+
+            setBusy("portable-restore");
+            try {
+                  const result = await window.db.restorePortableBackup();
+                  if (result) {
+                        showToast(
+                              `Portable restore complete. Recovery copy: ${fileName(result.recoveryBackupPath)}. Restarting...`,
+                              "success",
+                        );
+                  }
+            } catch (error) {
+                  showToast(error.message || "Could not restore the portable backup.", "error");
             } finally {
                   setBusy("");
             }
@@ -462,7 +497,26 @@ export function SettingsPage({ appearanceTheme, appearanceMode, setAppearance })
                                     <i className="ti ti-database-import" aria-hidden="true" />
                                     <span>{busy === "restore" ? "Restoring..." : "Restore Backup"}</span>
                               </button>
+                              <button
+                                    className="settings-action settings-action-primary"
+                                    type="button"
+                                    onClick={handleCreatePortableBackup}
+                                    disabled={Boolean(busy)}
+                              >
+                                    <i className="ti ti-package-export" aria-hidden="true" />
+                                    <span>{busy === "portable-backup" ? "Creating..." : "Create Portable Backup"}</span>
+                              </button>
+                              <button
+                                    className="settings-action"
+                                    type="button"
+                                    onClick={handleRestorePortableBackup}
+                                    disabled={Boolean(busy)}
+                              >
+                                    <i className="ti ti-package-import" aria-hidden="true" />
+                                    <span>{busy === "portable-restore" ? "Restoring..." : "Restore Portable Backup"}</span>
+                              </button>
                         </div>
+                        <p className="settings-note">Portable backup includes your database and product images in one ZIP. Use it to move this profile to another computer.</p>
                   </section>
                   <section className="settings-section" aria-labelledby="export-settings-title">
                         <div className="settings-section-heading">

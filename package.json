@@ -14,6 +14,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "adm-zip": "^0.6.1",
     "archiver": "^8.0.0",
     "better-sqlite3": "^12.4.1",
     "nepali-date-converter": "^3.4.0",
@@ -47,6 +48,7 @@
     "directories": {
       "output": "release"
     },
+    "electronDist": "node_modules/electron/dist",
     "files": [
       "dist/**/*",
       "dist-electron/**/*",

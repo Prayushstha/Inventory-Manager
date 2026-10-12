@@ -201,6 +201,17 @@
   border-color: var(--color-muted);
 }
 
+.settings-action-primary {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--background-primary);
+}
+
+.settings-action-primary:hover:not(:disabled) {
+  background: var(--primary);
+  filter: brightness(1.1);
+}
+
 .settings-action:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;

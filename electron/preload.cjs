@@ -25,6 +25,8 @@ contextBridge.exposeInMainWorld("db", {
     ipcRenderer.invoke("db:resolveImagePath", relativePath),
   createBackup: () => ipcRenderer.invoke("db:createBackup"),
   restoreBackup: () => ipcRenderer.invoke("db:restoreBackup"),
+  createPortableBackup: () => ipcRenderer.invoke("db:createPortableBackup"),
+  restorePortableBackup: () => ipcRenderer.invoke("db:restorePortableBackup"),
   pickExportDirectory: () => ipcRenderer.invoke("settings:pickExportDirectory"),
   exportData: (destinationPath, selections) =>
     ipcRenderer.invoke("settings:exportData", destinationPath, selections),
