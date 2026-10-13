@@ -5,6 +5,7 @@ import { BillDialog, BillHeader, BillTable } from "./Components/index.js";
 import { useConfirm } from "../../hooks/useConfirm";
 import { useErrorHandler } from "../../hooks/useErrorHandler";
 import { useProductUsage } from "../../hooks/useProductUsage";
+import { useDataChanged } from "../../hooks/useDataChanged";
 
 export function Billing() {
   const [search, setSearch] = useState("");
@@ -33,6 +34,17 @@ export function Billing() {
     fetchCustomers();
     return () => { cancelled = true; };
   }, [handleAsync]);
+
+  useDataChanged(async () => {
+    const [customerData, productData, settings] = await Promise.all([
+      window.db.getCustomers(),
+      window.db.getProducts(),
+      window.db.getAppSettings(),
+    ]);
+    setCustomers(customerData);
+    setProducts(productData);
+    setInvoiceDefaults(settings.invoiceDefaults || {});
+  });
 
   useEffect(() => {
     let cancelled = false;

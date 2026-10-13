@@ -5,6 +5,7 @@ import { useConfirm } from "../../../hooks/useConfirm";
 import { useErrorHandler } from "../../../hooks/useErrorHandler";
 import { ExpenseRangeControls } from "./ViewExpenses/ExpenseRangeControls";
 import { ExpensesTable } from "./ViewExpenses/ExpensesTable";
+import { useDataChanged } from "../../../hooks/useDataChanged";
 
 export function ViewExpenses({ onSelectExpense }) {
   const [viewingBtn, setViewingBtn] = useState(1);
@@ -29,6 +30,8 @@ export function ViewExpenses({ onSelectExpense }) {
     const data = await handleAsync(() => window.db.getExpenses(), "Failed to refresh expenses");
     if (data) setExpenses(data);
   }
+
+  useDataChanged(refreshExpenses);
 
   return (
     <div className="view-expenses">

@@ -2,6 +2,7 @@ import "./Styles/navbar.css";
 import { EditConsole } from "../pages/Inventory/Components/EditConsole";
 import { useEffect, useRef, useState } from "react";
 import { useToast } from "../hooks/ToastContext";
+import { useDataChanged } from "../hooks/useDataChanged";
 
 export function NavBar({
   isInventoryPage,
@@ -30,6 +31,11 @@ export function NavBar({
       });
     return () => { cancelled = true; };
   }, [showToast]);
+
+  useDataChanged(async () => {
+    const settings = await window.db.getAppSettings();
+    setPreferredAddMode(settings.inventoryAddItemMode ?? null);
+  });
 
   function toggleAddItemDialog() {
     if (!addItemToInventory.current) {

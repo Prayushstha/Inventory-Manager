@@ -10,6 +10,7 @@ import { AddExpenseDialog } from "./Components/AddExpenseDialog";
 import { ExpenseDetailDialog } from "./Components/ExpenseDetailDialog";
 import { NewImportExpensePage } from "./Components/NewImportExpensePage";
 import { getTodayGregorianISO } from "../../utils/nepaliDate";
+import { useDataChanged } from "../../hooks/useDataChanged";
 
 function fmt(n) {
   return new Intl.NumberFormat("en-NP", {
@@ -56,6 +57,8 @@ export function FinancePage() {
     fetchSummary();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overviewPeriod]);
+
+  useDataChanged(fetchSummary);
 
   if (!data) {
     return <div className="finance-page">Loading...</div>;

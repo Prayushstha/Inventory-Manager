@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useErrorHandler } from "../../hooks/useErrorHandler";
 import { NewImportExpensePage } from "../Finances/Components/NewImportExpensePage";
 import { getTodayGregorianISO } from "../../utils/nepaliDate";
+import { useDataChanged } from "../../hooks/useDataChanged";
 
 export function InventoryPage() {
   const isInventoryPage = true;
@@ -42,6 +43,8 @@ export function InventoryPage() {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useDataChanged(fetchProducts);
 
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())

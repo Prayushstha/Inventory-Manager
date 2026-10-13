@@ -1,84 +1,135 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
+const DATA_MUTATION_CHANNELS = new Set([
+  "db:addProduct",
+  "db:saveInventoryProduct",
+  "db:editProduct",
+  "db:deleteProduct",
+  "db:addVariant",
+  "db:addBase",
+  "db:addBaseStock",
+  "db:addCustomer",
+  "db:addBill",
+  "db:addCustomerBill",
+  "db:editCustomerBill",
+  "db:deleteCustomer",
+  "db:deleteBill",
+  "db:editCustomer",
+  "db:editBill",
+  "db:addBillActivity",
+  "db:importExcel",
+  "db:addExpense",
+  "db:deleteExpense",
+  "db:recordImportExpense",
+  "db:editExpense",
+  "db:editImportExpense",
+  "db:deleteBaseStock",
+  "db:deleteVariant",
+  "settings:createProfile",
+  "settings:setDefaultProfilePassword",
+  "settings:switchProfile",
+  "settings:updateDefaultPaymentMethod",
+  "settings:updateInvoiceDefaults",
+  "settings:updateInventoryAddItemMode",
+  "settings:updateAppearance",
+  "settings:changeDataDirectory",
+]);
+
+function invoke(channel, ...args) {
+  const request = ipcRenderer.invoke(channel, ...args);
+  if (!DATA_MUTATION_CHANNELS.has(channel)) return request;
+  return request.then((result) => {
+    window.dispatchEvent(new Event("stockwise:data-changed"));
+    return result;
+  });
+}
+
 contextBridge.exposeInMainWorld("db", {
-  addProduct: (product) => ipcRenderer.invoke("db:addProduct", product),
-  saveInventoryProduct: (product) => ipcRenderer.invoke("db:saveInventoryProduct", product),
-  getProducts: () => ipcRenderer.invoke("db:getProducts"),
-  getNextInvoiceNumber: () => ipcRenderer.invoke("db:getNextInvoiceNumber"),
+  addProduct: (product) => invoke("db:addProduct", product),
+  saveInventoryProduct: (product) => invoke("db:saveInventoryProduct", product),
+  getProducts: () => invoke("db:getProducts"),
+  getNextInvoiceNumber: () => invoke("db:getNextInvoiceNumber"),
   isInvoiceNumberAvailable: (number, excludeExpenseId) =>
-    ipcRenderer.invoke("db:isInvoiceNumberAvailable", number, excludeExpenseId),
+    invoke("db:isInvoiceNumberAvailable", number, excludeExpenseId),
   editProduct: (id, product) =>
-    ipcRenderer.invoke("db:editProduct", id, product),
-  deleteProduct: (id) => ipcRenderer.invoke("db:deleteProduct", id),
-  getProductByName: (name) => ipcRenderer.invoke("db:getProductByName", name),
+    invoke("db:editProduct", id, product),
+  deleteProduct: (id) => invoke("db:deleteProduct", id),
+  getProductByName: (name) => invoke("db:getProductByName", name),
   getVariantBySize: (productId, bucketSize) =>
-    ipcRenderer.invoke("db:getVariantBySize", productId, bucketSize),
+    invoke("db:getVariantBySize", productId, bucketSize),
   addVariant: (productId, variant) =>
-    ipcRenderer.invoke("db:addVariant", productId, variant),
-  addBase: (productId, baseName) =>
-    ipcRenderer.invoke("db:addBase", productId, baseName),
+    invoke("db:addVariant", productId, variant),
+  addBase: (productId, baseName) => invoke("db:addBase", productId, baseName),
   addBaseStock: (baseId, variantId, stock) =>
-    ipcRenderer.invoke("db:addBaseStock", baseId, variantId, stock),
-  pickImage: () => ipcRenderer.invoke("dialog:pickImage"),
-  copyImage: (sourcePath) => ipcRenderer.invoke("db:copyImage", sourcePath),
+    invoke("db:addBaseStock", baseId, variantId, stock),
+  pickImage: () => invoke("dialog:pickImage"),
+  copyImage: (sourcePath) => invoke("db:copyImage", sourcePath),
   resolveImagePath: (relativePath) =>
-    ipcRenderer.invoke("db:resolveImagePath", relativePath),
-  createBackup: () => ipcRenderer.invoke("db:createBackup"),
-  restoreBackup: () => ipcRenderer.invoke("db:restoreBackup"),
-  createPortableBackup: () => ipcRenderer.invoke("db:createPortableBackup"),
-  restorePortableBackup: () => ipcRenderer.invoke("db:restorePortableBackup"),
-  pickExportDirectory: () => ipcRenderer.invoke("settings:pickExportDirectory"),
+    invoke("db:resolveImagePath", relativePath),
+  createBackup: () => invoke("db:createBackup"),
+  restoreBackup: () => invoke("db:restoreBackup"),
+  createPortableBackup: () => invoke("db:createPortableBackup"),
+  restorePortableBackup: () => invoke("db:restorePortableBackup"),
+  pickExportDirectory: () => invoke("settings:pickExportDirectory"),
   exportData: (destinationPath, selections) =>
-    ipcRenderer.invoke("settings:exportData", destinationPath, selections),
+    invoke("settings:exportData", destinationPath, selections),
   getBaseByName: (productId, baseName) =>
-    ipcRenderer.invoke("db:getBaseByName", productId, baseName),
-  addCustomer: (customer) => ipcRenderer.invoke("db:addCustomer", customer),
+    invoke("db:getBaseByName", productId, baseName),
+  addCustomer: (customer) => invoke("db:addCustomer", customer),
   addBill: (customerId, bill) =>
-    ipcRenderer.invoke("db:addBill", customerId, bill),
-  addCustomerBill: (customer, bill) => ipcRenderer.invoke("db:addCustomerBill", customer, bill),
+    invoke("db:addBill", customerId, bill),
+  addCustomerBill: (customer, bill) => invoke("db:addCustomerBill", customer, bill),
   editCustomerBill: (customerId, customer, billId, bill) =>
-    ipcRenderer.invoke("db:editCustomerBill", customerId, customer, billId, bill),
-  getCustomers: () => ipcRenderer.invoke("db:getCustomers"),
-  deleteCustomer: (id) => ipcRenderer.invoke("db:deleteCustomer", id),
-  deleteBill: (billId) => ipcRenderer.invoke("db:deleteBill", billId),
+    invoke("db:editCustomerBill", customerId, customer, billId, bill),
+  getCustomers: () => invoke("db:getCustomers"),
+  deleteCustomer: (id) => invoke("db:deleteCustomer", id),
+  deleteBill: (billId) => invoke("db:deleteBill", billId),
   editCustomer: (id, customer) =>
-    ipcRenderer.invoke("db:editCustomer", id, customer),
-  addBillActivity: (billId, activity) => ipcRenderer.invoke("db:addBillActivity", billId, activity),
-  getBillActivity: (billId) => ipcRenderer.invoke("db:getBillActivity", billId),
-  editBill: (billId, bill) => ipcRenderer.invoke("db:editBill", billId, bill),
-  pickExcelFile: () => ipcRenderer.invoke("dialog:pickExcelFile"),
-  importExcel: (filePath) => ipcRenderer.invoke("db:importExcel", filePath),
-  addExpense: (expense) => ipcRenderer.invoke("db:addExpense", expense),
-  getExpenses: () => ipcRenderer.invoke("db:getExpenses"),
-  deleteExpense: (id) => ipcRenderer.invoke("db:deleteExpense", id),
-  getSales: () => ipcRenderer.invoke("db:getSales"),
-  getNetPosition: (period) => ipcRenderer.invoke("db:getNetPosition", period),
+    invoke("db:editCustomer", id, customer),
+  addBillActivity: (billId, activity) => invoke("db:addBillActivity", billId, activity),
+  getBillActivity: (billId) => invoke("db:getBillActivity", billId),
+  editBill: (billId, bill) => invoke("db:editBill", billId, bill),
+  pickExcelFile: () => invoke("dialog:pickExcelFile"),
+  importExcel: (filePath) => invoke("db:importExcel", filePath),
+  addExpense: (expense) => invoke("db:addExpense", expense),
+  getExpenses: () => invoke("db:getExpenses"),
+  deleteExpense: (id) => invoke("db:deleteExpense", id),
+  getSales: () => invoke("db:getSales"),
+  getNetPosition: (period) => invoke("db:getNetPosition", period),
   recordImportExpense: (expenseMeta, items) =>
-    ipcRenderer.invoke("db:recordImportExpense", expenseMeta, items),
-  getExpenseDetails: (id) => ipcRenderer.invoke("db:getExpenseDetails", id),
+    invoke("db:recordImportExpense", expenseMeta, items),
+  getExpenseDetails: (id) => invoke("db:getExpenseDetails", id),
   editExpense: (id, expense) =>
-    ipcRenderer.invoke("db:editExpense", id, expense),
+    invoke("db:editExpense", id, expense),
   editImportExpense: (id, expenseMeta, items) =>
-    ipcRenderer.invoke("db:editImportExpense", id, expenseMeta, items),
-  deleteBaseStock: (baseId, variantId) => ipcRenderer.invoke('db:deleteBaseStock', baseId, variantId),
-  deleteVariant: (variantId) => ipcRenderer.invoke('db:deleteVariant', variantId),
-  getTopProducts: (period) => ipcRenderer.invoke("db:getTopProducts", period),
-  getTopCustomers: (period) => ipcRenderer.invoke("db:getTopCustomers", period),
-  getAppSettings: () => ipcRenderer.invoke("settings:get"),
+    invoke("db:editImportExpense", id, expenseMeta, items),
+  deleteBaseStock: (baseId, variantId) => invoke("db:deleteBaseStock", baseId, variantId),
+  deleteVariant: (variantId) => invoke("db:deleteVariant", variantId),
+  getTopProducts: (period) => invoke("db:getTopProducts", period),
+  getTopCustomers: (period) => invoke("db:getTopCustomers", period),
+  getAppSettings: () => invoke("settings:get"),
   createProfile: (username, password) =>
-    ipcRenderer.invoke("settings:createProfile", username, password),
+    invoke("settings:createProfile", username, password),
   setDefaultProfilePassword: (password) =>
-    ipcRenderer.invoke("settings:setDefaultProfilePassword", password),
+    invoke("settings:setDefaultProfilePassword", password),
   switchProfile: (profileId, username, password) =>
-    ipcRenderer.invoke("settings:switchProfile", profileId, username, password),
+    invoke("settings:switchProfile", profileId, username, password),
   updateDefaultPaymentMethod: (paymentMethod) =>
-    ipcRenderer.invoke("settings:updateDefaultPaymentMethod", paymentMethod),
+    invoke("settings:updateDefaultPaymentMethod", paymentMethod),
   updateInvoiceDefaults: (invoiceDefaults) =>
-    ipcRenderer.invoke("settings:updateInvoiceDefaults", invoiceDefaults),
+    invoke("settings:updateInvoiceDefaults", invoiceDefaults),
   updateInventoryAddItemMode: (mode) =>
-    ipcRenderer.invoke("settings:updateInventoryAddItemMode", mode),
+    invoke("settings:updateInventoryAddItemMode", mode),
   updateAppearanceSettings: (theme, mode) =>
-    ipcRenderer.invoke("settings:updateAppearance", theme, mode),
-  openDataDirectory: () => ipcRenderer.invoke("settings:openDataDirectory"),
-  changeDataDirectory: () => ipcRenderer.invoke("settings:changeDataDirectory"),
+    invoke("settings:updateAppearance", theme, mode),
+  openDataDirectory: () => invoke("settings:openDataDirectory"),
+  changeDataDirectory: () => invoke("settings:changeDataDirectory"),
+});
+
+contextBridge.exposeInMainWorld("app", {
+  onDataChanged: (callback) => {
+    const listener = () => callback();
+    window.addEventListener("stockwise:data-changed", listener);
+    return () => window.removeEventListener("stockwise:data-changed", listener);
+  },
 });

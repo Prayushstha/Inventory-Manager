@@ -7,6 +7,7 @@ import { TopCustomers } from "./Components/TopCustomers";
 import { TopProducts } from "./Components/TopProducts";
 import { useEffect } from "react";
 import { useErrorHandler } from "../../hooks/useErrorHandler";
+import { useDataChanged } from "../../hooks/useDataChanged";
 
 function fmt(n) {
   return new Intl.NumberFormat("en-NP", {
@@ -96,6 +97,12 @@ export function AnalyticsPage() {
       cancelled = true;
     };
   }, [period, handleAsync]);
+
+  useDataChanged(() => {
+    window.db.getNetPosition(period).then(setData).catch(console.error);
+    window.db.getTopProducts(period).then(setTopProducts).catch(console.error);
+    window.db.getTopCustomers(period).then(setTopCustomers).catch(console.error);
+  });
 
   return (
     <div className="finance-page">

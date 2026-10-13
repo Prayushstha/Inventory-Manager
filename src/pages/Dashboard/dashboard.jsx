@@ -3,6 +3,7 @@ import { NavBar } from "../../components/navbar.jsx";
 import { ProductCard } from "./Components/ProductCard.jsx";
 import { useState, useEffect } from "react";
 import { useErrorHandler } from "../../hooks/useErrorHandler";
+import { useDataChanged } from "../../hooks/useDataChanged";
 
 export function DashboardPage() {
   const [search, setSearch] = useState("");
@@ -23,6 +24,12 @@ export function DashboardPage() {
     fetchProducts();
     return () => { cancelled = true; };
   }, [handleAsync]);
+
+  useDataChanged(() => {
+    window.db.getProducts().then(setProducts).catch((error) => {
+      console.error("Failed to refresh dashboard products:", error);
+    });
+  });
 
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase()),

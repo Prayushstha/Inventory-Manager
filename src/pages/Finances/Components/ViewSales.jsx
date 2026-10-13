@@ -4,6 +4,7 @@ import { SalesDetailDialog } from "./SalesDetailDialog";
 import { getRangeStart } from "../../../utils/dateUtils";
 import { useErrorHandler } from "../../../hooks/useErrorHandler";
 import { formatNepaliDate } from "../../../utils/nepaliDate";
+import { useDataChanged } from "../../../hooks/useDataChanged";
 
 function groupSalesByDay(sales) {
   const groups = {};
@@ -56,6 +57,11 @@ export function ViewSales() {
     fetchSales();
     return () => { cancelled = true; };
   }, [handleAsync]);
+
+  useDataChanged(async () => {
+    const data = await window.db.getSales();
+    if (data) setSales(data);
+  });
 
   const rangeStart = getRangeStart(viewingBtn);
   const filtered = rangeStart
