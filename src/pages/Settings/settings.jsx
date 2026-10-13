@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useConfirm } from "../../hooks/useConfirm";
 import { useToast } from "../../hooks/ToastContext";
-import { AppearanceSection } from "./components/AppearanceSection";
-import { DatabaseSection } from "./components/DatabaseSection";
-import { DefaultsSection } from "./components/DefaultsSection";
-import { ExportSection } from "./components/ExportSection";
-import { ProfilesSection } from "./components/ProfilesSection";
+import { AppearanceSection } from "./Components/AppearanceSection";
+import { DatabaseSection } from "./Components/DatabaseSection";
+import { DefaultsSection } from "./Components/DefaultsSection";
+import { ExportSection } from "./Components/ExportSection";
+import { ProfilesSection } from "./Components/ProfilesSection";
 import "./settings.css";
 
 function fileName(filePath) {
