@@ -81,6 +81,15 @@ function createWindow() {
       spellcheck: true,
     },
   });
+  win.webContents.on("before-input-event", (event, input) => {
+    const devToolsShortcut =
+      input.key === "F12" ||
+      (input.key.toLowerCase() === "i" && input.shift && (input.control || input.meta));
+    if (input.type === "keyDown" && devToolsShortcut) {
+      event.preventDefault();
+      win.webContents.toggleDevTools();
+    }
+  });
   win.webContents.session.setSpellCheckerLanguages(["en-US"]);
   win.webContents.on("context-menu", (_event, params) => {
     if (!params.misspelledWord) return;
