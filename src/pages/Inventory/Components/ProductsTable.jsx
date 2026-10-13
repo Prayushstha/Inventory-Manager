@@ -54,10 +54,30 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
   const [bulkUpdateOpen, setBulkUpdateOpen] = useState(false);
   const [sellingPrice, setSellingPrice] = useState("");
   const [baseStock, setBaseStock] = useState("");
+  const [sortKey, setSortKey] = useState("name");
+  const [sortOrder, setSortOrder] = useState(true);
   const { handleAsync } = useErrorHandler();
   const showToast = useToast();
   const { confirm, ConfirmDialogComponent } = useConfirm();
-  const rows = buildRows(products);
+  const sortValues = {
+    name: (product) => product.name,
+    base: (product) => product.bases[0]?.name ?? "",
+    bucket_size: (product) => product.variants[0]?.bucket_size ?? 0,
+    landing: (product) => product.variants[0]?.landing ?? 0,
+    mp: (product) => product.variants[0]?.mp ?? 0,
+    sales: (product) => product.variants[0]?.sales ?? 0,
+    stock: (product) => product.bases[0]?.stockMap?.[product.variants[0]?.id] ?? 0,
+  };
+  const sortedProducts = [...products].sort((a, b) => {
+    const first = sortValues[sortKey](a);
+    const second = sortValues[sortKey](b);
+    const comparison =
+      typeof first === "string" || typeof second === "string"
+        ? String(first).localeCompare(String(second))
+        : first - second;
+    return sortOrder ? comparison : -comparison;
+  });
+  const rows = buildRows(sortedProducts);
 
   const visibleKeys = new Set(rows.map((row) => row.key));
   const activeSelectedKeys = selectedKeys.filter((key) => visibleKeys.has(key));
@@ -269,6 +289,7 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
       showToast("Enter a selling price or base stock quantity.", "error");
       return;
     }
+
     for (const [value, label] of [
       [sellingPrice, "Selling price"],
       [baseStock, "Base stock quantity"],
@@ -301,6 +322,31 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
     } finally {
       setBulkBusy("");
     }
+  }
+
+  function sortBy(key) {
+    if (sortKey === key) {
+      setSortOrder((current) => !current);
+    } else {
+      setSortKey(key);
+      setSortOrder(true);
+    }
+  }
+
+  function sortableHeading(label, key) {
+    const active = sortKey === key;
+    return (
+      <th
+        className={`th-data${active ? " is-sorted" : ""}`}
+        onClick={() => sortBy(key)}
+        aria-sort={active ? (sortOrder ? "ascending" : "descending") : "none"}
+      >
+        {label}
+        <span className="sort-indicator" aria-hidden="true">
+          {active ? (sortOrder ? "↑" : "↓") : "↕"}
+        </span>
+      </th>
+    );
   }
 
   return (
@@ -348,18 +394,18 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
           </colgroup>
           <thead>
             <tr>
-              <th>Product Name</th>
-              <th>Base</th>
-              <th>Bucket Size</th>
-              <th>Landing Price</th>
-              <th>Market Price</th>
-              <th>Sales Price</th>
-              <th>Stock</th>
-              <th />
+              {sortableHeading("Product Name", "name")}
+              {sortableHeading("Base", "base")}
+              {sortableHeading("Bucket Size", "bucket_size")}
+              {sortableHeading("Landing Price", "landing")}
+              {sortableHeading("Market Price", "mp")}
+              {sortableHeading("Sales Price", "sales")}
+              {sortableHeading("Stock", "stock")}
+              <th className="th-actions" />
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => {
+            {sortedProducts.map((product) => {
               const productRows = rows.filter(
                 (row) => row.type === "size" && row.product.id === product.id,
               );

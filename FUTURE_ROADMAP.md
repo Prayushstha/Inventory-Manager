@@ -21,7 +21,7 @@ This app is already feature-rich enough to be useful, but reliability is the mai
 ## Priority 2: Operational business workflow
 
 ### High-value features
-- [ ] Batch product updates and bulk delete operations
+- [x] Batch product updates and bulk delete operations
 - [ ] Inventory audit / stock count reconciliation
 - [ ] Stock valuation report based on cost and current inventory value
 - [ ] Better customer payment tracking with partial payments and outstanding aging
