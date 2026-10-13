@@ -27,7 +27,6 @@ export function NavBar({
         if (!cancelled) setPreferredAddMode(settings.inventoryAddItemMode ?? null);
       })
       .catch((error) => {
-        console.error("Inventory add preference load failed:", error);
         showToast(error?.message || "Could not load your add-item preference.", "error");
         if (!cancelled) setPreferredAddMode(null);
       });
@@ -55,7 +54,6 @@ export function NavBar({
         const settings = await window.db.updateInventoryAddItemMode(mode);
         setPreferredAddMode(settings.inventoryAddItemMode);
       } catch (error) {
-        console.error("Inventory add preference save failed:", error);
         showToast(error?.message || "Could not remember your add-item choice.", "error");
       }
     }
@@ -93,7 +91,6 @@ export function NavBar({
       );
       await fetchProducts();
     } catch (error) {
-      console.error("Excel import failed:", error);
       showToast(error?.message || "Could not import this Excel file.", "error");
     } finally {
       setIsImporting(false);

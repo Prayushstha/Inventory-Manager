@@ -74,7 +74,7 @@ export function ExpenseInvoiceView({ details, items, invoiceDefaults, onClose, o
               ? undefined
               : Number(quantity) * Number(rate);
             const [rupees, paisa] = formatInvoiceAmountParts(lineTotal);
-            return <tr key={item ? `${item.productName}-${index}` : `empty-${index}`}>
+            return <tr key={item?.id ?? (item ? `${item.productName}-${item.base}-${item.bucketSize}-${index}` : `empty-${index}`)}>
               <td>{index + 1}</td><td className="invoice-hs-code-cell">{String(item?.hsCode ?? "").trim() || "—"}</td>
               <td>{displayText(item?.productName)}</td><td>{displayText(item?.base)}</td>
               <td>{formatInvoiceNumber(item?.bucketSize)}</td><td>{formatInvoiceNumber(quantity)}</td>

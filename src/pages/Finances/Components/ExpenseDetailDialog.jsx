@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/ToastContext";
+import { useConfirm } from "../../../hooks/useConfirm";
 import { ExpenseInvoiceEditor } from "./ExpenseInvoiceEditor";
 import { validateInvoiceDraft } from "./expenseInvoiceUtils";
 import "../styles/expense-invoice.css";
@@ -10,6 +11,7 @@ import { ImportedItemsSection } from "./ExpenseDetailDialog/ImportedItemsSection
 import { ExpenseDialogShell } from "./ExpenseDetailDialog/ExpenseDialogShell";
 
 const emptyItem = {
+  id: `expense-item-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   productName: "", hsCode: "", base: "", bucketSize: "", quantity: "", costPrice: "",
 };
 
@@ -27,6 +29,7 @@ function initialInvoice(defaults, invoiceData = {}) {
 
 export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = false }) {
   const showToast = useToast();
+  const { confirm, ConfirmDialogComponent } = useConfirm();
   const [details, setDetails] = useState(null);
   const [loadError, setLoadError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
@@ -56,7 +59,6 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
         try {
           catalog = await window.db.getProducts();
         } catch (catalogError) {
-          console.error("Inventory catalog load failed:", catalogError);
           showToast(catalogError?.message || "Inventory suggestions are unavailable; item details can still be entered manually.", "error");
         }
         if (cancelled) return;
@@ -74,7 +76,6 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
         setInvoice(initial);
         setBaseline(invoiceSnapshot({ date: data.date, nameOfExpense: data.nameOfExpense, invoice: initial, items: loadedItems }));
       } catch (error) {
-        console.error("Expense details load failed:", error);
         if (!cancelled) {
           setLoadError(error?.message || "Failed to load expense details.");
           showToast(error?.message || "Failed to load expense details.", "error");
@@ -96,8 +97,13 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
   }, [date, nameOfExpense, invoice, items, isEditing, isDirty, details]);
 
   function handleClose() {
-    if (isDirty && !window.confirm("Leave this invoice page? Your draft will be kept.")) return;
-    onClose?.();
+    if (!isDirty) {
+      onClose?.();
+      return;
+    }
+    confirm("Leave this invoice page? Your draft will be kept.", "Leave").then((accepted) => {
+      if (accepted) onClose?.();
+    });
   }
 
   function startInvoiceEdit() {
@@ -110,13 +116,19 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
         setItems(draft.items);
       }
     } catch (error) {
-      console.error("Import invoice draft restore failed:", error);
       showToast(error?.message || "Could not restore the saved invoice draft.", "error");
     }
     setIsEditing(true);
   }
 
-  if (!details) return <ExpenseLoadingState asPage={asPage} loadError={loadError} onClose={handleClose} />;
+  if (!details) {
+    return (
+      <>
+        <ExpenseLoadingState asPage={asPage} loadError={loadError} onClose={handleClose} />
+        {ConfirmDialogComponent}
+      </>
+    );
+  }
 
   const isImport = details.typeOfExpense === "Import";
   const importTotal = items.reduce(
@@ -151,8 +163,7 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
             shopName: invoice.shopName, shopAddress: invoice.shopAddress, shopTelephone: invoice.shopTelephone,
             invoiceNumber: invoice.invoiceNumber, tpinNumber: invoice.tpinNumber, vatPercent: invoice.vatPercent ?? "13",
           });
-        } catch (error) {
-          console.error("Invoice defaults update failed:", error);
+        } catch {
           defaultsSaved = false;
         }
         setDetails((current) => ({
@@ -170,7 +181,6 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
         onSaved?.();
         showToast(defaultsSaved ? "Invoice saved successfully." : "Invoice saved, but the invoice defaults could not be updated.", defaultsSaved ? "success" : "error");
       } catch (error) {
-        console.error("Invoice save failed:", error);
         if (/invoice number is already in use/i.test(error?.message || "")) {
           setInvoiceErrors((current) => ({ ...current, invoiceNumber: "This invoice number is already in use." }));
         }
@@ -181,7 +191,19 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
     }
 
     function cancelInvoiceEdit() {
-      if (isDirty && !window.confirm("Discard your unsaved invoice changes?")) return;
+      if (isDirty) {
+        confirm("Discard your unsaved invoice changes?", "Discard").then((accepted) => {
+          if (accepted) {
+            setInvoice(initialInvoice(invoiceDefaults, details.invoiceData || {}));
+            setItems(details.items || []);
+            setDate(details.date);
+            setNameOfExpense(details.nameOfExpense);
+            setInvoiceErrors({});
+            setIsEditing(false);
+          }
+        });
+        return;
+      }
       setInvoice(initialInvoice(invoiceDefaults, details.invoiceData || {}));
       setDate(details.date);
       setItems(details.items || []);
@@ -190,15 +212,18 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
       setIsEditing(false);
     }
 
-    return <ExpenseInvoiceEditor details={details} nameOfExpense={nameOfExpense} setNameOfExpense={setNameOfExpense}
+    return <>
+    <ExpenseInvoiceEditor details={details} nameOfExpense={nameOfExpense} setNameOfExpense={setNameOfExpense}
       invoice={invoice} setInvoice={setInvoice} date={date} setDate={setDate} items={items} setItems={setItems}
       products={products} errors={invoiceErrors} setErrors={setInvoiceErrors} isSaving={isSaving}
-      onSave={saveInvoice} onCancel={cancelInvoiceEdit} onClose={handleClose} isDirty={isDirty} />;
+      onSave={saveInvoice} onCancel={cancelInvoiceEdit} onClose={handleClose} isDirty={isDirty}       />
+      {ConfirmDialogComponent}
+      </>;
   }
 
   function handleAddItem() {
     if (!itemForm.productName || !itemForm.base || !itemForm.bucketSize || !itemForm.quantity || !itemForm.costPrice) {
-      alert("Please fill in all item fields.");
+      showToast("Please fill in all item fields.", "error");
       return;
     }
     setItems((current) => [...current, itemForm]);
@@ -219,7 +244,6 @@ export function ExpenseDetailDialog({ expenseId, onClose, onSaved, asPage = fals
       setIsEditing(false);
       onSaved?.();
     } catch (error) {
-      console.error("Expense update failed:", error);
       showToast(error?.message || "Failed to update expense. Your changes are still available.", "error");
     } finally {
       setIsSaving(false);

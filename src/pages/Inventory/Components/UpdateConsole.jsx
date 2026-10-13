@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useResolvedImage } from "../../../hooks/resolvedImage.js";
 import { useErrorHandler } from "../../../hooks/useErrorHandler";
+import { useToast } from "../../../hooks/ToastContext";
 export function UpdateConsole({ product, setProduct }) {
   const resolvedImage = useResolvedImage(product.images);
   const { handleAsync } = useErrorHandler();
+  const showToast = useToast();
   const [name, setName] = useState(product.name);
   const [selectedBase, setSelectedBase] = useState(
     product.bases[0]?.id ?? null,
@@ -22,7 +24,7 @@ export function UpdateConsole({ product, setProduct }) {
 
   async function handleUpdate() {
     if (!selectedBase || !selectedVariant) {
-      alert("Please select a base and variant.");
+      showToast("Please select a base and variant.", "error");
       return;
     }
 

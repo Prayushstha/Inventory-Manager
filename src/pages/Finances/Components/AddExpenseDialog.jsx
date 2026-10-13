@@ -52,10 +52,13 @@ export function AddExpenseDialog({
 
   function handleAddItem() {
     if (!itemForm.productName || !itemForm.base || !itemForm.bucketSize || !itemForm.quantity || !itemForm.costPrice) {
-      alert("Please fill in all item fields.");
+      showToast("Please fill in all item fields.", "error");
       return;
     }
-    setImportItems((prev) => [...prev, { ...itemForm }]);
+    setImportItems((prev) => [
+      ...prev,
+      { ...itemForm, id: `expense-item-${prev.length}-${Date.now()}` },
+    ]);
     setItemForm(emptyImportItem);
     setCurrentFieldIndex(0);
     setTimeout(() => productNameRef.current?.focus(), 0);
@@ -68,7 +71,7 @@ export function AddExpenseDialog({
   async function handleSave() {
     if (isSaving) return;
     if (!nameOfExpense) {
-      alert("Please enter a name for this expense.");
+      showToast("Please enter a name for this expense.", "error");
       return;
     }
 
@@ -76,13 +79,13 @@ export function AddExpenseDialog({
     try {
       if (isImport) {
         if (importItems.length === 0) {
-          alert("Please add at least one imported item.");
+          showToast("Please add at least one imported item.", "error");
           return;
         }
         await window.db.recordImportExpense({ date, nameOfExpense }, importItems);
       } else {
         if (!amountOfExpense) {
-          alert("Please enter an amount.");
+          showToast("Please enter an amount.", "error");
           return;
         }
         await window.db.addExpense({
@@ -95,7 +98,6 @@ export function AddExpenseDialog({
 
       onSaved?.();
     } catch (error) {
-      console.error("Expense save failed:", error);
       showToast(error?.message || "Failed to save expense. Your changes are still available.", "error");
     } finally {
       setIsSaving(false);
@@ -240,7 +242,7 @@ export function AddExpenseDialog({
                   </thead>
                   <tbody>
                     {importItems.map((item, i) => (
-                      <tr key={i}>
+                      <tr key={item.id ?? `expense-item-${i}-${item.productName}-${item.base}-${item.bucketSize}`}>
                         <td>{item.productName}</td>
                         <td>{item.base}</td>
                         <td>{item.bucketSize}</td>

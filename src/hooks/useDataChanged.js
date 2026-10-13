@@ -10,8 +10,8 @@ export function useDataChanged(onChange) {
   useEffect(() => {
     if (!window.app?.onDataChanged) return undefined;
     return window.app.onDataChanged(() => {
-      Promise.resolve(callbackRef.current()).catch((error) => {
-        console.error("Failed to refresh data after a change:", error);
+      Promise.resolve(callbackRef.current()).catch(() => {
+        // Silently ignore errors in data change callbacks to avoid console spam
       });
     });
   }, []);

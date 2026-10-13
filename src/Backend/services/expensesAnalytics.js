@@ -83,6 +83,7 @@ function getSales() {
         status: bill.status,
       },
       purchasedProducts: items.map((i) => ({
+        id: i.id,
         name: i.product_name,
         base: i.base,
         bucketSize: i.bucket_size,
@@ -327,6 +328,7 @@ function getExpenseDetails(expenseId) {
     amountOfExpense: expense.amount,
     invoiceData: expense.invoice_data ? JSON.parse(expense.invoice_data) : null,
     items: items.map((i) => ({
+      id: i.id,
       productName: i.product_name,
       base: i.base,
       bucketSize: i.bucket_size,

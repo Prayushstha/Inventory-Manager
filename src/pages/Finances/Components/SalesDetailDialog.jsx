@@ -33,8 +33,8 @@ export function SalesDetailDialog({ day, onClose }) {
                 </tr>
               </thead>
               <tbody>
-                {day.items.map((item, i) => (
-                  <tr key={i}>
+                {day.items.map((item, index) => (
+                  <tr key={item.id ?? `${item.billId}-${item.productName ?? item.name}-${item.base}-${item.bucketSize}-${index}`}>
                     <td>{item.customerName}</td>
                     <td>{({ default: "Default", pan: "PAN", vat: "VAT" })[item.billType] || "Default"}</td>
                     <td>{item.name}</td>

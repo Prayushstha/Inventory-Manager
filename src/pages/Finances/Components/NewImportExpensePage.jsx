@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/ToastContext";
+import { useConfirm } from "../../../hooks/useConfirm";
 import { ExpenseInvoiceEditor } from "./ExpenseInvoiceEditor";
 import { validateInvoiceDraft } from "./expenseInvoiceUtils";
 
 function blankItem() {
   return {
+    id: `invoice-item-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     productName: "",
     hsCode: "",
     base: "",
@@ -24,6 +26,7 @@ export function NewImportExpensePage({
   draftKey = "new",
 }) {
   const showToast = useToast();
+  const { confirm, ConfirmDialogComponent } = useConfirm();
   const [invoice, setInvoice] = useState(null);
   const [items, setItems] = useState([blankItem()]);
   const [isSaving, setIsSaving] = useState(false);
@@ -49,17 +52,14 @@ export function NewImportExpensePage({
         ? settingsResult.value.invoiceDefaults || {}
         : {};
       if (settingsResult.status === "rejected") {
-        console.error("Invoice defaults load failed:", settingsResult.reason);
         showToast(settingsResult.reason?.message || "Could not load invoice defaults.", "error");
       }
       if (numberResult.status === "rejected") {
-        console.error("Invoice number suggestion failed:", numberResult.reason);
         showToast(numberResult.reason?.message || "Could not suggest an invoice number.", "error");
       }
       if (productsResult.status === "fulfilled") {
         setProducts(productsResult.value);
       } else {
-        console.error("Inventory catalog load failed:", productsResult.reason);
         showToast(productsResult.reason?.message || "Could not load the inventory catalog.", "error");
       }
       const initialInvoice = {
@@ -92,7 +92,6 @@ export function NewImportExpensePage({
           restored = true;
         }
       } catch (error) {
-        console.error("Import invoice draft restore failed:", error);
         showToast(error?.message || "Could not restore the saved invoice draft.", "error");
       }
       if (!restored) setInvoice(initialInvoice);
@@ -147,8 +146,7 @@ export function NewImportExpensePage({
           tpinNumber: invoice.tpinNumber,
           vatPercent: invoice.vatPercent ?? "13",
         });
-      } catch (error) {
-        console.error("Invoice defaults update failed:", error);
+      } catch {
         defaultsSaved = false;
       }
 
@@ -161,7 +159,6 @@ export function NewImportExpensePage({
         defaultsSaved ? "success" : "error",
       );
     } catch (error) {
-      console.error("Import invoice save failed:", error);
       if (/invoice number is already in use/i.test(error?.message || "")) {
         setErrors((current) => ({
           ...current,
@@ -175,18 +172,32 @@ export function NewImportExpensePage({
   }
 
   function confirmCancel() {
-    if (isDirty && !window.confirm("Discard your unsaved invoice changes?")) return;
+    if (isDirty) {
+      confirm("Discard your unsaved invoice changes?", "Discard").then((accepted) => {
+        if (accepted) {
+          sessionStorage.removeItem(storageKey);
+          onCancel?.();
+        }
+      });
+      return;
+    }
     sessionStorage.removeItem("stockwise:import-invoice:new");
     onCancel?.();
   }
 
   function confirmLeave() {
-    if (isDirty && !window.confirm("Leave this invoice page? Your draft will be kept.")) return;
-    onCancel?.();
+    if (!isDirty) {
+      onCancel?.();
+      return;
+    }
+    confirm("Leave this invoice page? Your draft will be kept.", "Leave").then((accepted) => {
+      if (accepted) onCancel?.();
+    });
   }
 
   if (!invoice) {
     return (
+      <>
       <main className="expense-record-page">
         <div className="expense-record-toolbar">
           <button className="btn-secondary" type="button" onClick={confirmLeave}>
@@ -196,10 +207,13 @@ export function NewImportExpensePage({
         </div>
         <p role="status">Loading invoice defaults...</p>
       </main>
+      {ConfirmDialogComponent}
+      </>
     );
   }
 
   return (
+    <>
     <ExpenseInvoiceEditor
       details={{ id: "new" }}
       nameOfExpense={nameOfExpense}
@@ -219,5 +233,7 @@ export function NewImportExpensePage({
       onClose={confirmLeave}
       isDirty={isDirty}
     />
+    {ConfirmDialogComponent}
+    </>
   );
 }

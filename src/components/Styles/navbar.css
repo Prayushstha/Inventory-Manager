@@ -54,8 +54,8 @@
 
 .nav-add-item-btn {
     margin: auto;
-    margin-left: 20px;
-    width: 100px;
+    margin-left: 10px;
+    width: 130px;
     border: none;
     cursor: pointer;
     background: var(--button-primary);

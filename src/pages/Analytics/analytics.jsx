@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./analytics.css";
 import { FinanceHeader } from "./Components/FinanceHeader";
 import { ActivityRow } from "./Components/ActivityRow";
 import { SummarySection } from "./Components/SummarySection";
 import { TopCustomers } from "./Components/TopCustomers";
 import { TopProducts } from "./Components/TopProducts";
-import { useEffect } from "react";
 import { useErrorHandler } from "../../hooks/useErrorHandler";
 import { useDataChanged } from "../../hooks/useDataChanged";
 
@@ -99,9 +98,15 @@ export function AnalyticsPage() {
   }, [period, handleAsync]);
 
   useDataChanged(() => {
-    window.db.getNetPosition(period).then(setData).catch(console.error);
-    window.db.getTopProducts(period).then(setTopProducts).catch(console.error);
-    window.db.getTopCustomers(period).then(setTopCustomers).catch(console.error);
+    Promise.all([
+      handleAsync(() => window.db.getNetPosition(period), "Failed to refresh summary data"),
+      handleAsync(() => window.db.getTopProducts(period), "Failed to refresh top products"),
+      handleAsync(() => window.db.getTopCustomers(period), "Failed to refresh top customers"),
+    ]).then(([summaryData, productsData, customersData]) => {
+      if (summaryData) setData(summaryData);
+      if (productsData) setTopProducts(productsData);
+      if (customersData) setTopCustomers(customersData);
+    });
   });
 
   return (
@@ -121,8 +126,8 @@ export function AnalyticsPage() {
             <div className="activity-card">
               <h3 className="activity-title">Recent Activity</h3>
               <div className="activity-list">
-                {data.recentActivity.map((item, i) => (
-                  <ActivityRow key={i} item={item} fmtSmall={fmtSmall}/>
+                {data.recentActivity.map((item) => (
+                  <ActivityRow key={`${item.label}-${item.date}`} item={item} fmtSmall={fmtSmall}/>
                 ))}
               </div>
             </div>

@@ -7,7 +7,10 @@ import { InvoiceItemsTable } from "./ExpenseInvoiceEditor/InvoiceItemsTable";
 import { InvoiceFooter } from "./ExpenseInvoiceEditor/InvoiceFooter";
 
 function emptyItem() {
-  return { productName: "", hsCode: "", base: "", bucketSize: "", quantity: "", costPrice: "" };
+  return {
+    id: `invoice-item-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    productName: "", hsCode: "", base: "", bucketSize: "", quantity: "", costPrice: "",
+  };
 }
 
 function updateItem(setItems, index, key, value) {
@@ -129,7 +132,11 @@ export function ExpenseInvoiceEditor({
       event.preventDefault();
       const index = Number(row.dataset.invoiceItemRow);
       setItems((current) => current[index]
-        ? [...current.slice(0, index + 1), { ...current[index] }, ...current.slice(index + 1)]
+        ? [
+            ...current.slice(0, index + 1),
+            { ...current[index], id: `invoice-item-${Date.now()}-${Math.random().toString(36).slice(2)}` },
+            ...current.slice(index + 1),
+          ]
         : current);
       setTimeout(() => itemRefs.current[index + 1]?.productName?.focus(), 0);
     }

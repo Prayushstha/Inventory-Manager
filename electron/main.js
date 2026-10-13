@@ -85,8 +85,19 @@ function createWindow() {
     height: 800,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
       spellcheck: true,
     },
+  });
+  win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  win.webContents.on("will-navigate", (event, url) => {
+    const devUrl = process.env.VITE_DEV_SERVER_URL;
+    const allowed = devUrl
+      ? url.startsWith(devUrl)
+      : url.startsWith("file://");
+    if (!allowed) event.preventDefault();
   });
   win.webContents.on("before-input-event", (event, input) => {
     const devToolsShortcut =
@@ -145,7 +156,13 @@ app.whenReady().then(() => {
       if (!filePath) {
         throw new Error("No path provided");
       }
-      const fileUrl = pathToFileURL(filePath).href;
+      const imageRoot = path.resolve(getAppSettings().dataDirectory, "images", "product-images");
+      const resolvedPath = path.resolve(filePath);
+      const relativePath = path.relative(imageRoot, resolvedPath);
+      if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+        throw new Error("Image path is outside the product image directory");
+      }
+      const fileUrl = pathToFileURL(resolvedPath).href;
       return net.fetch(fileUrl);
     } catch (err) {
       console.error("app-image protocol error:", err.message, request.url);

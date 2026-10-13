@@ -141,6 +141,17 @@ function addBaseStock(baseId, variantId, stock) {
   ).run(baseId, variantId, stock);
 }
 function copyImageToDatabase(sourcePath) {
+  if (typeof sourcePath !== "string" || !sourcePath.trim()) {
+    throw new Error("Choose an image file.");
+  }
+  const source = path.resolve(sourcePath);
+  if (!fs.existsSync(source) || !fs.statSync(source).isFile()) {
+    throw new Error("The selected image file could not be found.");
+  }
+  const extension = path.extname(source).toLowerCase();
+  if (![".jpg", ".jpeg", ".png", ".webp"].includes(extension)) {
+    throw new Error("Choose a JPG, PNG, or WebP image.");
+  }
   const fileName = path.basename(sourcePath);
   const destDir = path.join(ctx.dataDirectory, "images", "product-images");
   const destPath = path.join(destDir, fileName);
@@ -150,14 +161,18 @@ function copyImageToDatabase(sourcePath) {
   }
 
   if (!fs.existsSync(destPath)) {
-    fs.copyFileSync(sourcePath, destPath);
+    fs.copyFileSync(source, destPath);
   }
 
   return `images/product-images/${fileName}`;
 }
 function resolveImagePath(relativePath) {
   if (!relativePath) return null;
-  return path.join(ctx.dataDirectory, relativePath);
+  const imageRoot = path.resolve(ctx.dataDirectory, "images", "product-images");
+  const resolved = path.resolve(ctx.dataDirectory, relativePath);
+  const relative = path.relative(imageRoot, resolved);
+  if (relative.startsWith("..") || path.isAbsolute(relative)) return null;
+  return resolved;
 }
 
 function deleteBaseStock(baseId, variantId) {

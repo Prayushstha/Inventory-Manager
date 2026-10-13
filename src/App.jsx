@@ -28,7 +28,6 @@ function App() {
         }
       })
       .catch((error) => {
-        console.error("Appearance settings load failed:", error);
         showToast(error?.message || "Could not load appearance settings.", "error");
       });
     return () => { cancelled = true; };

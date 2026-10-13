@@ -251,8 +251,7 @@ export function BillDialog({
             tpinNumber: invoice.tpinNumber || "",
             vatPercent: invoice.vatPercent ?? "13",
           });
-        } catch (error) {
-          console.error("VAT invoice defaults update failed:", error);
+        } catch {
           invoiceDefaultsSaved = false;
         }
       }
@@ -266,7 +265,6 @@ export function BillDialog({
         invoiceDefaultsSaved ? "success" : "error",
       );
     } catch (error) {
-      console.error("Bill save failed:", error);
       showToast(error?.message || "Failed to save bill. Your changes are still available.", "error");
     } finally {
       setIsSaving(false);

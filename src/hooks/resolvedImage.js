@@ -12,9 +12,15 @@ export function useResolvedImage(relativePath) {
         return;
       }
       const absPath = await window.db.resolveImagePath(relativePath);
+      if (!absPath) {
+        setResolvedImage(NO_IMAGE);
+        return;
+      }
       setResolvedImage(`app-image://open?path=${encodeURIComponent(absPath.replace(/\\/g, "/"))}`);
     }
-    resolve();
+    resolve().catch(() => {
+      setResolvedImage(NO_IMAGE);
+    });
   }, [relativePath]);
 
   return resolvedImage;

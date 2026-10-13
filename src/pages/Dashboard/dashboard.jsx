@@ -26,9 +26,10 @@ export function DashboardPage() {
   }, [handleAsync]);
 
   useDataChanged(() => {
-    window.db.getProducts().then(setProducts).catch((error) => {
-      console.error("Failed to refresh dashboard products:", error);
-    });
+    return handleAsync(() => window.db.getProducts(), "Failed to refresh products")
+      .then((data) => {
+        if (data) setProducts(data);
+      });
   });
 
   const filteredProducts = products.filter((p) =>

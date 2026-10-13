@@ -1,4 +1,4 @@
-export function ConfirmDialog({ message, onConfirm, onCancel }) {
+export function ConfirmDialog({ message, onConfirm, onCancel, confirmLabel = "Yes, Delete" }) {
   return (
     <div className="dialog-overlay" onClick={onCancel}>
       <div className="dialog dialog-small" onClick={(e) => e.stopPropagation()}>
@@ -10,7 +10,7 @@ export function ConfirmDialog({ message, onConfirm, onCancel }) {
             Cancel
           </button>
           <button className="btn-primary confirm-btn " onClick={onConfirm}>
-            Yes, Delete
+            {confirmLabel}
           </button>
         </div>
       </div>

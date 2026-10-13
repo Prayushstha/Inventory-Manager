@@ -1,4 +1,4 @@
-import { Fragment, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { EditConsole } from "./EditConsole";
 import { ConfirmDialog } from "../../../components/ConfirmDialog";
 import { useErrorHandler } from "../../../hooks/useErrorHandler";
@@ -46,6 +46,7 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
   const rowRefs = useRef(new Map());
   const lastSelectedKey = useRef(null);
   const dragStart = useRef(null);
+  const dragCleanup = useRef(null);
   const [editingItem, setEditingItem] = useState(null);
   const [confirmTarget, setConfirmTarget] = useState(null);
   const [selectedKeys, setSelectedKeys] = useState([]);
@@ -79,6 +80,10 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
     return sortOrder ? comparison : -comparison;
   });
   const rows = buildRows(sortedProducts);
+
+  useEffect(() => () => {
+    dragCleanup.current?.();
+  }, []);
 
   const visibleKeys = new Set(rows.map((row) => row.key));
   const activeSelectedKeys = selectedKeys.filter((key) => visibleKeys.has(key));
@@ -164,9 +169,18 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
       setDragRect(null);
       document.removeEventListener("pointermove", onMove);
       document.removeEventListener("pointerup", onUp);
+      dragCleanup.current = null;
     };
+    dragCleanup.current?.();
     document.addEventListener("pointermove", onMove);
     document.addEventListener("pointerup", onUp);
+    dragCleanup.current = () => {
+      dragStart.current = null;
+      setDragRect(null);
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp);
+      dragCleanup.current = null;
+    };
   }
 
   async function saveInline(row, field, rawValue, input) {

@@ -85,10 +85,12 @@ export function BillItemsTable({
       <tbody>
         {items.map((p, i) => {
           const purchaseDate = p.purchaseDate || p.date || billDate || getTodayGregorianISO();
+          // Use a unique key combining index and product data to prevent React key warnings
+          const uniqueKey = `bill-item-${i}-${p.productName}-${p.base}`;
 
           return (
             <tr
-              key={i}
+              key={uniqueKey}
               ref={(el) => (rowRefs.current[i] = el)}
               tabIndex={i === selectedIndex ? 0 : -1}
               className={`bill-item-row ${i === selectedIndex ? "selected" : ""}`}
