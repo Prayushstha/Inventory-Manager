@@ -5,6 +5,8 @@ const DATA_MUTATION_CHANNELS = new Set([
   "db:saveInventoryProduct",
   "db:editProduct",
   "db:deleteProduct",
+  "db:deleteProducts",
+  "db:updateProducts",
   "db:addVariant",
   "db:addBase",
   "db:addBaseStock",
@@ -54,6 +56,11 @@ contextBridge.exposeInMainWorld("db", {
   editProduct: (id, product) =>
     invoke("db:editProduct", id, product),
   deleteProduct: (id) => invoke("db:deleteProduct", id),
+  deleteProducts: (productIds) => invoke("db:deleteProducts", productIds),
+  findProductsReferencedByBills: (productIds) =>
+    invoke("db:findProductsReferencedByBills", productIds),
+  updateProducts: (productIds, changes) =>
+    invoke("db:updateProducts", productIds, changes),
   getProductByName: (name) => invoke("db:getProductByName", name),
   getVariantBySize: (productId, bucketSize) =>
     invoke("db:getVariantBySize", productId, bucketSize),

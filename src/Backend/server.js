@@ -63,7 +63,8 @@ export const {
   isInvoiceNumberAvailable, deleteProduct, editProduct, getProductByName,
   getVariantBySize, addVariant, addBase, getBaseByName, addBaseStock,
   copyImageToDatabase, resolveImagePath, deleteBaseStock, deleteVariant,
-  importProductsFromExcel,
+  importProductsFromExcel, deleteProducts, findProductsReferencedByBills,
+  updateProducts,
 } = services[2];
 export const {
   addCustomer, addBillActivity, getBillActivity, addBill, getCustomers,

@@ -55,6 +55,9 @@ import {
   updateInvoiceDefaults,
   updateInventoryAddItemMode,
   updateAppearanceSettings,
+  deleteProducts,
+  findProductsReferencedByBills,
+  updateProducts,
   createProfile,
   switchProfile,
   setDefaultProfilePassword,
@@ -153,6 +156,13 @@ app.whenReady().then(() => {
     isInvoiceNumberAvailable(number, excludeExpenseId),
   );
   ipcMain.handle("db:deleteProduct", (_, id) => deleteProduct(id));
+  ipcMain.handle("db:deleteProducts", (_, productIds) => deleteProducts(productIds));
+  ipcMain.handle("db:findProductsReferencedByBills", (_, productIds) =>
+    findProductsReferencedByBills(productIds),
+  );
+  ipcMain.handle("db:updateProducts", (_, productIds, changes) =>
+    updateProducts(productIds, changes),
+  );
   ipcMain.handle("db:editProduct", (_, id, product) =>
     editProduct(id, product),
   );

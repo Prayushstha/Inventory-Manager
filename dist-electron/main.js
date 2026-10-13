@@ -28046,6 +28046,72 @@ function deleteInventoryProduct(db, id) {
 		db.prepare("DELETE FROM products WHERE id = ?").run(id);
 	})();
 }
+function normalizeBatchProductIds(productIds) {
+	if (!Array.isArray(productIds) || productIds.length === 0) throw new Error("Select at least one product.");
+	const ids = [...new Set(productIds)];
+	if (ids.some((id) => typeof id !== "string" || id.trim() === "")) throw new Error("Selected product ids are invalid.");
+	return ids;
+}
+function getBatchProducts(db, productIds) {
+	const products = productIds.map((id) => db.prepare("SELECT id, name FROM products WHERE id = ?").get(id));
+	if (productIds.filter((id, index) => !products[index] || products[index].id !== id).length > 0) throw new Error("One or more selected products no longer exist.");
+	return products;
+}
+function findProductsReferencedByBills$1(db, productIds) {
+	const products = getBatchProducts(db, normalizeBatchProductIds(productIds));
+	const findReference = db.prepare(`
+    SELECT 1
+    FROM bill_items
+    WHERE TRIM(product_name) = TRIM(?) COLLATE NOCASE
+    LIMIT 1
+  `);
+	return products.filter((product) => findReference.get(product.name)).map((product) => ({
+		id: product.id,
+		name: product.name
+	}));
+}
+function deleteInventoryProducts(db, productIds) {
+	const ids = normalizeBatchProductIds(productIds);
+	const products = getBatchProducts(db, ids);
+	const references = findProductsReferencedByBills$1(db, ids);
+	if (references.length > 0) throw new Error(`Cannot delete products referenced by existing bills: ${references.map((product) => product.name).join(", ")}.`);
+	db.transaction(() => {
+		for (const product of products) {
+			const variants = db.prepare("SELECT id FROM variants WHERE product_id = ?").all(product.id);
+			const bases = db.prepare("SELECT id FROM bases WHERE product_id = ?").all(product.id);
+			for (const variant of variants) db.prepare("DELETE FROM base_stock WHERE variant_id = ?").run(variant.id);
+			for (const base of bases) db.prepare("DELETE FROM base_stock WHERE base_id = ?").run(base.id);
+			db.prepare("DELETE FROM variants WHERE product_id = ?").run(product.id);
+			db.prepare("DELETE FROM bases WHERE product_id = ?").run(product.id);
+			db.prepare("DELETE FROM products WHERE id = ?").run(product.id);
+		}
+	})();
+	return { count: products.length };
+}
+function validateOptionalBatchNumber(value, label) {
+	if (value === void 0 || value === null || value === "") return null;
+	const number = typeof value === "number" ? value : Number(value);
+	if (!Number.isFinite(number) || number < 0) throw new Error(`${label} must be a non-negative number.`);
+	return number;
+}
+function updateInventoryProducts(db, productIds, changes) {
+	const ids = normalizeBatchProductIds(productIds);
+	const sellingPrice = validateOptionalBatchNumber(changes?.sellingPrice, "Selling price");
+	const baseStock = validateOptionalBatchNumber(changes?.baseStock, "Base stock quantity");
+	if (sellingPrice === null && baseStock === null) throw new Error("Enter a selling price or base stock quantity to update.");
+	const products = getBatchProducts(db, ids);
+	db.transaction(() => {
+		for (const product of products) {
+			if (sellingPrice !== null) db.prepare("UPDATE variants SET sales = ? WHERE product_id = ?").run(sellingPrice, product.id);
+			if (baseStock !== null) db.prepare(`
+          UPDATE base_stock
+          SET stock = ?
+          WHERE base_id IN (SELECT id FROM bases WHERE product_id = ?)
+        `).run(baseStock, product.id);
+		}
+	})();
+	return { count: products.length };
+}
 function adjustStock(db, productName, baseName, bucketSize, deltaQty) {
 	const pName = productName ? String(productName).trim() : "";
 	const bName = baseName ? String(baseName).trim() : "";
@@ -28292,6 +28358,15 @@ function createProductsService(ctx) {
 	function deleteProduct(id) {
 		deleteInventoryProduct(ctx.db, id);
 	}
+	function deleteProducts(productIds) {
+		return deleteInventoryProducts(ctx.db, productIds);
+	}
+	function findProductsReferencedByBills(productIds) {
+		return findProductsReferencedByBills$1(ctx.db, productIds);
+	}
+	function updateProducts(productIds, changes) {
+		return updateInventoryProducts(ctx.db, productIds, changes);
+	}
 	function editProduct(id, product) {
 		updateInventoryProduct(ctx.db, id, product);
 	}
@@ -28486,6 +28561,9 @@ function createProductsService(ctx) {
 		getNextInvoiceNumber,
 		isInvoiceNumberAvailable,
 		deleteProduct,
+		deleteProducts,
+		findProductsReferencedByBills,
+		updateProducts,
 		editProduct,
 		getProductByName,
 		getVariantBySize,
@@ -28919,7 +28997,7 @@ var services = [
 ];
 var { getAppSettings, setDefaultProfilePassword, createProfile, switchProfile, updateDefaultPaymentMethod, updateInvoiceDefaults, updateInventoryAddItemMode, updateAppearanceSettings, setLocalDataDirectory } = services[0];
 var { backupDatabase, exportDatabase, createPortableDatabaseBackup, restoreDatabase, restorePortableDatabase } = services[1];
-var { saveInventoryProductChanges, addProduct, getProducts, getNextInvoiceNumber, isInvoiceNumberAvailable, deleteProduct, editProduct, getProductByName, getVariantBySize, addVariant, addBase, getBaseByName, addBaseStock, copyImageToDatabase, resolveImagePath, deleteBaseStock, deleteVariant, importProductsFromExcel } = services[2];
+var { saveInventoryProductChanges, addProduct, getProducts, getNextInvoiceNumber, isInvoiceNumberAvailable, deleteProduct, editProduct, getProductByName, getVariantBySize, addVariant, addBase, getBaseByName, addBaseStock, copyImageToDatabase, resolveImagePath, deleteBaseStock, deleteVariant, importProductsFromExcel, deleteProducts, findProductsReferencedByBills, updateProducts } = services[2];
 var { addCustomer, addBillActivity, getBillActivity, addBill, getCustomers, deleteCustomer, addCustomerBill, deleteBill, editCustomer, editBill, editCustomerBill } = services[3];
 var { addExpense, getExpenses, deleteExpense, getSales, getNetPosition, getTopProducts, getTopCustomers, recordImportExpense, editImportExpense, editExpense, getExpenseDetails } = services[4];
 //#endregion
@@ -28997,6 +29075,9 @@ app.whenReady().then(() => {
 	ipcMain.handle("db:getNextInvoiceNumber", () => getNextInvoiceNumber());
 	ipcMain.handle("db:isInvoiceNumberAvailable", (_, number, excludeExpenseId) => isInvoiceNumberAvailable(number, excludeExpenseId));
 	ipcMain.handle("db:deleteProduct", (_, id) => deleteProduct(id));
+	ipcMain.handle("db:deleteProducts", (_, productIds) => deleteProducts(productIds));
+	ipcMain.handle("db:findProductsReferencedByBills", (_, productIds) => findProductsReferencedByBills(productIds));
+	ipcMain.handle("db:updateProducts", (_, productIds, changes) => updateProducts(productIds, changes));
 	ipcMain.handle("db:editProduct", (_, id, product) => editProduct(id, product));
 	ipcMain.handle("db:addExpense", (_, expense) => addExpense(expense));
 	ipcMain.handle("db:getExpenses", () => getExpenses());

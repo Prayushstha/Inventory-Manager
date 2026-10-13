@@ -1,12 +1,22 @@
-import { Fragment, useState, useRef } from "react";
+import { Fragment, useRef, useState } from "react";
 import { EditConsole } from "./EditConsole";
 import { ConfirmDialog } from "../../../components/ConfirmDialog";
 import { useErrorHandler } from "../../../hooks/useErrorHandler";
+import {
+  selectProductIds,
+  toggleVisibleSelection,
+} from "../selection.js";
 
-export function ProductsTable({ products, fetchProducts }) {
+export function ProductsTable({
+  products,
+  fetchProducts,
+  selectedIds,
+  setSelectedIds,
+}) {
   const dialogRef = useRef(null);
   const [editingItem, setEditingItem] = useState(null);
   const [confirmTarget, setConfirmTarget] = useState(null);
+  const lastSelectedId = useRef(null);
   const { handleAsync } = useErrorHandler();
 
   function toggleDialog() {
@@ -14,6 +24,29 @@ export function ProductsTable({ products, fetchProducts }) {
     dialogRef.current.hasAttribute("open")
       ? dialogRef.current.close()
       : dialogRef.current.showModal();
+  }
+
+  const visibleIds = products.map((product) => product.id);
+  const selectedVisibleCount = visibleIds.filter((id) => selectedIds.includes(id)).length;
+  const allVisibleSelected =
+    visibleIds.length > 0 && selectedVisibleCount === visibleIds.length;
+
+  function selectProduct(productId, shiftKey) {
+    setSelectedIds((current) =>
+      selectProductIds(
+        visibleIds,
+        current,
+        productId,
+        shiftKey,
+        lastSelectedId.current,
+      ),
+    );
+    lastSelectedId.current = productId;
+  }
+
+  function toggleSelectAll() {
+    setSelectedIds((current) => toggleVisibleSelection(visibleIds, current));
+    lastSelectedId.current = visibleIds.at(-1) ?? null;
   }
 
   async function handleConfirmDelete() {
@@ -48,6 +81,23 @@ export function ProductsTable({ products, fetchProducts }) {
         <table className="table-products">
           <thead>
             <tr>
+              <th className="selection-column">
+                <input
+                  type="checkbox"
+                  aria-label="Select all visible products"
+                  checked={allVisibleSelected}
+                  onChange={toggleSelectAll}
+                />
+                <span>Select all</span>
+                <button
+                  type="button"
+                  className="table-link-button"
+                  onClick={() => setSelectedIds([])}
+                  disabled={selectedIds.length === 0}
+                >
+                  Deselect all
+                </button>
+              </th>
               <th>Product Name</th>
               <th>Base</th>
               <th>Bucket Size</th>
@@ -96,6 +146,18 @@ export function ProductsTable({ products, fetchProducts }) {
 
                     return (
                       <tr key={base ? `${base.id}-${v.id}` : v.id}>
+                        {i === 0 && (
+                          <td rowSpan={totalRows} className="selection-column">
+                            <input
+                              type="checkbox"
+                              aria-label={`Select ${product.name}`}
+                              checked={selectedIds.includes(product.id)}
+                              onChange={(event) =>
+                                selectProduct(product.id, event.nativeEvent.shiftKey)
+                              }
+                            />
+                          </td>
+                        )}
                         {i === 0 && <td rowSpan={totalRows}>{product.name}</td>}
                         {hasBases
                           ? isFirstOfThisBase && (

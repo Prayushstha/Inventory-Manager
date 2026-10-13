@@ -13,6 +13,85 @@
     table-layout: fixed;
     border-collapse: collapse;
 }
+
+.bulk-actions-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--background-secondary);
+    color: var(--color-primary);
+}
+
+.bulk-actions-toolbar strong {
+    margin-right: auto;
+}
+
+.btn-danger {
+    border: 1px solid var(--danger);
+    border-radius: 6px;
+    padding: 8px 12px;
+    background: var(--danger);
+    color: white;
+    cursor: pointer;
+}
+
+.btn-danger:disabled,
+.bulk-actions-toolbar button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.selection-column {
+    width: 130px;
+    white-space: nowrap;
+}
+
+.selection-column input {
+    accent-color: var(--primary);
+    margin-right: 6px;
+}
+
+.table-link-button {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--primary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+}
+
+.table-link-button:disabled {
+    color: var(--color-muted);
+    cursor: not-allowed;
+}
+
+.bulk-update-dialog {
+    width: min(420px, calc(100vw - 32px));
+}
+
+.bulk-update-dialog h2 {
+    margin-top: 0;
+}
+
+.bulk-update-dialog label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 14px;
+    color: var(--color-primary);
+}
+
+.bulk-update-dialog input {
+    min-height: 36px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0 10px;
+    background: var(--background-primary);
+    color: var(--color-primary);
+}
 .low-stocks-message{
     color: var(--danger);
     font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;

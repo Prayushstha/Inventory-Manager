@@ -161,6 +161,121 @@ export function deleteInventoryProduct(db, id) {
   run();
 }
 
+function normalizeBatchProductIds(productIds) {
+  if (!Array.isArray(productIds) || productIds.length === 0) {
+    throw new Error("Select at least one product.");
+  }
+
+  const ids = [...new Set(productIds)];
+  if (ids.some((id) => typeof id !== "string" || id.trim() === "")) {
+    throw new Error("Selected product ids are invalid.");
+  }
+  return ids;
+}
+
+function getBatchProducts(db, productIds) {
+  const products = productIds.map((id) =>
+    db.prepare("SELECT id, name FROM products WHERE id = ?").get(id),
+  );
+  const missing = productIds.filter(
+    (id, index) => !products[index] || products[index].id !== id,
+  );
+  if (missing.length > 0) throw new Error("One or more selected products no longer exist.");
+  return products;
+}
+
+export function findProductsReferencedByBills(db, productIds) {
+  const ids = normalizeBatchProductIds(productIds);
+  const products = getBatchProducts(db, ids);
+  const findReference = db.prepare(`
+    SELECT 1
+    FROM bill_items
+    WHERE TRIM(product_name) = TRIM(?) COLLATE NOCASE
+    LIMIT 1
+  `);
+  return products
+    .filter((product) => findReference.get(product.name))
+    .map((product) => ({ id: product.id, name: product.name }));
+}
+
+export function deleteInventoryProducts(db, productIds) {
+  const ids = normalizeBatchProductIds(productIds);
+  const products = getBatchProducts(db, ids);
+  const references = findProductsReferencedByBills(db, ids);
+  if (references.length > 0) {
+    throw new Error(
+      `Cannot delete products referenced by existing bills: ${references.map((product) => product.name).join(", ")}.`,
+    );
+  }
+
+  db.transaction(() => {
+    for (const product of products) {
+      const variants = db
+        .prepare("SELECT id FROM variants WHERE product_id = ?")
+        .all(product.id);
+      const bases = db
+        .prepare("SELECT id FROM bases WHERE product_id = ?")
+        .all(product.id);
+      for (const variant of variants) {
+        db.prepare("DELETE FROM base_stock WHERE variant_id = ?").run(variant.id);
+      }
+      for (const base of bases) {
+        db.prepare("DELETE FROM base_stock WHERE base_id = ?").run(base.id);
+      }
+      db.prepare("DELETE FROM variants WHERE product_id = ?").run(product.id);
+      db.prepare("DELETE FROM bases WHERE product_id = ?").run(product.id);
+      db.prepare("DELETE FROM products WHERE id = ?").run(product.id);
+    }
+  })();
+
+  return { count: products.length };
+}
+
+function validateOptionalBatchNumber(value, label) {
+  if (value === undefined || value === null || value === "") return null;
+  const number = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(number) || number < 0) {
+    throw new Error(`${label} must be a non-negative number.`);
+  }
+  return number;
+}
+
+export function updateInventoryProducts(db, productIds, changes) {
+  const ids = normalizeBatchProductIds(productIds);
+  const sellingPrice = validateOptionalBatchNumber(
+    changes?.sellingPrice,
+    "Selling price",
+  );
+  const baseStock = validateOptionalBatchNumber(
+    changes?.baseStock,
+    "Base stock quantity",
+  );
+  if (sellingPrice === null && baseStock === null) {
+    throw new Error("Enter a selling price or base stock quantity to update.");
+  }
+
+  const products = getBatchProducts(db, ids);
+  db.transaction(() => {
+    for (const product of products) {
+      if (sellingPrice !== null) {
+        db.prepare("UPDATE variants SET sales = ? WHERE product_id = ?").run(
+          sellingPrice,
+          product.id,
+        );
+      }
+      if (baseStock !== null) {
+        db.prepare(`
+          UPDATE base_stock
+          SET stock = ?
+          WHERE base_id IN (SELECT id FROM bases WHERE product_id = ?)
+        `).run(baseStock, product.id);
+      }
+    }
+  })();
+
+  return { count: products.length };
+}
+
 export function adjustStock(db, productName, baseName, bucketSize, deltaQty) {
   const pName = productName ? String(productName).trim() : "";
   const bName = baseName ? String(baseName).trim() : "";

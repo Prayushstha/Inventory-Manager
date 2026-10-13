@@ -5,10 +5,13 @@ import {
   addBill,
   addInventoryProduct,
   deleteInventoryProduct,
+  deleteInventoryProducts,
+  findProductsReferencedByBills,
   editImportExpense,
   getNextInvoiceNumber,
   isInvoiceNumberAvailable,
   recordImportExpense,
+  updateInventoryProducts,
   updateInventoryProduct,
 } from "./businessFlows.js";
 import { migrateDatabase } from "./migrations.js";
@@ -50,6 +53,155 @@ test("adds, edits, and deletes a product with its variant, base, and stock", () 
       name: "Green Tea",
       variants: [{ bucket_size: 2, landing: 15, sales: 18, mp: 20 }],
       bases: [{ name: "AC2", stocks: [6] }],
+    });
+
+    test("updates selected products with only the supplied fields", () => {
+      const db = createDatabase();
+      try {
+        addInventoryProduct(db, product);
+        addInventoryProduct(db, {
+          ...product,
+          id: "product-coffee",
+          name: "Coffee",
+          variants: [{ bucket_size: 2, landing: 20, sales: 22, mp: 24 }],
+          bases: [{ name: "AC2", stocks: [4] }],
+        });
+
+        assert.deepEqual(
+          updateInventoryProducts(db, ["product-tea", "product-coffee"], {
+            sellingPrice: "30",
+          }),
+          { count: 2 },
+        );
+        assert.deepEqual(
+          db.prepare(`
+            SELECT v.sales, s.stock
+            FROM variants v
+            JOIN bases b ON b.product_id = v.product_id
+            JOIN base_stock s ON s.base_id = b.id AND s.variant_id = v.id
+            ORDER BY v.id
+          `).all(),
+          [{ sales: 30, stock: 8 }, { sales: 30, stock: 4 }],
+        );
+
+        updateInventoryProducts(db, ["product-tea"], { baseStock: 12 });
+        assert.equal(db.prepare("SELECT stock FROM base_stock WHERE stock = 12").get().stock, 12);
+      } finally {
+        db.close();
+      }
+    });
+
+    test("rejects invalid bulk update values", () => {
+      const db = createDatabase();
+      try {
+        addInventoryProduct(db, product);
+        for (const changes of [
+          { sellingPrice: -1 },
+          { baseStock: -1 },
+          { sellingPrice: "not-a-number" },
+        ]) {
+          assert.throws(
+            () => updateInventoryProducts(db, [product.id], changes),
+            /must be a non-negative number/,
+          );
+        }
+      } finally {
+        db.close();
+      }
+    });
+
+    test("deletes selected products in one transaction and rolls back on failure", () => {
+      const db = createDatabase();
+      try {
+        addInventoryProduct(db, product);
+        addInventoryProduct(db, {
+          ...product,
+          id: "product-coffee",
+          name: "Coffee",
+        });
+
+        test("rolls back a bulk update when one product update fails", () => {
+          const db = createDatabase();
+          try {
+            addInventoryProduct(db, product);
+            addInventoryProduct(db, {
+              ...product,
+              id: "product-coffee",
+              name: "Coffee",
+            });
+            db.exec(`
+              CREATE TRIGGER reject_product_update
+              BEFORE UPDATE OF sales ON variants
+              WHEN OLD.product_id = 'product-coffee'
+              BEGIN SELECT RAISE(ABORT, 'product update rejected'); END;
+            `);
+
+            assert.throws(
+              () => updateInventoryProducts(db, ["product-tea", "product-coffee"], { sellingPrice: 30 }),
+              /product update rejected/,
+            );
+            assert.deepEqual(
+              db.prepare("SELECT product_id, sales FROM variants ORDER BY product_id").all(),
+              [
+                { product_id: "product-coffee", sales: 12 },
+                { product_id: "product-tea", sales: 12 },
+              ],
+            );
+          } finally {
+            db.close();
+          }
+        });
+        db.exec(`
+          CREATE TRIGGER reject_product_delete
+          BEFORE DELETE ON products
+          WHEN OLD.id = 'product-coffee'
+          BEGIN SELECT RAISE(ABORT, 'product delete rejected'); END;
+        `);
+
+        assert.throws(
+          () => deleteInventoryProducts(db, ["product-tea", "product-coffee"]),
+          /product delete rejected/,
+        );
+        assert.equal(db.prepare("SELECT COUNT(*) AS count FROM products").get().count, 2);
+      } finally {
+        db.close();
+      }
+    });
+
+    test("blocks bulk delete when selected products are referenced by bills", () => {
+      const db = createDatabase();
+      try {
+        addInventoryProduct(db, product);
+        addInventoryProduct(db, {
+          ...product,
+          id: "product-coffee",
+          name: "Coffee",
+        });
+        const customerId = db
+          .prepare("INSERT INTO customers (name) VALUES (?)")
+          .run("Reference Customer").lastInsertRowid;
+        const billId = db.prepare(`
+          INSERT INTO bills (
+            customer_id, date, total_purchased, amount_paid, amount_due, status
+          ) VALUES (?, '2026-10-10', 0, 0, 0, 'Paid')
+        `).run(customerId).lastInsertRowid;
+        db.prepare(`
+          INSERT INTO bill_items (bill_id, product_name, quantity, price_at_sale)
+          VALUES (?, ' tea ', 1, 12)
+        `).run(billId);
+
+        assert.deepEqual(
+          findProductsReferencedByBills(db, ["product-tea", "product-coffee"]),
+          [{ id: "product-tea", name: "Tea" }],
+        );
+        assert.throws(
+          () => deleteInventoryProducts(db, ["product-tea", "product-coffee"]),
+          /Tea/,
+        );
+        assert.equal(db.prepare("SELECT COUNT(*) AS count FROM products").get().count, 2);
+      } finally {
+        db.close();
+      }
     });
     assert.equal(db.prepare("SELECT name FROM products WHERE id = ?").get(id).name, "Green Tea");
     assert.deepEqual(

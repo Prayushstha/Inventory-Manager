@@ -4,7 +4,16 @@ import { randomUUID } from "crypto";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const XLSX = require("xlsx");
-import { addInventoryProduct, updateInventoryProduct, deleteInventoryProduct, getNextInvoiceNumber as suggestNextInvoiceNumber, isInvoiceNumberAvailable as checkInvoiceNumberAvailable } from "../businessFlows.js";
+import {
+  addInventoryProduct,
+  updateInventoryProduct,
+  deleteInventoryProduct,
+  deleteInventoryProducts as deleteProductsBatch,
+  findProductsReferencedByBills as findBillReferences,
+  updateInventoryProducts as updateProductsBatch,
+  getNextInvoiceNumber as suggestNextInvoiceNumber,
+  isInvoiceNumberAvailable as checkInvoiceNumberAvailable,
+} from "../businessFlows.js";
 import { deleteVariantAndStock } from "../inventoryDeletes.js";
 import { saveInventoryProduct } from "../inventoryWrites.js";
 
@@ -57,6 +66,18 @@ function isInvoiceNumberAvailable(invoiceNumber, excludeExpenseId) {
 
 function deleteProduct(id) {
   deleteInventoryProduct(ctx.db, id);
+}
+
+function deleteProducts(productIds) {
+  return deleteProductsBatch(ctx.db, productIds);
+}
+
+function findProductsReferencedByBills(productIds) {
+  return findBillReferences(ctx.db, productIds);
+}
+
+function updateProducts(productIds, changes) {
+  return updateProductsBatch(ctx.db, productIds, changes);
 }
 
 function editProduct(id, product) {
@@ -356,6 +377,9 @@ function importProductsFromExcel(filePath) {
     getNextInvoiceNumber,
     isInvoiceNumberAvailable,
     deleteProduct,
+    deleteProducts,
+    findProductsReferencedByBills,
+    updateProducts,
     editProduct,
     getProductByName,
     getVariantBySize,
