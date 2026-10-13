@@ -61,13 +61,26 @@ Only works with electron version 38.7.0!
 
 ### Build the Installer
 
-To build a Windows `.exe` installer:
+Native modules must be rebuilt on the same platform as the installer. In
+particular, do not run a Windows build with `--win` from Linux or copy a
+Linux-built `better_sqlite3.node` into a Windows package.
+
+On Windows, build the `.exe` with:
 
 ```bash
-npm run build:exe
+npm ci
+npm run build:win
 ```
 
-The output will be in the `release/` folder.
+On Linux, build the AppImage with:
+
+```bash
+npm ci
+npm run build:linux
+```
+
+The output will be in the `release/` folder. Build each platform on its
+native GitHub Actions runner for release uploads.
 
 ---
 
