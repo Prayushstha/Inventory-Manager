@@ -10,6 +10,8 @@ export function NavBar({
   search,
   setSearch,
   onStartBillAdd,
+  editMode = false,
+  onToggleEditMode,
 }) {
   const addItemToInventory = useRef();
   const addModeDialog = useRef();
@@ -124,6 +126,14 @@ export function NavBar({
           </button>
           <button className="nav-add-item-btn" onClick={handleImportExcel} disabled={isImporting}>
             {isImporting ? "Importing..." : "Import"}
+          </button>
+          <button
+            className={`nav-add-item-btn inventory-edit-toggle${editMode ? " active" : ""}`}
+            type="button"
+            aria-pressed={editMode}
+            onClick={onToggleEditMode}
+          >
+            {editMode ? "Done editing" : "Edit"}
           </button>
         </>
       ) : (

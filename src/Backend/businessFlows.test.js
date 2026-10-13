@@ -13,6 +13,8 @@ import {
   recordImportExpense,
   updateInventoryProducts,
   updateInventoryProduct,
+  updateVariantPrice,
+  updateBaseStock,
 } from "./businessFlows.js";
 import { migrateDatabase } from "./migrations.js";
 
@@ -29,6 +31,29 @@ const product = {
   variants: [{ bucket_size: 1, landing: 10, sales: 12, mp: 14 }],
   bases: [{ name: "AC1", stocks: [8] }],
 };
+
+test("updates only the targeted variant price and base stock rows", () => {
+  const db = createDatabase();
+  try {
+    addInventoryProduct(db, product);
+    const variant = db.prepare("SELECT id FROM variants WHERE product_id = ?").get(product.id);
+    const base = db.prepare("SELECT id FROM bases WHERE product_id = ?").get(product.id);
+    updateVariantPrice(db, product.id, base.id, variant.id, "sales", 19);
+    updateBaseStock(db, product.id, base.id, variant.id, 11);
+    assert.deepEqual(
+      db.prepare("SELECT sales FROM variants WHERE id = ?").get(variant.id),
+      { sales: 19 },
+    );
+    assert.deepEqual(
+      db.prepare("SELECT stock FROM base_stock WHERE base_id = ? AND variant_id = ?").get(base.id, variant.id),
+      { stock: 11 },
+    );
+    assert.throws(() => updateVariantPrice(db, product.id, base.id, variant.id, "sales", -1));
+    assert.throws(() => updateBaseStock(db, product.id, base.id, variant.id, "invalid"));
+  } finally {
+    db.close();
+  }
+});
 
 test("adds, edits, and deletes a product with its variant, base, and stock", () => {
   const db = createDatabase();

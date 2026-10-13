@@ -276,6 +276,59 @@ export function updateInventoryProducts(db, productIds, changes) {
   return { count: products.length };
 }
 
+function validateInlineValue(value, label) {
+  const number = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(number) || number < 0) {
+    throw new Error(`${label} must be a non-negative number.`);
+  }
+  return number;
+}
+
+export function updateVariantPrice(db, productId, baseId, sizeId, field, value) {
+  if (!productId || !baseId || !sizeId) {
+    throw new Error("Product, base, and size are required.");
+  }
+  if (!["landing", "mp", "sales"].includes(field)) {
+    throw new Error("Unsupported variant price field.");
+  }
+  const number = validateInlineValue(value, "Price");
+  const variant = db.prepare(`
+    SELECT v.id
+    FROM variants v
+    JOIN bases b ON b.product_id = v.product_id
+    WHERE v.id = ? AND v.product_id = ? AND b.id = ?
+  `).get(sizeId, productId, baseId);
+  if (!variant) throw new Error("The selected product row was not found.");
+
+  const result = db
+    .prepare(`UPDATE variants SET ${field} = ? WHERE id = ? AND product_id = ?`)
+    .run(number, sizeId, productId);
+  if (result.changes !== 1) throw new Error("The selected price could not be updated.");
+  return number;
+}
+
+export function updateBaseStock(db, productId, baseId, sizeId, value) {
+  if (!productId || !baseId || !sizeId) {
+    throw new Error("Product, base, and size are required.");
+  }
+  const number = validateInlineValue(value, "Stock");
+  const result = db.prepare(`
+    UPDATE base_stock
+    SET stock = ?
+    WHERE base_id = ? AND variant_id = ?
+      AND EXISTS (
+        SELECT 1 FROM bases
+        WHERE bases.id = base_stock.base_id AND bases.product_id = ?
+      )
+      AND EXISTS (
+        SELECT 1 FROM variants
+        WHERE variants.id = base_stock.variant_id AND variants.product_id = ?
+      )
+  `).run(number, baseId, sizeId, productId, productId);
+  if (result.changes !== 1) throw new Error("The selected stock could not be updated.");
+  return number;
+}
+
 export function adjustStock(db, productName, baseName, bucketSize, deltaQty) {
   const pName = productName ? String(productName).trim() : "";
   const bName = baseName ? String(baseName).trim() : "";

@@ -64,7 +64,7 @@ export const {
   getVariantBySize, addVariant, addBase, getBaseByName, addBaseStock,
   copyImageToDatabase, resolveImagePath, deleteBaseStock, deleteVariant,
   importProductsFromExcel, deleteProducts, findProductsReferencedByBills,
-  updateProducts,
+  updateProducts, updateVariantPrice, updateBaseStock,
 } = services[2];
 export const {
   addCustomer, addBillActivity, getBillActivity, addBill, getCustomers,

@@ -58,6 +58,8 @@ import {
   deleteProducts,
   findProductsReferencedByBills,
   updateProducts,
+  updateVariantPrice,
+  updateBaseStock,
   createProfile,
   switchProfile,
   setDefaultProfilePassword,
@@ -162,6 +164,12 @@ app.whenReady().then(() => {
   );
   ipcMain.handle("db:updateProducts", (_, productIds, changes) =>
     updateProducts(productIds, changes),
+  );
+  ipcMain.handle("db:updateVariantPrice", (_, productId, baseId, sizeId, field, value) =>
+    updateVariantPrice(productId, baseId, sizeId, field, value),
+  );
+  ipcMain.handle("db:updateBaseStock", (_, productId, baseId, sizeId, value) =>
+    updateBaseStock(productId, baseId, sizeId, value),
   );
   ipcMain.handle("db:editProduct", (_, id, product) =>
     editProduct(id, product),

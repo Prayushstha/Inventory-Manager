@@ -1,125 +1,179 @@
 .product-list-container {
-    height: 100%;
-    width: 100%;
+  height: 100%;
+  width: 100%;
+}
+
+.inventory-edit-toggle.active {
+  background: var(--button-primary);
+  color: var(--primary-foreground);
 }
 
 .products-list {
-    height: 100%;
-    overflow-y: auto;
+  height: 100%;
+  overflow-y: auto;
 }
 
 .table-products {
-    width: 100%;
-    table-layout: fixed;
-    border-collapse: collapse;
+  width: 100%;
+  min-width: 860px;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.table-products .product-column {
+  width: 18%;
+}
+
+.table-products .base-column {
+  width: 14%;
+}
+
+.table-products .bucket-column {
+  width: 12%;
+}
+
+.table-products .price-column {
+  width: 14%;
+}
+
+.table-products .stock-column {
+  width: 10%;
+}
+
+.table-products .actions-column {
+  width: 4%;
+}
+
+.inventory-row {
+  user-select: none;
+}
+.inventory-row.selected-row td {
+  background: rgba(59, 130, 246, 0.15);
+}
+.product-row td {
+  border-top: 2px solid var(--border-color);
+}
+.base-row td {
+  color: var(--color-muted);
+}
+.size-row {
+  cursor: default;
+}
+.inline-edit-input {
+  width: 100%;
+  min-width: 70px;
+  box-sizing: border-box;
+  border: 1px solid var(--primary);
+  border-radius: 4px;
+  padding: 4px 6px;
+  background: var(--background-primary);
+  color: var(--color-primary);
+}
+.selection-rectangle {
+  position: fixed;
+  z-index: 5;
+  pointer-events: none;
+  border: 1px solid rgba(59, 130, 246, 0.65);
+  background: rgba(59, 130, 246, 0.15);
 }
 
 .bulk-actions-toolbar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 15px;
-    border-bottom: 1px solid var(--border-color);
-    background: var(--background-secondary);
-    color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 15px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--background-secondary);
+  color: var(--color-primary);
 }
 
 .bulk-actions-toolbar strong {
-    margin-right: auto;
+  margin-right: auto;
+}
+
+.bulk-actions-toolbar button {
+  cursor: pointer;
+}
+
+.bulk-actions-toolbar button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .btn-danger {
-    border: 1px solid var(--danger);
-    border-radius: 6px;
-    padding: 8px 12px;
-    background: var(--danger);
-    color: white;
-    cursor: pointer;
-}
-
-.btn-danger:disabled,
-.bulk-actions-toolbar button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.selection-column {
-    width: 130px;
-    white-space: nowrap;
-}
-
-.selection-column input {
-    accent-color: var(--primary);
-    margin-right: 6px;
-}
-
-.table-link-button {
-    border: 0;
-    padding: 0;
-    background: transparent;
-    color: var(--primary);
-    cursor: pointer;
-    font: inherit;
-    font-size: 12px;
-}
-
-.table-link-button:disabled {
-    color: var(--color-muted);
-    cursor: not-allowed;
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  padding: 8px 12px;
+  background: var(--danger);
+  color: white;
 }
 
 .bulk-update-dialog {
-    width: min(420px, calc(100vw - 32px));
+  width: min(420px, calc(100vw - 32px));
 }
 
 .bulk-update-dialog h2 {
-    margin-top: 0;
+  margin-top: 0;
 }
 
 .bulk-update-dialog label {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-top: 14px;
-    color: var(--color-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 14px;
+  color: var(--color-primary);
 }
 
 .bulk-update-dialog input {
-    min-height: 36px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 0 10px;
-    background: var(--background-primary);
-    color: var(--color-primary);
+  min-height: 36px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0 10px;
+  background: var(--background-primary);
+  color: var(--color-primary);
 }
-.low-stocks-message{
-    color: var(--danger);
-    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-    font-size: 10px;
-    display: inline;
-    margin-left: 20px;
-    padding: 5px;
+.low-stocks-message {
+  color: var(--danger);
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+  font-size: 10px;
+  display: inline;
+  margin-left: 20px;
+  padding: 5px;
 }
 
 .table-products thead th {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    background-color: var(--background-tertiary);
-    color: var(--color-primary);
-    border: 1px solid var(--border-color);
-    border-top: none;
-    border-right: none;
-    padding: 10px 15px;
-    text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: var(--background-tertiary);
+  color: var(--color-primary);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-right: none;
+  padding: 10px 15px;
+  text-align: left;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .table-products tbody td {
-    color: var(--color-primary);
-    border: 1px solid var(--border-color);
-    border-top: none;
-    border-right: none;
-    padding: 5px 15px;
+  color: var(--color-primary);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-right: none;
+  padding: 5px 15px;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.table-products th:last-child,
+.table-products td:last-child {
+  border-right: 1px solid var(--border-color);
 }
 .edit-btn {
   background: none;
@@ -134,91 +188,91 @@
 }
 
 .inventory-add-mode-dialog {
-    width: min(520px, calc(100vw - 32px));
-    padding: 0;
-    border: 1px solid var(--border-color);
-    border-radius: 14px;
-    background: var(--background-primary);
-    color: var(--color-primary);
-    box-shadow: var(--shadow-md);
+  width: min(520px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--background-primary);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .inventory-add-mode-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .inventory-add-mode-content {
-    position: relative;
-    padding: 28px;
+  position: relative;
+  padding: 28px;
 }
 
 .inventory-add-mode-content h2 {
-    margin: 0 32px 8px 0;
-    font-size: 20px;
+  margin: 0 32px 8px 0;
+  font-size: 20px;
 }
 
 .inventory-add-mode-content p {
-    margin: 0;
-    color: var(--color-muted);
-    font-size: 14px;
-    line-height: 1.5;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .inventory-add-mode-close {
-    position: absolute;
-    top: 12px;
-    right: 14px;
-    border: 0;
-    background: transparent;
-    color: var(--color-muted);
-    font-size: 24px;
-    cursor: pointer;
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 24px;
+  cursor: pointer;
 }
 
 .inventory-add-mode-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-top: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 24px;
 }
 
 .inventory-add-mode-actions button {
-    min-height: 44px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background: var(--background-secondary);
-    color: var(--color-primary);
-    font: inherit;
-    font-weight: 600;
-    cursor: pointer;
+  min-height: 44px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--background-secondary);
+  color: var(--color-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .inventory-add-mode-actions button:hover {
-    border-color: var(--primary);
+  border-color: var(--primary);
 }
 
 .inventory-add-mode-actions button:last-child {
-    border-color: var(--button-primary);
-    background: var(--button-primary);
-    color: var(--primary-foreground);
+  border-color: var(--button-primary);
+  background: var(--button-primary);
+  color: var(--primary-foreground);
 }
 
 .inventory-add-mode-remember {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 18px;
-    color: var(--color-muted);
-    font-size: 14px;
-    cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  color: var(--color-muted);
+  font-size: 14px;
+  cursor: pointer;
 }
 
 @media (max-width: 420px) {
-    .inventory-add-mode-content {
-        padding: 24px 18px;
-    }
+  .inventory-add-mode-content {
+    padding: 24px 18px;
+  }
 
-    .inventory-add-mode-actions {
-        grid-template-columns: 1fr;
-    }
+  .inventory-add-mode-actions {
+    grid-template-columns: 1fr;
+  }
 }

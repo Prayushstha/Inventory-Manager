@@ -11,6 +11,8 @@ import {
   deleteInventoryProducts as deleteProductsBatch,
   findProductsReferencedByBills as findBillReferences,
   updateInventoryProducts as updateProductsBatch,
+  updateVariantPrice as updateVariantPriceRecord,
+  updateBaseStock as updateBaseStockRecord,
   getNextInvoiceNumber as suggestNextInvoiceNumber,
   isInvoiceNumberAvailable as checkInvoiceNumberAvailable,
 } from "../businessFlows.js";
@@ -78,6 +80,14 @@ function findProductsReferencedByBills(productIds) {
 
 function updateProducts(productIds, changes) {
   return updateProductsBatch(ctx.db, productIds, changes);
+}
+
+function updateVariantPrice(productId, baseId, sizeId, field, value) {
+  return updateVariantPriceRecord(ctx.db, productId, baseId, sizeId, field, value);
+}
+
+function updateBaseStock(productId, baseId, sizeId, value) {
+  return updateBaseStockRecord(ctx.db, productId, baseId, sizeId, value);
 }
 
 function editProduct(id, product) {
@@ -380,6 +390,8 @@ function importProductsFromExcel(filePath) {
     deleteProducts,
     findProductsReferencedByBills,
     updateProducts,
+    updateVariantPrice,
+    updateBaseStock,
     editProduct,
     getProductByName,
     getVariantBySize,
