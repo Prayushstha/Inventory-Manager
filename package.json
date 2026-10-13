@@ -8,8 +8,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:win": "vite build && electron-builder --win nsis",
-    "build:linux": "vite build && electron-builder --linux AppImage",
+    "build:win": "vite build && electron-builder --win nsis --publish never",
+    "build:linux": "vite build && electron-builder --linux AppImage --publish never",
     "postinstall": "electron-rebuild -f -w better-sqlite3",
     "lint": "eslint .",
     "preview": "vite preview"
