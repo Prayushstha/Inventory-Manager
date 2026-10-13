@@ -233,6 +233,7 @@
   background: var(--background-primary);
   color: var(--color-primary);
   box-shadow: var(--shadow-md);
+  margin: auto;
 }
 
 .inventory-add-mode-dialog::backdrop {
