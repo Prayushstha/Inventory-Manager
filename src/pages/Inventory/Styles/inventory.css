@@ -51,9 +51,6 @@
 .inventory-row {
   user-select: none;
 }
-.inventory-row.selected-row td {
-  background: rgba(59, 130, 246, 0.15);
-}
 .product-row td {
   border-top: 2px solid var(--border-color);
 }
@@ -196,17 +193,21 @@
   vertical-align: middle;
 }
 
-.table-products tbody tr {
+.table-products tbody td.selected-row-cell {
+  background: rgba(59, 130, 246, 0.15);
   transition: background 0.14s;
 }
 
-.table-products tbody tr:hover {
+.table-products tbody td.target-hover {
   background: var(--background-secondary);
 }
 
-.table-products tbody tr.selected-row:hover,
-.table-products tbody tr.selected-row td {
+.table-products tbody td.target-hover.selected-row-cell {
   background: rgba(59, 130, 246, 0.15);
+}
+
+.table-products tbody tr.size-row:hover > td.size-data-cell:not(.selected-row-cell) {
+  background: var(--background-secondary);
 }
 .edit-btn {
   background: none;
@@ -218,6 +219,10 @@
 
 .edit-btn:hover {
   color: var(--color-primary);
+}
+
+.base-remove-button {
+  margin-left: 8px;
 }
 
 .inventory-add-mode-dialog {

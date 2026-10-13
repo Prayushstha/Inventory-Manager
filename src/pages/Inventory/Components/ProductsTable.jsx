@@ -4,7 +4,7 @@ import { ConfirmDialog } from "../../../components/ConfirmDialog";
 import { useErrorHandler } from "../../../hooks/useErrorHandler";
 import { useToast } from "../../../hooks/ToastContext";
 import { useConfirm } from "../../../hooks/useConfirm";
-import { toggleRowSelection } from "../selection.js";
+import { getDescendantKeys, toggleRowSelection } from "../selection.js";
 
 function buildRows(products) {
   const rows = [];
@@ -54,6 +54,7 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
   const [bulkUpdateOpen, setBulkUpdateOpen] = useState(false);
   const [sellingPrice, setSellingPrice] = useState("");
   const [baseStock, setBaseStock] = useState("");
+  const [hoveredKey, setHoveredKey] = useState(null);
   const [sortKey, setSortKey] = useState("name");
   const [sortOrder, setSortOrder] = useState(true);
   const { handleAsync } = useErrorHandler();
@@ -81,6 +82,9 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
 
   const visibleKeys = new Set(rows.map((row) => row.key));
   const activeSelectedKeys = selectedKeys.filter((key) => visibleKeys.has(key));
+  const hoveredKeys = new Set(
+    hoveredKey ? getDescendantKeys(rows, hoveredKey) : [],
+  );
   const selectedProductIds = [
     ...new Set(
       rows
@@ -88,6 +92,23 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
         .map((row) => row.product.id),
     ),
   ];
+  const selectedDeleteTargets = rows
+    .filter((row) => activeSelectedKeys.includes(row.key))
+    .filter(
+      (row) =>
+        row.type === "product" ||
+        (row.type === "base" &&
+          !activeSelectedKeys.includes(row.productKey)) ||
+        (row.type === "size" &&
+          !activeSelectedKeys.includes(row.parentKey) &&
+          !activeSelectedKeys.includes(row.productKey)),
+    )
+    .map((row) => ({
+      type: row.type,
+      id: row.type === "product" || row.type === "base" ? row.type === "product" ? row.product.id : row.base.id : row.variant.id,
+      baseId: row.type === "size" ? row.base?.id : undefined,
+      variantId: row.type === "size" ? row.variant.id : undefined,
+    }));
 
   function toggleDialog() {
     if (!dialogRef.current) return;
@@ -239,6 +260,8 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
           confirmTarget.baseId,
           confirmTarget.variantId,
         );
+      } else if (confirmTarget.type === "base") {
+        await window.db.deleteBase(confirmTarget.baseId);
       } else {
         await window.db.deleteVariant(confirmTarget.variantId);
       }
@@ -251,30 +274,20 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
   }
 
   async function handleBulkDelete() {
-    if (!selectedProductIds.length || bulkBusy) return;
+    if (!selectedDeleteTargets.length || bulkBusy) return;
     setBulkBusy("checking");
     try {
-      const references = await window.db.findProductsReferencedByBills(selectedProductIds);
-      if (references.length) {
-        showToast(
-          `Cannot delete products used in existing bills: ${references
-            .map((product) => product.name)
-            .join(", ")}.`,
-          "error",
-        );
-        return;
-      }
       const accepted = await confirm(
-        `Delete ${selectedProductIds.length} selected product${
-          selectedProductIds.length === 1 ? "" : "s"
+        `Delete ${selectedDeleteTargets.length} selected inventory item${
+          selectedDeleteTargets.length === 1 ? "" : "s"
         }? This cannot be undone.`,
       );
       if (!accepted) return;
       setBulkBusy("deleting");
-      await window.db.deleteProducts(selectedProductIds);
+      await window.db.deleteInventoryRows(selectedDeleteTargets);
       setSelectedKeys([]);
       await fetchProducts();
-      showToast(`Deleted ${selectedProductIds.length} products`, "success");
+      showToast(`Deleted ${selectedDeleteTargets.length} inventory items`, "success");
     } catch (error) {
       showToast(error?.message || "Could not delete the selected products.", "error");
     } finally {
@@ -359,7 +372,7 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
       <div className="products-list">
         {editMode && selectedProductIds.length > 0 && (
           <div className="bulk-actions-toolbar" aria-live="polite">
-            <strong>{selectedProductIds.length} product{selectedProductIds.length === 1 ? "" : "s"} selected</strong>
+            <strong>{selectedDeleteTargets.length} item{selectedDeleteTargets.length === 1 ? "" : "s"} selected</strong>
             <button
               type="button"
               className="btn-secondary"
@@ -441,18 +454,26 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
                     <tr
                       key={row.key}
                       ref={setRef}
-                      className={`inventory-row size-row${selected ? " selected-row" : ""}`}
+                      className="inventory-row size-row"
                       onPointerDown={(event) => startDrag(event, row)}
                       onClick={(event) => selectRow(row, event.shiftKey)}
+                      onMouseEnter={() => setHoveredKey(row.key)}
+                      onMouseLeave={() => setHoveredKey(null)}
                     >
                       {groupIndex === 0 && rowIndex === 0 && (
                         <td
                           rowSpan={productRows.length}
-                          className={productSelected ? "selected-row-cell" : ""}
+                          className={`${productSelected ? "selected-row-cell" : ""}${
+                            hoveredKeys.has(productDescriptor.key)
+                              ? " target-hover"
+                              : ""
+                          }`}
                           onClick={(event) => {
                             event.stopPropagation();
                             selectRow(productDescriptor, event.shiftKey);
                           }}
+                          onMouseEnter={() => setHoveredKey(productDescriptor.key)}
+                          onMouseLeave={() => setHoveredKey(null)}
                         >
                           <strong>{product.name}</strong>
                         </td>
@@ -460,26 +481,73 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
                       {rowIndex === 0 && (
                         <td
                           rowSpan={group.rows.length}
-                          className={baseSelected ? "selected-row-cell" : ""}
+                          className={`${baseSelected ? "selected-row-cell" : ""}${
+                            hoveredKeys.has(group.key) ? " target-hover" : ""
+                          }`}
                           onClick={(event) => {
                             event.stopPropagation();
                             selectRow(group.descriptor, event.shiftKey);
                           }}
+                          onMouseEnter={() => setHoveredKey(group.key)}
+                          onMouseLeave={() => setHoveredKey(null)}
                         >
                           <strong>{group.descriptor.base?.name ?? "NULL"}</strong>
+                          {group.descriptor.base && (
+                            <button
+                              type="button"
+                              className="btn-remove-row base-remove-button"
+                              aria-label={`Delete base ${group.descriptor.base.name}`}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setConfirmTarget({
+                                  type: "base",
+                                  baseId: group.descriptor.base.id,
+                                  message: `Delete base "${group.descriptor.base.name}"? Its stock entries will be removed, but the product and other bases will remain.`,
+                                });
+                              }}
+                            >
+                              ×
+                            </button>
+                          )}
                         </td>
                       )}
-                      <td>{row.variant.bucket_size}</td>
-                      <td onClick={(event) => event.stopPropagation()}>
+                      <td
+                        className={`size-data-cell${
+                          selected ? " selected-row-cell" : ""
+                        }${hoveredKeys.has(row.key) ? " target-hover" : ""}`}
+                      >
+                        {row.variant.bucket_size}
+                      </td>
+                      <td
+                        className={`size-data-cell${
+                          selected ? " selected-row-cell" : ""
+                        }${hoveredKeys.has(row.key) ? " target-hover" : ""}`}
+                        onClick={(event) => event.stopPropagation()}
+                      >
                         {inlineCell(row, "landing", row.variant.landing)}
                       </td>
-                      <td onClick={(event) => event.stopPropagation()}>
+                      <td
+                        className={`size-data-cell${
+                          selected ? " selected-row-cell" : ""
+                        }${hoveredKeys.has(row.key) ? " target-hover" : ""}`}
+                        onClick={(event) => event.stopPropagation()}
+                      >
                         {inlineCell(row, "mp", row.variant.mp)}
                       </td>
-                      <td onClick={(event) => event.stopPropagation()}>
+                      <td
+                        className={`size-data-cell${
+                          selected ? " selected-row-cell" : ""
+                        }${hoveredKeys.has(row.key) ? " target-hover" : ""}`}
+                        onClick={(event) => event.stopPropagation()}
+                      >
                         {inlineCell(row, "sales", row.variant.sales)}
                       </td>
-                      <td onClick={(event) => event.stopPropagation()}>
+                      <td
+                        className={`size-data-cell${
+                          selected ? " selected-row-cell" : ""
+                        }${hoveredKeys.has(row.key) ? " target-hover" : ""}`}
+                        onClick={(event) => event.stopPropagation()}
+                      >
                         {inlineCell(row, "stock", row.stock)}
                         {row.stock < 4 && (
                           <p className="low-stocks-message">Stocks Low!</p>

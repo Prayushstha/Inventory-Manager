@@ -62,8 +62,8 @@ export const {
   saveInventoryProductChanges, addProduct, getProducts, getNextInvoiceNumber,
   isInvoiceNumberAvailable, deleteProduct, editProduct, getProductByName,
   getVariantBySize, addVariant, addBase, getBaseByName, addBaseStock,
-  copyImageToDatabase, resolveImagePath, deleteBaseStock, deleteVariant,
-  importProductsFromExcel, deleteProducts, findProductsReferencedByBills,
+  copyImageToDatabase, resolveImagePath, deleteBaseStock, deleteBase, deleteVariant,
+  importProductsFromExcel, deleteProducts, deleteInventoryRows, findProductsReferencedByBills,
   updateProducts, updateVariantPrice, updateBaseStock,
 } = services[2];
 export const {

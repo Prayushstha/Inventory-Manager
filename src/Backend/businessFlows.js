@@ -231,6 +231,61 @@ export function deleteInventoryProducts(db, productIds) {
   return { count: products.length };
 }
 
+export function deleteInventoryRows(db, targets) {
+  if (!Array.isArray(targets) || targets.length === 0) {
+    throw new Error("Select at least one inventory item.");
+  }
+
+  const uniqueTargets = [];
+  const seen = new Set();
+  for (const target of targets) {
+    if (!target || !["product", "base", "size"].includes(target.type)) {
+      throw new Error("Selected inventory targets are invalid.");
+    }
+    const key = `${target.type}:${target.id}:${target.baseId ?? ""}:${target.variantId ?? ""}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueTargets.push(target);
+    }
+  }
+
+  const productIds = uniqueTargets
+    .filter((target) => target.type === "product")
+    .map((target) => target.id);
+  if (productIds.length > 0 && findProductsReferencedByBills(db, productIds).length > 0) {
+    throw new Error("Cannot delete products referenced by existing bills.");
+  }
+
+  db.transaction(() => {
+    for (const target of uniqueTargets) {
+      if (target.type === "product") {
+        const variants = db.prepare("SELECT id FROM variants WHERE product_id = ?").all(target.id);
+        const bases = db.prepare("SELECT id FROM bases WHERE product_id = ?").all(target.id);
+        for (const variant of variants) {
+          db.prepare("DELETE FROM base_stock WHERE variant_id = ?").run(variant.id);
+        }
+        for (const base of bases) {
+          db.prepare("DELETE FROM base_stock WHERE base_id = ?").run(base.id);
+        }
+        db.prepare("DELETE FROM variants WHERE product_id = ?").run(target.id);
+        db.prepare("DELETE FROM bases WHERE product_id = ?").run(target.id);
+        db.prepare("DELETE FROM products WHERE id = ?").run(target.id);
+      } else if (target.type === "base") {
+        db.prepare("DELETE FROM base_stock WHERE base_id = ?").run(target.id);
+        db.prepare("DELETE FROM bases WHERE id = ?").run(target.id);
+      } else if (target.baseId) {
+        db.prepare("DELETE FROM base_stock WHERE base_id = ? AND variant_id = ?").run(
+          target.baseId,
+          target.variantId,
+        );
+      } else {
+        db.prepare("DELETE FROM base_stock WHERE variant_id = ?").run(target.variantId);
+        db.prepare("DELETE FROM variants WHERE id = ?").run(target.variantId);
+      }
+    }
+  })();
+}
+
 function validateOptionalBatchNumber(value, label) {
   if (value === undefined || value === null || value === "") return null;
   const number = typeof value === "number" ? value : Number(value);

@@ -11,6 +11,7 @@ import {
   getExpenseDetails,
   editExpense,
   deleteBaseStock,
+  deleteBase,
   deleteVariant,
   editImportExpense,
   deleteProduct,
@@ -56,6 +57,7 @@ import {
   updateInventoryAddItemMode,
   updateAppearanceSettings,
   deleteProducts,
+  deleteInventoryRows,
   findProductsReferencedByBills,
   updateProducts,
   updateVariantPrice,
@@ -159,6 +161,9 @@ app.whenReady().then(() => {
   );
   ipcMain.handle("db:deleteProduct", (_, id) => deleteProduct(id));
   ipcMain.handle("db:deleteProducts", (_, productIds) => deleteProducts(productIds));
+  ipcMain.handle("db:deleteInventoryRows", (_, targets) =>
+    deleteInventoryRows(targets),
+  );
   ipcMain.handle("db:findProductsReferencedByBills", (_, productIds) =>
     findProductsReferencedByBills(productIds),
   );
@@ -352,6 +357,7 @@ app.whenReady().then(() => {
   ipcMain.handle("db:deleteBaseStock", (_, baseId, variantId) =>
     deleteBaseStock(baseId, variantId),
   );
+  ipcMain.handle("db:deleteBase", (_, baseId) => deleteBase(baseId));
   ipcMain.handle("db:deleteVariant", (_, variantId) =>
     deleteVariant(variantId),
   );

@@ -13,6 +13,7 @@ import {
   updateInventoryProducts as updateProductsBatch,
   updateVariantPrice as updateVariantPriceRecord,
   updateBaseStock as updateBaseStockRecord,
+  deleteInventoryRows as deleteRowsBatch,
   getNextInvoiceNumber as suggestNextInvoiceNumber,
   isInvoiceNumberAvailable as checkInvoiceNumberAvailable,
 } from "../businessFlows.js";
@@ -72,6 +73,10 @@ function deleteProduct(id) {
 
 function deleteProducts(productIds) {
   return deleteProductsBatch(ctx.db, productIds);
+}
+
+function deleteInventoryRows(targets) {
+  return deleteRowsBatch(ctx.db, targets);
 }
 
 function findProductsReferencedByBills(productIds) {
@@ -161,6 +166,16 @@ function deleteBaseStock(baseId, variantId) {
     variantId,
   );
 }
+
+function deleteBase(baseId) {
+  const run = ctx.db.transaction(() => {
+    ctx.db.prepare("DELETE FROM base_stock WHERE base_id = ?").run(baseId);
+    const result = ctx.db.prepare("DELETE FROM bases WHERE id = ?").run(baseId);
+    if (result.changes !== 1) throw new Error("Base not found.");
+  });
+  run();
+}
+
 function deleteVariant(variantId) {
   deleteVariantAndStock(ctx.db, variantId);
 }
@@ -388,6 +403,7 @@ function importProductsFromExcel(filePath) {
     isInvoiceNumberAvailable,
     deleteProduct,
     deleteProducts,
+    deleteInventoryRows,
     findProductsReferencedByBills,
     updateProducts,
     updateVariantPrice,
@@ -402,6 +418,7 @@ function importProductsFromExcel(filePath) {
     copyImageToDatabase,
     resolveImagePath,
     deleteBaseStock,
+    deleteBase,
     deleteVariant,
     importProductsFromExcel,
   };

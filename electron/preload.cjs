@@ -6,6 +6,7 @@ const DATA_MUTATION_CHANNELS = new Set([
   "db:editProduct",
   "db:deleteProduct",
   "db:deleteProducts",
+  "db:deleteInventoryRows",
   "db:updateProducts",
   "db:updateVariantPrice",
   "db:updateBaseStock",
@@ -28,6 +29,7 @@ const DATA_MUTATION_CHANNELS = new Set([
   "db:editExpense",
   "db:editImportExpense",
   "db:deleteBaseStock",
+  "db:deleteBase",
   "db:deleteVariant",
   "settings:createProfile",
   "settings:setDefaultProfilePassword",
@@ -59,6 +61,7 @@ contextBridge.exposeInMainWorld("db", {
     invoke("db:editProduct", id, product),
   deleteProduct: (id) => invoke("db:deleteProduct", id),
   deleteProducts: (productIds) => invoke("db:deleteProducts", productIds),
+  deleteInventoryRows: (targets) => invoke("db:deleteInventoryRows", targets),
   findProductsReferencedByBills: (productIds) =>
     invoke("db:findProductsReferencedByBills", productIds),
   updateProducts: (productIds, changes) =>
@@ -117,6 +120,7 @@ contextBridge.exposeInMainWorld("db", {
   editImportExpense: (id, expenseMeta, items) =>
     invoke("db:editImportExpense", id, expenseMeta, items),
   deleteBaseStock: (baseId, variantId) => invoke("db:deleteBaseStock", baseId, variantId),
+  deleteBase: (baseId) => invoke("db:deleteBase", baseId),
   deleteVariant: (variantId) => invoke("db:deleteVariant", variantId),
   getTopProducts: (period) => invoke("db:getTopProducts", period),
   getTopCustomers: (period) => invoke("db:getTopCustomers", period),

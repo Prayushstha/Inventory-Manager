@@ -16097,43 +16097,66 @@ function Gc(e, t) {
 	})(), { count: r.length };
 }
 function Kc(e, t) {
+	if (!Array.isArray(t) || t.length === 0) throw Error("Select at least one inventory item.");
+	let n = [], r = /* @__PURE__ */ new Set();
+	for (let e of t) {
+		if (!e || ![
+			"product",
+			"base",
+			"size"
+		].includes(e.type)) throw Error("Selected inventory targets are invalid.");
+		let t = `${e.type}:${e.id}:${e.baseId ?? ""}:${e.variantId ?? ""}`;
+		r.has(t) || (r.add(t), n.push(e));
+	}
+	let i = n.filter((e) => e.type === "product").map((e) => e.id);
+	if (i.length > 0 && Wc(e, i).length > 0) throw Error("Cannot delete products referenced by existing bills.");
+	e.transaction(() => {
+		for (let t of n) if (t.type === "product") {
+			let n = e.prepare("SELECT id FROM variants WHERE product_id = ?").all(t.id), r = e.prepare("SELECT id FROM bases WHERE product_id = ?").all(t.id);
+			for (let t of n) e.prepare("DELETE FROM base_stock WHERE variant_id = ?").run(t.id);
+			for (let t of r) e.prepare("DELETE FROM base_stock WHERE base_id = ?").run(t.id);
+			e.prepare("DELETE FROM variants WHERE product_id = ?").run(t.id), e.prepare("DELETE FROM bases WHERE product_id = ?").run(t.id), e.prepare("DELETE FROM products WHERE id = ?").run(t.id);
+		} else t.type === "base" ? (e.prepare("DELETE FROM base_stock WHERE base_id = ?").run(t.id), e.prepare("DELETE FROM bases WHERE id = ?").run(t.id)) : t.baseId ? e.prepare("DELETE FROM base_stock WHERE base_id = ? AND variant_id = ?").run(t.baseId, t.variantId) : (e.prepare("DELETE FROM base_stock WHERE variant_id = ?").run(t.variantId), e.prepare("DELETE FROM variants WHERE id = ?").run(t.variantId));
+	})();
+}
+function qc(e, t) {
 	if (e == null || e === "") return null;
 	let n = typeof e == "number" ? e : Number(e);
 	if (!Number.isFinite(n) || n < 0) throw Error(`${t} must be a non-negative number.`);
 	return n;
 }
-function qc(e, t, n) {
-	let r = Hc(t), i = Kc(n?.sellingPrice, "Selling price"), a = Kc(n?.baseStock, "Base stock quantity");
+function Jc(e, t, n) {
+	let r = Hc(t), i = qc(n?.sellingPrice, "Selling price"), a = qc(n?.baseStock, "Base stock quantity");
 	if (i === null && a === null) throw Error("Enter a selling price or base stock quantity to update.");
 	let o = Uc(e, r);
 	return e.transaction(() => {
 		for (let t of o) i !== null && e.prepare("UPDATE variants SET sales = ? WHERE product_id = ?").run(i, t.id), a !== null && e.prepare("\n          UPDATE base_stock\n          SET stock = ?\n          WHERE base_id IN (SELECT id FROM bases WHERE product_id = ?)\n        ").run(a, t.id);
 	})(), { count: o.length };
 }
-function Jc(e, t) {
+function Yc(e, t) {
 	let n = typeof e == "number" ? e : Number(e);
 	if (!Number.isFinite(n) || n < 0) throw Error(`${t} must be a non-negative number.`);
 	return n;
 }
-function Yc(e, t, n, r, i, a) {
+function Xc(e, t, n, r, i, a) {
 	if (!t || !n || !r) throw Error("Product, base, and size are required.");
 	if (![
 		"landing",
 		"mp",
 		"sales"
 	].includes(i)) throw Error("Unsupported variant price field.");
-	let o = Jc(a, "Price");
+	let o = Yc(a, "Price");
 	if (!e.prepare("\n    SELECT v.id\n    FROM variants v\n    JOIN bases b ON b.product_id = v.product_id\n    WHERE v.id = ? AND v.product_id = ? AND b.id = ?\n  ").get(r, t, n)) throw Error("The selected product row was not found.");
 	if (e.prepare(`UPDATE variants SET ${i} = ? WHERE id = ? AND product_id = ?`).run(o, r, t).changes !== 1) throw Error("The selected price could not be updated.");
 	return o;
 }
-function Xc(e, t, n, r, i) {
+function Zc(e, t, n, r, i) {
 	if (!t || !n || !r) throw Error("Product, base, and size are required.");
-	let a = Jc(i, "Stock");
+	let a = Yc(i, "Stock");
 	if (e.prepare("\n    UPDATE base_stock\n    SET stock = ?\n    WHERE base_id = ? AND variant_id = ?\n      AND EXISTS (\n        SELECT 1 FROM bases\n        WHERE bases.id = base_stock.base_id AND bases.product_id = ?\n      )\n      AND EXISTS (\n        SELECT 1 FROM variants\n        WHERE variants.id = base_stock.variant_id AND variants.product_id = ?\n      )\n  ").run(a, n, r, t, t).changes !== 1) throw Error("The selected stock could not be updated.");
 	return a;
 }
-function Zc(e, t, n, r, i) {
+function Qc(e, t, n, r, i) {
 	let a = t ? String(t).trim() : "", o = n ? String(n).trim() : "", s = parseFloat(r) || 0, c = e.prepare("SELECT * FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE").get(a);
 	if (!c) return;
 	let l = e.prepare("SELECT * FROM variants WHERE product_id = ? AND ABS(bucket_size - ?) < 0.001").get(c.id, s);
@@ -16141,21 +16164,21 @@ function Zc(e, t, n, r, i) {
 	let u = e.prepare("SELECT * FROM bases WHERE product_id = ? AND TRIM(name) = TRIM(?) COLLATE NOCASE").get(c.id, o);
 	u && e.prepare("UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?").run(i, u.id, l.id);
 }
-function Qc(e, t, n) {
+function $c(e, t, n) {
 	let r = e.prepare("SELECT * FROM products WHERE name = ?").get(t);
 	if (!r) return 0;
 	let i = e.prepare("SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?").get(r.id, n);
 	return i ? i.landing : 0;
 }
-function $c(e, t, n) {
+function el(e, t, n) {
 	e.prepare("INSERT INTO bill_activity (bill_id, type, date, amount, payment_method, note) VALUES (?, ?, ?, ?, ?, ?)").run(t, n.type, n.date, n.amount, n.paymentMethod, n.note);
 }
-function el(e, t, n) {
+function tl(e, t, n) {
 	let r = Ic(t, n);
 	if (!e.prepare("SELECT id FROM customers WHERE id = ?").get(r.customerId)) throw Error("Customer not found.");
 	return e.transaction(() => {
 		let t = e.prepare("\n      INSERT INTO bills (\n        customer_id, date, payment_method, total_purchased, amount_paid, amount_due,\n        status, bill_type, pan_number, bill_number, invoice_data\n      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\n    ").run(r.customerId, r.date, r.paymentMethod, r.totalPurchased, r.amountPaid, r.amountDue, r.status, r.billType, r.panNumber, r.billNumber, r.invoiceData ? JSON.stringify(r.invoiceData) : null).lastInsertRowid;
-		$c(e, t, {
+		el(e, t, {
 			type: "sale",
 			date: r.date,
 			amount: r.totalPurchased,
@@ -16163,10 +16186,10 @@ function el(e, t, n) {
 			note: "Initial bill entry"
 		});
 		for (let n of r.products) {
-			let r = Qc(e, n.productName, n.bucketSize);
-			e.prepare("\n        INSERT INTO bill_items (bill_id, product_name, base, bucket_size, quantity, price_at_sale, cost_price)\n        VALUES (?, ?, ?, ?, ?, ?, ?)\n      ").run(t, n.productName, n.base, n.bucketSize, n.quantity, n.priceAtSale, r), Zc(e, n.productName, n.base, n.bucketSize, -n.quantity);
+			let r = $c(e, n.productName, n.bucketSize);
+			e.prepare("\n        INSERT INTO bill_items (bill_id, product_name, base, bucket_size, quantity, price_at_sale, cost_price)\n        VALUES (?, ?, ?, ?, ?, ?, ?)\n      ").run(t, n.productName, n.base, n.bucketSize, n.quantity, n.priceAtSale, r), Qc(e, n.productName, n.base, n.bucketSize, -n.quantity);
 		}
-		return r.amountPaid > 0 && $c(e, t, {
+		return r.amountPaid > 0 && el(e, t, {
 			type: "payment",
 			date: r.date,
 			amount: r.amountPaid,
@@ -16175,7 +16198,7 @@ function el(e, t, n) {
 		}), t;
 	})();
 }
-function tl(e, t) {
+function nl(e, t) {
 	let n = t.productName ? String(t.productName).trim() : "", r = t.base ? String(t.base).trim() : "", i = parseFloat(t.bucketSize) || 0, a = parseFloat(t.quantity) || 0, o = parseFloat(t.costPrice) || 0, s = e.prepare("SELECT * FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE").get(n), c;
 	s ? c = s.id : (c = T(), e.prepare("INSERT INTO products (id, name, images) VALUES (?, ?, ?)").run(c, n, ""));
 	let l = e.prepare("SELECT * FROM variants WHERE product_id = ? AND ABS(bucket_size - ?) < 0.001").get(c, i), u;
@@ -16183,15 +16206,15 @@ function tl(e, t) {
 	let d = e.prepare("SELECT * FROM bases WHERE product_id = ? AND TRIM(name) = TRIM(?) COLLATE NOCASE").get(c, r)?.id ?? e.prepare("INSERT INTO bases (product_id, name) VALUES (?, ?)").run(c, r).lastInsertRowid;
 	e.prepare("SELECT * FROM base_stock WHERE base_id = ? AND variant_id = ?").get(d, u) ? e.prepare("UPDATE base_stock SET stock = stock + ? WHERE base_id = ? AND variant_id = ?").run(a, d, u) : e.prepare("INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)").run(d, u, a);
 }
-function nl(e, t) {
-	Zc(e, t.product_name, t.base, t.bucket_size, -t.quantity);
+function rl(e, t) {
+	Qc(e, t.product_name, t.base, t.bucket_size, -t.quantity);
 }
-function rl(e) {
+function il(e) {
 	if (e == null) return null;
 	if (typeof e != "object" || Array.isArray(e)) throw Error("Invoice data must be an object.");
 	return JSON.stringify(e);
 }
-function il(e, t) {
+function al(e, t) {
 	return e.prepare("\n    SELECT id, invoice_data FROM expenses\n    WHERE type = 'Import' AND invoice_data IS NOT NULL\n  ").all().filter((e) => e.id !== Number(t)).map((e) => {
 		try {
 			return JSON.parse(e.invoice_data)?.invoiceNumber;
@@ -16200,19 +16223,19 @@ function il(e, t) {
 		}
 	}).filter((e) => typeof e == "string" && e.trim()).map((e) => e.trim());
 }
-function al(e, t, n) {
+function ol(e, t, n) {
 	let r = String(t ?? "").trim().toLocaleLowerCase();
-	return r ? !il(e, n).some((e) => e.toLocaleLowerCase() === r) : !1;
+	return r ? !al(e, n).some((e) => e.toLocaleLowerCase() === r) : !1;
 }
-function ol(e, t = "") {
-	let n = String(t ?? "").trim(), r = /^(.*?)(\d+)$/.exec(n), i = r?.[1] ?? "", a = r?.[2]?.length ?? 1, o = r ? Number(r[2]) : 0, s = il(e).map((e) => {
+function sl(e, t = "") {
+	let n = String(t ?? "").trim(), r = /^(.*?)(\d+)$/.exec(n), i = r?.[1] ?? "", a = r?.[2]?.length ?? 1, o = r ? Number(r[2]) : 0, s = al(e).map((e) => {
 		let t = /^(.*?)(\d+)$/.exec(e);
 		return t && t[1].toLocaleLowerCase() === i.toLocaleLowerCase() ? Number(t[2]) : 0;
 	}), c = Math.max(o, ...s) + 1, l = `${i}${String(c).padStart(a, "0")}`;
-	for (; !al(e, l);) c += 1, l = `${i}${String(c).padStart(a, "0")}`;
+	for (; !ol(e, l);) c += 1, l = `${i}${String(c).padStart(a, "0")}`;
 	return l;
 }
-function sl(e, t, n) {
+function cl(e, t, n) {
 	let r = Rc(n), i = r.reduce((e, t) => e + t.costPrice * t.quantity, 0), a = Lc({
 		...t,
 		amountOfExpense: i,
@@ -16221,33 +16244,33 @@ function sl(e, t, n) {
 	return {
 		id: e.transaction(() => {
 			let n = t.invoiceData?.invoiceNumber;
-			if (n && !al(e, n)) throw Error("This invoice number is already in use. Choose another number.");
-			for (let t of r) tl(e, t);
-			let o = e.prepare("INSERT INTO expenses (date, label, amount, type, invoice_data) VALUES (?, ?, ?, ?, ?)").run(a.date, a.nameOfExpense, i, "Import", rl(t.invoiceData)).lastInsertRowid;
+			if (n && !ol(e, n)) throw Error("This invoice number is already in use. Choose another number.");
+			for (let t of r) nl(e, t);
+			let o = e.prepare("INSERT INTO expenses (date, label, amount, type, invoice_data) VALUES (?, ?, ?, ?, ?)").run(a.date, a.nameOfExpense, i, "Import", il(t.invoiceData)).lastInsertRowid;
 			for (let t of r) e.prepare("\n        INSERT INTO expense_items (expense_id, product_name, base, bucket_size, quantity, cost_price)\n        VALUES (?, ?, ?, ?, ?, ?)\n      ").run(o, t.productName, t.base, t.bucketSize, t.quantity, t.costPrice);
 			return o;
 		})(),
 		totalCost: i
 	};
 }
-function cl(e, t, n, r) {
+function ll(e, t, n, r) {
 	if (!e.prepare("SELECT id FROM expenses WHERE id = ?").get(t)) throw Error("Expense not found.");
 	let i = Rc(r), a = i.reduce((e, t) => e + t.costPrice * t.quantity, 0), o = Lc({
 		...n,
 		amountOfExpense: a,
 		typeOfExpense: "Import"
-	}), s = rl(n.invoiceData), c = n.invoiceData?.invoiceNumber, l = e.prepare("SELECT * FROM expense_items WHERE expense_id = ?").all(t);
+	}), s = il(n.invoiceData), c = n.invoiceData?.invoiceNumber, l = e.prepare("SELECT * FROM expense_items WHERE expense_id = ?").all(t);
 	return e.transaction(() => {
-		if (c && !al(e, c, t)) throw Error("This invoice number is already in use. Choose another number.");
-		for (let t of l) nl(e, t);
+		if (c && !ol(e, c, t)) throw Error("This invoice number is already in use. Choose another number.");
+		for (let t of l) rl(e, t);
 		e.prepare("DELETE FROM expense_items WHERE expense_id = ?").run(t);
-		for (let n of i) tl(e, n), e.prepare("\n        INSERT INTO expense_items (expense_id, product_name, base, bucket_size, quantity, cost_price)\n        VALUES (?, ?, ?, ?, ?, ?)\n      ").run(t, n.productName, n.base, n.bucketSize, n.quantity, n.costPrice);
+		for (let n of i) nl(e, n), e.prepare("\n        INSERT INTO expense_items (expense_id, product_name, base, bucket_size, quantity, cost_price)\n        VALUES (?, ?, ?, ?, ?, ?)\n      ").run(t, n.productName, n.base, n.bucketSize, n.quantity, n.costPrice);
 		e.prepare("UPDATE expenses SET date = ?, label = ?, amount = ?, invoice_data = ? WHERE id = ?").run(o.date, o.nameOfExpense, a, s, t);
 	})(), a;
 }
 //#endregion
 //#region src/Backend/inventoryDeletes.js
-function ll(e, t, n) {
+function ul(e, t, n) {
 	if (!e.prepare("SELECT id FROM expenses WHERE id = ?").get(t)) throw Error("Expense not found.");
 	e.transaction(() => {
 		let r = e.prepare("SELECT * FROM expense_items WHERE expense_id = ?").all(t);
@@ -16255,14 +16278,14 @@ function ll(e, t, n) {
 		e.prepare("DELETE FROM expense_items WHERE expense_id = ?").run(t), e.prepare("DELETE FROM expenses WHERE id = ?").run(t);
 	})();
 }
-function ul(e, t) {
+function dl(e, t) {
 	e.transaction(() => {
 		e.prepare("DELETE FROM base_stock WHERE variant_id = ?").run(t), e.prepare("DELETE FROM variants WHERE id = ?").run(t);
 	})();
 }
 //#endregion
 //#region src/Backend/inventoryWrites.js
-function dl(e, t) {
+function fl(e, t) {
 	let n = Pc(t), r = e.prepare("SELECT id FROM products WHERE TRIM(name) = TRIM(?) COLLATE NOCASE").get(n.name);
 	return e.transaction(() => {
 		let t = r?.id || n.id || T();
@@ -16280,10 +16303,10 @@ function dl(e, t) {
 }
 //#endregion
 //#region src/Backend/services/products.js
-var fl = P(import.meta.url)("xlsx");
-function pl(e) {
+var pl = P(import.meta.url)("xlsx");
+function ml(e) {
 	function t(t) {
-		return dl(e.db, t);
+		return fl(e.db, t);
 	}
 	function n(t) {
 		return zc(e.db, t);
@@ -16304,10 +16327,10 @@ function pl(e) {
 		return t;
 	}
 	function i() {
-		return ol(e.db, e.appConfig.invoiceDefaults?.invoiceNumber);
+		return sl(e.db, e.appConfig.invoiceDefaults?.invoiceNumber);
 	}
 	function a(t, n) {
-		return al(e.db, t, n);
+		return ol(e.db, t, n);
 	}
 	function o(t) {
 		Vc(e.db, t);
@@ -16316,62 +16339,70 @@ function pl(e) {
 		return Gc(e.db, t);
 	}
 	function c(t) {
+		return Kc(e.db, t);
+	}
+	function l(t) {
 		return Wc(e.db, t);
 	}
-	function l(t, n) {
-		return qc(e.db, t, n);
+	function u(t, n) {
+		return Jc(e.db, t, n);
 	}
-	function u(t, n, r, i, a) {
-		return Yc(e.db, t, n, r, i, a);
+	function f(t, n, r, i, a) {
+		return Xc(e.db, t, n, r, i, a);
 	}
-	function f(t, n, r, i) {
-		return Xc(e.db, t, n, r, i);
+	function p(t, n, r, i) {
+		return Zc(e.db, t, n, r, i);
 	}
-	function p(t, n) {
+	function m(t, n) {
 		Bc(e.db, t, n);
 	}
-	function m(t) {
+	function h(t) {
 		return e.db.prepare("SELECT * FROM products WHERE name = ?").get(t);
 	}
-	function h(t, n) {
+	function _(t, n) {
 		return e.db.prepare("SELECT * FROM variants WHERE product_id = ? AND bucket_size = ?").get(t, n);
 	}
-	function _(t, n) {
+	function v(t, n) {
 		return e.db.prepare("\n    INSERT INTO variants (product_id, bucket_size, landing, sales, mp)\n    VALUES (?, ?, ?, ?, ?)\n  ").run(t, n.bucket_size, n.landing, n.sales, n.mp).lastInsertRowid;
 	}
-	function v(t, n) {
+	function y(t, n) {
 		return e.db.prepare("INSERT INTO bases (product_id, name) VALUES (?, ?)").run(t, n).lastInsertRowid;
 	}
-	function y(t, n) {
+	function b(t, n) {
 		return e.db.prepare("SELECT * FROM bases WHERE product_id = ? AND name = ?").get(t, n);
 	}
-	function b(t, n, r) {
+	function x(t, n, r) {
 		e.db.prepare("INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)").run(t, n, r);
 	}
-	function x(t) {
+	function S(t) {
 		let n = d.basename(t), r = d.join(e.dataDirectory, "images", "product-images"), i = d.join(r, n);
 		return g.existsSync(r) || g.mkdirSync(r, { recursive: !0 }), g.existsSync(i) || g.copyFileSync(t, i), `images/product-images/${n}`;
 	}
-	function S(t) {
+	function C(t) {
 		return t ? d.join(e.dataDirectory, t) : null;
 	}
-	function C(t, n) {
+	function w(t, n) {
 		e.db.prepare("DELETE FROM base_stock WHERE base_id = ? AND variant_id = ?").run(t, n);
 	}
-	function w(t) {
-		ul(e.db, t);
-	}
 	function T(t) {
+		e.db.transaction(() => {
+			if (e.db.prepare("DELETE FROM base_stock WHERE base_id = ?").run(t), e.db.prepare("DELETE FROM bases WHERE id = ?").run(t).changes !== 1) throw Error("Base not found.");
+		})();
+	}
+	function E(t) {
+		dl(e.db, t);
+	}
+	function D(t) {
 		if (typeof t != "string" || t.trim() === "") throw Error("Choose an Excel file to import.");
 		let n;
 		try {
-			n = fl.readFile(t);
+			n = pl.readFile(t);
 		} catch (e) {
 			throw Error("Could not read the selected Excel file. Check that it is a valid, accessible workbook.", { cause: e });
 		}
 		let r = n.Sheets["JESTH- 2083"];
 		if (!r) throw Error("Sheet \"JESTH- 2083\" not found in this file.");
-		let i = fl.utils.sheet_to_json(r, {
+		let i = pl.utils.sheet_to_json(r, {
 			header: 1,
 			range: 1
 		}), a = /^([A-Za-z]+)((?:\d+)(?:\/\d+)*)$/, o = /^([A-Za-z]+?)(I{1,3}|IV)$/, s = new Set([
@@ -16478,27 +16509,29 @@ function pl(e) {
 		isInvoiceNumberAvailable: a,
 		deleteProduct: o,
 		deleteProducts: s,
-		findProductsReferencedByBills: c,
-		updateProducts: l,
-		updateVariantPrice: u,
-		updateBaseStock: f,
-		editProduct: p,
-		getProductByName: m,
-		getVariantBySize: h,
-		addVariant: _,
-		addBase: v,
-		getBaseByName: y,
-		addBaseStock: b,
-		copyImageToDatabase: x,
-		resolveImagePath: S,
-		deleteBaseStock: C,
-		deleteVariant: w,
-		importProductsFromExcel: T
+		deleteInventoryRows: c,
+		findProductsReferencedByBills: l,
+		updateProducts: u,
+		updateVariantPrice: f,
+		updateBaseStock: p,
+		editProduct: m,
+		getProductByName: h,
+		getVariantBySize: _,
+		addVariant: v,
+		addBase: y,
+		getBaseByName: b,
+		addBaseStock: x,
+		copyImageToDatabase: S,
+		resolveImagePath: C,
+		deleteBaseStock: w,
+		deleteBase: T,
+		deleteVariant: E,
+		importProductsFromExcel: D
 	};
 }
 //#endregion
 //#region src/Backend/services/customersBills.js
-function ml(e) {
+function hl(e) {
 	function t(t) {
 		let n = Fc(t);
 		if (e.db.prepare("SELECT 1 FROM customers WHERE TRIM(name) = TRIM(?) COLLATE NOCASE").get(n.name)) throw Error(`Customer "${n.name}" already exists.`);
@@ -16513,7 +16546,7 @@ function ml(e) {
 		return e.db.prepare("SELECT * FROM bill_activity WHERE bill_id = ? ORDER BY date ASC, id ASC").all(t);
 	}
 	function i(t, n) {
-		return el(e.db, t, n);
+		return tl(e.db, t, n);
 	}
 	function a() {
 		let t = e.db.prepare("SELECT * FROM customers").all();
@@ -16542,7 +16575,7 @@ function ml(e) {
 		if (!e.db.prepare("SELECT id FROM bills WHERE id = ?").get(t)) throw Error("Bill not found.");
 		e.db.transaction(() => {
 			let n = e.db.prepare("SELECT * FROM bill_items WHERE bill_id = ?").all(t);
-			for (let t of n) Zc(e.db, t.product_name, t.base, t.bucket_size, t.quantity);
+			for (let t of n) Qc(e.db, t.product_name, t.base, t.bucket_size, t.quantity);
 			e.db.prepare("DELETE FROM bill_items WHERE bill_id = ?").run(t), e.db.prepare("DELETE FROM bills WHERE id = ?").run(t);
 		})();
 	}
@@ -16557,12 +16590,12 @@ function ml(e) {
 		let a = Ic(i.customer_id, r);
 		e.db.transaction(() => {
 			let r = e.db.prepare("SELECT * FROM bill_items WHERE bill_id = ?").all(t);
-			for (let t of r) Zc(e.db, t.product_name, t.base, t.bucket_size, t.quantity);
+			for (let t of r) Qc(e.db, t.product_name, t.base, t.bucket_size, t.quantity);
 			let o = Number(i.total_purchased || 0), s = Number(i.amount_paid || 0), c = a.totalPurchased - o, l = a.amountPaid - s;
 			e.db.prepare("\n      UPDATE bills SET\n        date = ?, payment_method = ?, total_purchased = ?, amount_paid = ?, amount_due = ?,\n        status = ?, bill_type = ?, pan_number = ?, bill_number = ?, invoice_data = ?\n      WHERE id = ?\n    ").run(a.date, a.paymentMethod, a.totalPurchased, a.amountPaid, a.amountDue, a.status, a.billType, a.panNumber, a.billNumber, a.invoiceData ? JSON.stringify(a.invoiceData) : null, t), e.db.prepare("DELETE FROM bill_items WHERE bill_id = ?").run(t);
 			for (let n of a.products) {
 				let r = f(n.productName, n.bucketSize);
-				e.db.prepare("\n      INSERT INTO bill_items (bill_id, product_name, base, bucket_size, quantity, price_at_sale, cost_price)\n      VALUES (?, ?, ?, ?, ?, ?, ?)\n    ").run(t, n.productName, n.base, n.bucketSize, n.quantity, n.priceAtSale, r), Zc(e.db, n.productName, n.base, n.bucketSize, -n.quantity);
+				e.db.prepare("\n      INSERT INTO bill_items (bill_id, product_name, base, bucket_size, quantity, price_at_sale, cost_price)\n      VALUES (?, ?, ?, ?, ?, ?, ?)\n    ").run(t, n.productName, n.base, n.bucketSize, n.quantity, n.priceAtSale, r), Qc(e.db, n.productName, n.base, n.bucketSize, -n.quantity);
 			}
 			Math.abs(c) > .01 && n(t, {
 				type: "adjustment",
@@ -16606,7 +16639,7 @@ function ml(e) {
 }
 //#endregion
 //#region src/Backend/services/expensesAnalytics.js
-function hl(e) {
+function gl(e) {
 	function t(t) {
 		let n = Lc(t);
 		return e.db.prepare("INSERT INTO expenses (date, label, amount, type) VALUES (?, ?, ?, ?)").run(n.date, n.nameOfExpense, n.amountOfExpense, n.typeOfExpense).lastInsertRowid;
@@ -16621,7 +16654,7 @@ function hl(e) {
 		}));
 	}
 	function r(t) {
-		ll(e.db, t, c);
+		ul(e.db, t, c);
 	}
 	function i() {
 		let t = e.db.prepare("SELECT * FROM bills").all(), n = {};
@@ -16743,13 +16776,13 @@ function hl(e) {
 		return Object.values(o).sort((e, t) => t.spend - e.spend).slice(0, n);
 	}
 	function c(t) {
-		Zc(e.db, t.product_name, t.base, t.bucket_size, -t.quantity);
+		Qc(e.db, t.product_name, t.base, t.bucket_size, -t.quantity);
 	}
 	function l(t, n) {
-		return sl(e.db, t, n);
+		return cl(e.db, t, n);
 	}
 	function u(t, n, r) {
-		return cl(e.db, t, n, r);
+		return ll(e.db, t, n, r);
 	}
 	function d(t, n) {
 		let r = Lc(n);
@@ -16792,64 +16825,64 @@ function hl(e) {
 }
 //#endregion
 //#region src/Backend/server.js
-var gl = d.dirname(l(import.meta.url)), _l = d.join(r.getPath("userData"), "settings.json"), vl = r.getPath("userData"), yl = De(_l), bl = ke({
-	config: yl,
+var _l = d.dirname(l(import.meta.url)), vl = d.join(r.getPath("userData"), "settings.json"), yl = r.getPath("userData"), bl = De(vl), xl = ke({
+	config: bl,
 	isPackaged: r.isPackaged,
-	userDataPath: vl,
-	developmentPath: d.join(gl, "../", "Database")
-}), xl = d.join(bl, "inventory.db"), Sl;
-function Cl() {
-	g.mkdirSync(bl, { recursive: !0 }), Sl = new de.default(xl), Me(Sl);
+	userDataPath: yl,
+	developmentPath: d.join(_l, "../", "Database")
+}), Sl = d.join(xl, "inventory.db"), Cl;
+function wl() {
+	g.mkdirSync(xl, { recursive: !0 }), Cl = new de.default(Sl), Me(Cl);
 }
-Cl();
-var wl = {
+wl();
+var Tl = {
 	get appConfig() {
-		return yl;
-	},
-	set appConfig(e) {
-		yl = e;
-	},
-	get dataDirectory() {
 		return bl;
 	},
-	set dataDirectory(e) {
+	set appConfig(e) {
 		bl = e;
 	},
-	get dbPath() {
+	get dataDirectory() {
 		return xl;
 	},
-	set dbPath(e) {
+	set dataDirectory(e) {
 		xl = e;
 	},
-	get db() {
+	get dbPath() {
 		return Sl;
 	},
-	set db(e) {
+	set dbPath(e) {
 		Sl = e;
 	},
+	get db() {
+		return Cl;
+	},
+	set db(e) {
+		Cl = e;
+	},
 	app: r,
-	appConfigPath: _l,
-	userDataPath: vl,
-	__dirname: gl,
-	openDatabase: Cl
-}, Tl = [
-	Ne(wl),
-	jc(wl),
-	pl(wl),
-	ml(wl),
-	hl(wl)
-], { getAppSettings: El, setDefaultProfilePassword: Dl, createProfile: Ol, switchProfile: kl, updateDefaultPaymentMethod: Al, updateInvoiceDefaults: jl, updateInventoryAddItemMode: Ml, updateAppearanceSettings: Nl, setLocalDataDirectory: Pl } = Tl[0], { backupDatabase: Fl, exportDatabase: Il, createPortableDatabaseBackup: Ll, restoreDatabase: Rl, restorePortableDatabase: zl } = Tl[1], { saveInventoryProductChanges: Bl, addProduct: Vl, getProducts: Hl, getNextInvoiceNumber: Ul, isInvoiceNumberAvailable: Wl, deleteProduct: Gl, editProduct: Kl, getProductByName: ql, getVariantBySize: Jl, addVariant: Yl, addBase: Xl, getBaseByName: Zl, addBaseStock: Ql, copyImageToDatabase: $l, resolveImagePath: eu, deleteBaseStock: tu, deleteVariant: nu, importProductsFromExcel: ru, deleteProducts: iu, findProductsReferencedByBills: au, updateProducts: ou, updateVariantPrice: su, updateBaseStock: cu } = Tl[2], { addCustomer: lu, addBillActivity: uu, getBillActivity: du, addBill: fu, getCustomers: pu, deleteCustomer: mu, addCustomerBill: hu, deleteBill: gu, editCustomer: _u, editBill: vu, editCustomerBill: yu } = Tl[3], { addExpense: bu, getExpenses: xu, deleteExpense: Su, getSales: Cu, getNetPosition: wu, getTopProducts: Tu, getTopCustomers: Eu, recordImportExpense: Du, editImportExpense: Ou, editExpense: ku, getExpenseDetails: Au } = Tl[4], ju = d.dirname(l(import.meta.url)), Mu = r.requestSingleInstanceLock();
-Mu || r.quit();
-function Nu() {
+	appConfigPath: vl,
+	userDataPath: yl,
+	__dirname: _l,
+	openDatabase: wl
+}, El = [
+	Ne(Tl),
+	jc(Tl),
+	ml(Tl),
+	hl(Tl),
+	gl(Tl)
+], { getAppSettings: Dl, setDefaultProfilePassword: Ol, createProfile: kl, switchProfile: Al, updateDefaultPaymentMethod: jl, updateInvoiceDefaults: Ml, updateInventoryAddItemMode: Nl, updateAppearanceSettings: Pl, setLocalDataDirectory: Fl } = El[0], { backupDatabase: Il, exportDatabase: Ll, createPortableDatabaseBackup: Rl, restoreDatabase: zl, restorePortableDatabase: Bl } = El[1], { saveInventoryProductChanges: Vl, addProduct: Hl, getProducts: Ul, getNextInvoiceNumber: Wl, isInvoiceNumberAvailable: Gl, deleteProduct: Kl, editProduct: ql, getProductByName: Jl, getVariantBySize: Yl, addVariant: Xl, addBase: Zl, getBaseByName: Ql, addBaseStock: $l, copyImageToDatabase: eu, resolveImagePath: tu, deleteBaseStock: nu, deleteBase: ru, deleteVariant: iu, importProductsFromExcel: au, deleteProducts: ou, deleteInventoryRows: su, findProductsReferencedByBills: cu, updateProducts: lu, updateVariantPrice: uu, updateBaseStock: du } = El[2], { addCustomer: fu, addBillActivity: pu, getBillActivity: mu, addBill: hu, getCustomers: gu, deleteCustomer: _u, addCustomerBill: vu, deleteBill: yu, editCustomer: bu, editBill: xu, editCustomerBill: Su } = El[3], { addExpense: Cu, getExpenses: wu, deleteExpense: Tu, getSales: Eu, getNetPosition: Du, getTopProducts: Ou, getTopCustomers: ku, recordImportExpense: Au, editImportExpense: ju, editExpense: Mu, getExpenseDetails: Nu } = El[4], Pu = d.dirname(l(import.meta.url)), Fu = r.requestSingleInstanceLock();
+Fu || r.quit();
+function Iu() {
 	for (let e of t.getAllWindows()) e.destroy();
 	r.relaunch(), r.exit(0);
 }
-function Pu() {
+function Lu() {
 	let e = new t({
 		width: 1200,
 		height: 800,
 		webPreferences: {
-			preload: d.join(ju, "preload.cjs"),
+			preload: d.join(Pu, "preload.cjs"),
 			spellcheck: !0
 		}
 	});
@@ -16869,7 +16902,7 @@ function Pu() {
 			label: `Add “${r.misspelledWord}” to dictionary`,
 			click: () => e.webContents.session.addWordToSpellCheckerDictionary(r.misspelledWord)
 		}), n.buildFromTemplate(a).popup({ window: e });
-	}), process.env.VITE_DEV_SERVER_URL ? e.loadURL(process.env.VITE_DEV_SERVER_URL) : e.loadFile(d.join(ju, "../dist/index.html"));
+	}), process.env.VITE_DEV_SERVER_URL ? e.loadURL(process.env.VITE_DEV_SERVER_URL) : e.loadFile(d.join(Pu, "../dist/index.html"));
 }
 s.registerSchemesAsPrivileged([{
 	scheme: "app-image",
@@ -16880,7 +16913,7 @@ s.registerSchemesAsPrivileged([{
 		stream: !0
 	}
 }]), r.whenReady().then(() => {
-	Mu && (n.setApplicationMenu(null), s.handle("app-image", (e) => {
+	Fu && (n.setApplicationMenu(null), s.handle("app-image", (e) => {
 		try {
 			let t = new URL(e.url).searchParams.get("path");
 			if (!t) throw Error("No path provided");
@@ -16889,7 +16922,7 @@ s.registerSchemesAsPrivileged([{
 		} catch (t) {
 			return console.error("app-image protocol error:", t.message, e.url), new Response("Not found", { status: 404 });
 		}
-	}), a.handle("db:addProduct", (e, t) => Vl(t)), a.handle("db:saveInventoryProduct", (e, t) => Bl(t)), a.handle("db:getProducts", () => Hl()), a.handle("db:getNextInvoiceNumber", () => Ul()), a.handle("db:isInvoiceNumberAvailable", (e, t, n) => Wl(t, n)), a.handle("db:deleteProduct", (e, t) => Gl(t)), a.handle("db:deleteProducts", (e, t) => iu(t)), a.handle("db:findProductsReferencedByBills", (e, t) => au(t)), a.handle("db:updateProducts", (e, t, n) => ou(t, n)), a.handle("db:updateVariantPrice", (e, t, n, r, i, a) => su(t, n, r, i, a)), a.handle("db:updateBaseStock", (e, t, n, r, i) => cu(t, n, r, i)), a.handle("db:editProduct", (e, t, n) => Kl(t, n)), a.handle("db:addExpense", (e, t) => bu(t)), a.handle("db:getExpenses", () => xu()), a.handle("db:deleteExpense", (e, t) => Su(t)), a.handle("db:getSales", () => Cu()), a.handle("db:getNetPosition", (e, t) => wu(t)), a.handle("db:getProductByName", (e, t) => ql(t)), a.handle("db:getVariantBySize", (e, t, n) => Jl(t, n)), a.handle("db:addVariant", (e, t, n) => Yl(t, n)), a.handle("db:addBase", (e, t, n) => Xl(t, n)), a.handle("db:addBaseStock", (e, t, n, r) => Ql(t, n, r)), a.handle("db:getBaseByName", (e, t, n) => Zl(t, n)), a.handle("db:addCustomer", (e, t) => lu(t)), a.handle("db:addBill", (e, t, n) => fu(t, n)), a.handle("db:addCustomerBill", (e, t, n) => hu(t, n)), a.handle("db:editCustomerBill", (e, t, n, r, i) => yu(t, n, r, i)), a.handle("db:addBillActivity", (e, t, n) => uu(t, n)), a.handle("db:getBillActivity", (e, t) => du(t)), a.handle("db:editCustomer", (e, t, n) => _u(t, n)), a.handle("db:getExpenseDetails", (e, t) => Au(t)), a.handle("db:editExpense", (e, t, n) => ku(t, n)), a.handle("db:editImportExpense", (e, t, n, r) => Ou(t, n, r)), a.handle("db:editBill", (e, t, n) => vu(t, n)), a.handle("db:getCustomers", () => pu()), a.handle("db:deleteCustomer", (e, t) => mu(t)), a.handle("db:deleteBill", (e, t) => gu(t)), a.handle("db:resolveImagePath", (e, t) => eu(t)), a.handle("db:createBackup", async (e) => {
+	}), a.handle("db:addProduct", (e, t) => Hl(t)), a.handle("db:saveInventoryProduct", (e, t) => Vl(t)), a.handle("db:getProducts", () => Ul()), a.handle("db:getNextInvoiceNumber", () => Wl()), a.handle("db:isInvoiceNumberAvailable", (e, t, n) => Gl(t, n)), a.handle("db:deleteProduct", (e, t) => Kl(t)), a.handle("db:deleteProducts", (e, t) => ou(t)), a.handle("db:deleteInventoryRows", (e, t) => su(t)), a.handle("db:findProductsReferencedByBills", (e, t) => cu(t)), a.handle("db:updateProducts", (e, t, n) => lu(t, n)), a.handle("db:updateVariantPrice", (e, t, n, r, i, a) => uu(t, n, r, i, a)), a.handle("db:updateBaseStock", (e, t, n, r, i) => du(t, n, r, i)), a.handle("db:editProduct", (e, t, n) => ql(t, n)), a.handle("db:addExpense", (e, t) => Cu(t)), a.handle("db:getExpenses", () => wu()), a.handle("db:deleteExpense", (e, t) => Tu(t)), a.handle("db:getSales", () => Eu()), a.handle("db:getNetPosition", (e, t) => Du(t)), a.handle("db:getProductByName", (e, t) => Jl(t)), a.handle("db:getVariantBySize", (e, t, n) => Yl(t, n)), a.handle("db:addVariant", (e, t, n) => Xl(t, n)), a.handle("db:addBase", (e, t, n) => Zl(t, n)), a.handle("db:addBaseStock", (e, t, n, r) => $l(t, n, r)), a.handle("db:getBaseByName", (e, t, n) => Ql(t, n)), a.handle("db:addCustomer", (e, t) => fu(t)), a.handle("db:addBill", (e, t, n) => hu(t, n)), a.handle("db:addCustomerBill", (e, t, n) => vu(t, n)), a.handle("db:editCustomerBill", (e, t, n, r, i) => Su(t, n, r, i)), a.handle("db:addBillActivity", (e, t, n) => pu(t, n)), a.handle("db:getBillActivity", (e, t) => mu(t)), a.handle("db:editCustomer", (e, t, n) => bu(t, n)), a.handle("db:getExpenseDetails", (e, t) => Nu(t)), a.handle("db:editExpense", (e, t, n) => Mu(t, n)), a.handle("db:editImportExpense", (e, t, n, r) => ju(t, n, r)), a.handle("db:editBill", (e, t, n) => xu(t, n)), a.handle("db:getCustomers", () => gu()), a.handle("db:deleteCustomer", (e, t) => _u(t)), a.handle("db:deleteBill", (e, t) => yu(t)), a.handle("db:resolveImagePath", (e, t) => tu(t)), a.handle("db:createBackup", async (e) => {
 		let n = await i.showSaveDialog(t.fromWebContents(e.sender), {
 			title: "Back Up StockWise Data",
 			defaultPath: `StockWise-Backup-${(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}.db`,
@@ -16902,7 +16935,7 @@ s.registerSchemesAsPrivileged([{
 				]
 			}]
 		});
-		return n.canceled || !n.filePath ? null : { filePath: await Fl(n.filePath) };
+		return n.canceled || !n.filePath ? null : { filePath: await Il(n.filePath) };
 	}), a.handle("db:restoreBackup", async (e) => {
 		let n = await i.showOpenDialog(t.fromWebContents(e.sender), {
 			title: "Restore StockWise Backup",
@@ -16917,8 +16950,8 @@ s.registerSchemesAsPrivileged([{
 			}]
 		});
 		if (n.canceled || n.filePaths.length === 0) return null;
-		let r = await Rl(n.filePaths[0]);
-		return process.nextTick(Nu), r;
+		let r = await zl(n.filePaths[0]);
+		return process.nextTick(Iu), r;
 	}), a.handle("db:createPortableBackup", async (e) => {
 		let n = await i.showSaveDialog(t.fromWebContents(e.sender), {
 			title: "Create Portable StockWise Backup",
@@ -16928,7 +16961,7 @@ s.registerSchemesAsPrivileged([{
 				extensions: ["zip"]
 			}]
 		});
-		return n.canceled || !n.filePath ? null : { filePath: await Ll(n.filePath, r.getVersion()) };
+		return n.canceled || !n.filePath ? null : { filePath: await Rl(n.filePath, r.getVersion()) };
 	}), a.handle("db:restorePortableBackup", async (e) => {
 		let n = await i.showOpenDialog(t.fromWebContents(e.sender), {
 			title: "Restore Portable StockWise Backup",
@@ -16939,22 +16972,22 @@ s.registerSchemesAsPrivileged([{
 			}]
 		});
 		if (n.canceled || n.filePaths.length === 0) return null;
-		let r = await zl(n.filePaths[0]);
-		return process.nextTick(Nu), r;
+		let r = await Bl(n.filePaths[0]);
+		return process.nextTick(Iu), r;
 	}), a.handle("settings:pickExportDirectory", async (e) => {
 		let n = await i.showOpenDialog(t.fromWebContents(e.sender), {
 			title: "Choose StockWise Export Folder",
 			properties: ["openDirectory", "createDirectory"]
 		});
 		return n.canceled || n.filePaths.length === 0 ? null : n.filePaths[0];
-	}), a.handle("settings:exportData", (e, t, n) => Il(t, n, r.getVersion())), a.handle("settings:get", () => El()), a.handle("settings:createProfile", (e, t, n) => Ol(t, n)), a.handle("settings:setDefaultProfilePassword", (e, t) => Dl(t)), a.handle("settings:switchProfile", (e, n, r, i) => {
-		let a = kl(n, r, i);
+	}), a.handle("settings:exportData", (e, t, n) => Ll(t, n, r.getVersion())), a.handle("settings:get", () => Dl()), a.handle("settings:createProfile", (e, t, n) => kl(t, n)), a.handle("settings:setDefaultProfilePassword", (e, t) => Ol(t)), a.handle("settings:switchProfile", (e, n, r, i) => {
+		let a = Al(n, r, i);
 		return setTimeout(() => {
 			let n = t.fromWebContents(e.sender);
 			n && !n.isDestroyed() && n.webContents.reload();
 		}, 100), a;
-	}), a.handle("settings:updateDefaultPaymentMethod", (e, t) => Al(t)), a.handle("settings:updateInvoiceDefaults", (e, t) => jl(t)), a.handle("settings:updateInventoryAddItemMode", (e, t) => Ml(t)), a.handle("settings:updateAppearance", (e, t, n) => Nl(t, n)), a.handle("settings:openDataDirectory", async () => {
-		let e = await c.openPath(El().dataDirectory);
+	}), a.handle("settings:updateDefaultPaymentMethod", (e, t) => jl(t)), a.handle("settings:updateInvoiceDefaults", (e, t) => Ml(t)), a.handle("settings:updateInventoryAddItemMode", (e, t) => Nl(t)), a.handle("settings:updateAppearance", (e, t, n) => Pl(t, n)), a.handle("settings:openDataDirectory", async () => {
+		let e = await c.openPath(Dl().dataDirectory);
 		if (e) throw Error(`Could not open the data folder: ${e}`);
 	}), a.handle("settings:changeDataDirectory", async (e) => {
 		let n = await i.showOpenDialog(t.fromWebContents(e.sender), {
@@ -16962,8 +16995,8 @@ s.registerSchemesAsPrivileged([{
 			properties: ["openDirectory"]
 		});
 		if (n.canceled || n.filePaths.length === 0) return null;
-		let r = await Pl(n.filePaths[0]);
-		return process.nextTick(Nu), r;
+		let r = await Fl(n.filePaths[0]);
+		return process.nextTick(Iu), r;
 	}), a.handle("dialog:pickExcelFile", async () => {
 		let e = await i.showOpenDialog({
 			properties: ["openFile"],
@@ -16973,7 +17006,7 @@ s.registerSchemesAsPrivileged([{
 			}]
 		});
 		return e.canceled || e.filePaths.length === 0 ? null : e.filePaths[0];
-	}), a.handle("db:recordImportExpense", (e, t, n) => Du(t, n)), a.handle("db:importExcel", (e, t) => ru(t)), a.handle("db:copyImage", (e, t) => $l(t)), a.handle("db:deleteBaseStock", (e, t, n) => tu(t, n)), a.handle("db:deleteVariant", (e, t) => nu(t)), a.handle("db:getTopProducts", (e, t) => Tu(t)), a.handle("db:getTopCustomers", (e, t) => Eu(t)), a.handle("dialog:pickImage", async () => {
+	}), a.handle("db:recordImportExpense", (e, t, n) => Au(t, n)), a.handle("db:importExcel", (e, t) => au(t)), a.handle("db:copyImage", (e, t) => eu(t)), a.handle("db:deleteBaseStock", (e, t, n) => nu(t, n)), a.handle("db:deleteBase", (e, t) => ru(t)), a.handle("db:deleteVariant", (e, t) => iu(t)), a.handle("db:getTopProducts", (e, t) => Ou(t)), a.handle("db:getTopCustomers", (e, t) => ku(t)), a.handle("dialog:pickImage", async () => {
 		let e = await i.showOpenDialog({
 			properties: ["openFile"],
 			filters: [{
@@ -16987,14 +17020,14 @@ s.registerSchemesAsPrivileged([{
 			}]
 		});
 		return e.canceled || e.filePaths.length === 0 ? null : e.filePaths[0];
-	}), Pu());
+	}), Lu());
 }), r.on("window-all-closed", () => {
 	process.platform !== "darwin" && r.quit();
 }), r.on("second-instance", () => {
 	let [e] = t.getAllWindows();
 	e && (e.isMinimized() && e.restore(), e.focus());
 }), r.on("activate", () => {
-	t.getAllWindows().length === 0 && Pu();
+	t.getAllWindows().length === 0 && Lu();
 });
 //#endregion
 export {};
