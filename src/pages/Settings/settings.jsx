@@ -179,6 +179,24 @@ export function SettingsPage({
     }
   }
 
+  async function handleInventoryAddItemModeChange(event) {
+    setBusy("defaults");
+    try {
+      const updatedSettings = await window.db.updateInventoryAddItemMode(
+        event.target.value || null,
+      );
+      setSettings(updatedSettings);
+      showToast("Add item method preference updated.", "success");
+    } catch (error) {
+      showToast(
+        error.message || "Could not update the add item method preference.",
+        "error",
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
   async function handleAppearanceThemeChange(event) {
     const selected = event.target.value;
     const mode = selected.endsWith("-dark") ? "dark" : "light";
@@ -363,6 +381,7 @@ export function SettingsPage({
         settings={settings}
         busy={busy}
         onChange={handlePaymentMethodChange}
+        onInventoryAddItemModeChange={handleInventoryAddItemModeChange}
       />
       <DatabaseSection
         settings={settings}
