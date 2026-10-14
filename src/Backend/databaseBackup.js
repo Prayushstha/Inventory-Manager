@@ -6,8 +6,8 @@ import { migrateDatabase } from "./migrations.js";
 const requiredColumns = {
   products: ["id", "name", "images"],
   variants: ["id", "product_id", "bucket_size", "landing", "sales", "mp"],
-  bases: ["id", "product_id", "name"],
-  base_stock: ["base_id", "variant_id", "stock"],
+  bases: ["id", "product_id", "name", "prices_linked"],
+  base_stock: ["base_id", "variant_id", "stock", "landing", "sales", "mp"],
   customers: ["id", "name", "phone", "address", "notes"],
   expenses: ["id", "date", "label", "amount", "type", "invoice_data"],
   expense_items: ["id", "expense_id", "product_name", "base", "bucket_size", "quantity", "cost_price"],

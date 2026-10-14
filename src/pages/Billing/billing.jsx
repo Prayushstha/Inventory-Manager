@@ -42,7 +42,7 @@ export function Billing() {
       window.db.getAppSettings(),
     ]);
     setCustomers(customerData);
-    setProducts(productData);
+    setProducts(productData.filter((product) => product?.id && product?.name));
     setInvoiceDefaults(settings.invoiceDefaults || {});
   });
 
@@ -67,7 +67,7 @@ export function Billing() {
         "Failed to load products"
       );
       if (!cancelled && data) {
-        setProducts(data);
+        setProducts(data.filter((product) => product?.id && product?.name));
       }
     }
     fetchProducts();

@@ -70,6 +70,8 @@ export function validateProduct(product) {
     return {
       ...base,
       name: baseName,
+      pricesLinked: base.pricesLinked !== false,
+      priceMap: base.priceMap && typeof base.priceMap === "object" ? base.priceMap : {},
       stocks: stocks.map((stock, stockIndex) =>
         parseRequiredNumber(stock, `Base "${baseName}" stock for variant ${stockIndex + 1}`, { min: 0 }),
       ),

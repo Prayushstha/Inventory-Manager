@@ -217,7 +217,9 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
 
   function inlineCell(row, field, value) {
     if (!editMode)
-      return `NPR ${field === "landing" ? Math.round(value) : value}`;
+      return field === "stock"
+        ? value
+        : `NPR ${field === "landing" ? Math.round(value) : value}`;
     return (
       <input
         className="inline-edit-input"
@@ -284,7 +286,7 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
     }, "Failed to delete item");
     if (!success) return;
     setConfirmTarget(null);
-    fetchProducts?.();
+    await fetchProducts?.();
   }
 
   async function handleBulkDelete() {

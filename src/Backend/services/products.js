@@ -42,13 +42,22 @@ function getProducts() {
 
     for (const base of bases) {
       const stockRows = ctx.db
-        .prepare(`SELECT variant_id, stock FROM base_stock WHERE base_id = ?`)
+        .prepare(`SELECT variant_id, stock, landing, sales, mp FROM base_stock WHERE base_id = ?`)
         .all(base.id);
 
       base.stockMap = {};
+      base.priceMap = {};
       for (const row of stockRows) {
         base.stockMap[row.variant_id] = row.stock;
+        if (row.landing !== null || row.sales !== null || row.mp !== null) {
+          base.priceMap[row.variant_id] = {
+            landing: row.landing,
+            sales: row.sales,
+            mp: row.mp,
+          };
+        }
       }
+      base.pricesLinked = base.prices_linked !== 0;
 
       // keep .stocks too, for any other screens still using it positionally
       base.stocks = product.variants.map((v) => base.stockMap[v.id] ?? 0);

@@ -19,12 +19,32 @@ let dataDirectory = resolveDataDirectory({
   config: appConfig,
   isPackaged: app.isPackaged,
   userDataPath,
-  developmentPath: path.join(__dirname, "../", "Database"),
+  developmentPath: userDataPath,
 });
 let dbPath = path.join(dataDirectory, "inventory.db");
 let db;
 
+function migrateLegacyDevelopmentDatabase() {
+  const legacyPath = path.join(__dirname, "../", "Database", "inventory.db");
+  if (
+    dbPath === legacyPath ||
+    fs.existsSync(dbPath) ||
+    !fs.existsSync(legacyPath)
+  ) {
+    return;
+  }
+
+  fs.mkdirSync(dataDirectory, { recursive: true });
+  fs.copyFileSync(legacyPath, dbPath);
+  const legacyImagesPath = path.join(path.dirname(legacyPath), "images");
+  const imagesPath = path.join(dataDirectory, "images");
+  if (fs.existsSync(legacyImagesPath) && !fs.existsSync(imagesPath)) {
+    fs.cpSync(legacyImagesPath, imagesPath, { recursive: true });
+  }
+}
+
 function openDatabase() {
+  migrateLegacyDevelopmentDatabase();
   fs.mkdirSync(dataDirectory, { recursive: true });
   db = new Database(dbPath);
   migrateDatabase(db);

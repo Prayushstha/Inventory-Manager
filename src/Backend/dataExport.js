@@ -65,10 +65,12 @@ function selectedRows(db, selections) {
       FROM variants ORDER BY product_id, bucket_size
     `);
     rows.bases = rowsFor(db, `
-      SELECT id, product_id, name FROM bases ORDER BY product_id, name COLLATE NOCASE
+      SELECT id, product_id, name, prices_linked
+      FROM bases ORDER BY product_id, name COLLATE NOCASE
     `);
     rows.stock = rowsFor(db, `
-      SELECT base_id, variant_id, stock FROM base_stock ORDER BY base_id, variant_id
+      SELECT base_id, variant_id, stock, landing, sales, mp
+      FROM base_stock ORDER BY base_id, variant_id
     `);
   }
 

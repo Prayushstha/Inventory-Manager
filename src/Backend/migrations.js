@@ -148,6 +148,25 @@ const migrations = [
       }
     },
   },
+  {
+    version: 5,
+    up(db) {
+      const baseColumns = db.prepare("PRAGMA table_info(bases)").all();
+      if (!baseColumns.some((column) => column.name === "prices_linked")) {
+        db.exec("ALTER TABLE bases ADD COLUMN prices_linked INTEGER NOT NULL DEFAULT 1");
+      }
+      const stockColumns = db.prepare("PRAGMA table_info(base_stock)").all();
+      for (const [column, definition] of [
+        ["landing", "REAL"],
+        ["sales", "REAL"],
+        ["mp", "REAL"],
+      ]) {
+        if (!stockColumns.some((row) => row.name === column)) {
+          db.exec(`ALTER TABLE base_stock ADD COLUMN ${column} ${definition}`);
+        }
+      }
+    },
+  },
 ];
 
 export function migrateDatabase(db) {

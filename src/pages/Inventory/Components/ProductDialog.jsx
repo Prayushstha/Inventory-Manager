@@ -17,13 +17,21 @@ function normalizeProduct(product) {
     variants: (product?.variants ?? []).map((variant) => ({ ...variant })),
     bases: (product?.bases ?? []).map((base) => ({
       ...base,
+      pricesLinked: base.pricesLinked !== false,
       stockMap: { ...(base.stockMap ?? {}) },
+      priceMap: { ...(base.priceMap ?? {}) },
     })),
   };
 }
 
 function stockFor(base, variantId) {
   return base?.stockMap?.[variantId] ?? 0;
+}
+
+function priceFor(base, variant, field) {
+  return base?.pricesLinked
+    ? variant[field]
+    : base?.priceMap?.[variant.id]?.[field] ?? variant[field];
 }
 
 export function ProductDialog({
@@ -81,13 +89,83 @@ export function ProductDialog({
   async function handlePriceSave(variant, field, rawValue) {
     const value = numberValue(rawValue);
     if (value === null) return false;
+    setProduct((current) => {
+      if (activeBase?.pricesLinked) {
+        return {
+          ...current,
+          variants: current.variants.map((item) =>
+            item.id === variant.id ? { ...item, [field]: value } : item,
+          ),
+        };
+      }
+      return {
+        ...current,
+        bases: current.bases.map((base) =>
+          base.id === activeBase?.id
+            ? {
+                ...base,
+                priceMap: {
+                  ...base.priceMap,
+                  [variant.id]: {
+                    ...base.priceMap?.[variant.id],
+                    [field]: value,
+                  },
+                },
+              }
+            : base,
+        ),
+      };
+    });
+    return true;
+  }
+
+  function togglePriceLink() {
+    if (!activeBase) return;
+    if (activeBase.pricesLinked) {
+      setProduct((current) => ({
+        ...current,
+        bases: current.bases.map((base) => ({
+          ...base,
+          pricesLinked: false,
+          priceMap: Object.fromEntries(
+            current.variants.map((variant) => [
+              variant.id,
+              {
+                landing: priceFor(base, variant, "landing"),
+                sales: priceFor(base, variant, "sales"),
+                mp: priceFor(base, variant, "mp"),
+              },
+            ]),
+          ),
+        })),
+      }));
+      showToast("Base prices unlinked. Each base can now have different prices.", "success");
+      return;
+    }
+
+    const linkedPrices = Object.fromEntries(
+      product.variants.map((variant) => [
+        variant.id,
+        {
+          landing: priceFor(activeBase, variant, "landing"),
+          sales: priceFor(activeBase, variant, "sales"),
+          mp: priceFor(activeBase, variant, "mp"),
+        },
+      ]),
+    );
     setProduct((current) => ({
       ...current,
-      variants: current.variants.map((item) =>
-        item.id === variant.id ? { ...item, [field]: value } : item,
-      ),
+      variants: current.variants.map((variant) => ({
+        ...variant,
+        ...linkedPrices[variant.id],
+      })),
+      bases: current.bases.map((base) => ({
+        ...base,
+        pricesLinked: true,
+        priceMap: {},
+      })),
     }));
-    return true;
+    showToast("Base prices linked using the active base prices.", "success");
   }
 
   async function handleStockSave(variant, rawValue) {
@@ -132,9 +210,25 @@ export function ProductDialog({
     }
     setBaseError("");
     const id = `new-${Date.now()}`;
+    const linked = product.bases.every((base) => base.pricesLinked !== false);
     setProduct((current) => ({
       ...current,
-      bases: [...current.bases, { id, name, stockMap: {} }],
+      bases: [...current.bases, {
+        id,
+        name,
+        pricesLinked: linked,
+        stockMap: {},
+        priceMap: linked || !activeBase
+          ? {}
+          : Object.fromEntries(product.variants.map((variant) => [
+            variant.id,
+            {
+              landing: priceFor(activeBase, variant, "landing"),
+              sales: priceFor(activeBase, variant, "sales"),
+              mp: priceFor(activeBase, variant, "mp"),
+            },
+          ])),
+      }],
     }));
     setActiveBaseId(id);
     setBaseInput("");
@@ -253,6 +347,8 @@ export function ProductDialog({
       })),
       bases: product.bases.map((base) => ({
         name: base.name.trim(),
+        pricesLinked: base.pricesLinked !== false,
+        priceMap: base.priceMap,
         stocks: product.variants.map((variant) => Number(stockFor(base, variant.id))),
       })),
     };
@@ -376,6 +472,16 @@ export function ProductDialog({
               ) : (
                 <button type="button" className="product-add-base" onClick={() => setAddingBase(true)}>+ Add base</button>
               )}
+              {product.bases.length > 0 && (
+                <button
+                  type="button"
+                  className="product-link-bases"
+                  onClick={togglePriceLink}
+                  title={activeBase?.pricesLinked ? "Unlink prices for each base" : "Link prices across all bases"}
+                >
+                  {activeBase?.pricesLinked ? "Unlink prices" : "Link prices"}
+                </button>
+              )}
             </div>
             {baseError && <small className="product-dialog-error">{baseError}</small>}
             {errors.bases && <small className="product-dialog-error">{errors.bases}</small>}
@@ -387,7 +493,7 @@ export function ProductDialog({
             ) : (
               <>
                 <p className="product-dialog-hint">
-                  Viewing base: <strong>{activeBase.name}</strong> — prices are shared across bases, stock is unique to this base.
+                  Viewing base: <strong>{activeBase.name}</strong> — {activeBase.pricesLinked ? "prices are linked across bases" : "prices are independent for this base"}, stock is unique to this base.
                 </p>
                 <table className="product-prices-table">
                   <thead>
@@ -397,9 +503,9 @@ export function ProductDialog({
                     {presentVariants.map((variant) => (
                       <tr key={variant.id}>
                         <td>{renderEditableCell(variant.bucket_size, "text", (value) => handleSizeSave(variant, value), "size")}</td>
-                        <td>{renderEditableCell(variant.landing, "number", (value) => handlePriceSave(variant, "landing", value))}</td>
-                        <td>{renderEditableCell(variant.mp, "number", (value) => handlePriceSave(variant, "mp", value))}</td>
-                        <td>{renderEditableCell(variant.sales, "number", (value) => handlePriceSave(variant, "sales", value))}</td>
+                        <td>{renderEditableCell(priceFor(activeBase, variant, "landing"), "number", (value) => handlePriceSave(variant, "landing", value))}</td>
+                        <td>{renderEditableCell(priceFor(activeBase, variant, "mp"), "number", (value) => handlePriceSave(variant, "mp", value))}</td>
+                        <td>{renderEditableCell(priceFor(activeBase, variant, "sales"), "number", (value) => handlePriceSave(variant, "sales", value))}</td>
                         <td>{renderEditableCell(stockFor(activeBase, variant.id), "number", (value) => handleStockSave(variant, value), "stock")}</td>
                         <td>
                           <button type="button" className="product-row-delete" onClick={() => removeSize(variant)} aria-label={`Remove size ${variant.bucket_size}`}>×</button>

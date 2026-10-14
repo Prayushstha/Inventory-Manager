@@ -38,8 +38,8 @@ export function addInventoryProduct(db, product) {
 
     for (const base of validatedProduct.bases) {
       const baseId = db
-        .prepare("INSERT INTO bases (product_id, name) VALUES (?, ?)")
-        .run(productId, base.name).lastInsertRowid;
+        .prepare("INSERT INTO bases (product_id, name, prices_linked) VALUES (?, ?, ?)")
+        .run(productId, base.name, base.pricesLinked ? 1 : 0).lastInsertRowid;
 
       for (let index = 0; index < base.stocks.length; index += 1) {
         const variant = db
@@ -50,9 +50,19 @@ export function addInventoryProduct(db, product) {
           throw new Error(`Variant lookup failed while saving base "${base.name}".`);
         }
 
+        const prices = base.priceMap?.[variant.id] ?? {};
         db.prepare(
-          "INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)",
-        ).run(baseId, variant.id, base.stocks[index]);
+          `INSERT INTO base_stock
+            (base_id, variant_id, stock, landing, sales, mp)
+            VALUES (?, ?, ?, ?, ?, ?)`,
+        ).run(
+          baseId,
+          variant.id,
+          base.stocks[index],
+          base.pricesLinked ? null : prices.landing ?? variant.landing,
+          base.pricesLinked ? null : prices.sales ?? variant.sales,
+          base.pricesLinked ? null : prices.mp ?? variant.mp,
+        );
       }
     }
   });
@@ -110,8 +120,8 @@ export function updateInventoryProduct(db, id, product) {
 
     for (const base of validatedProduct.bases) {
       const baseId = db
-        .prepare("INSERT INTO bases (product_id, name) VALUES (?, ?)")
-        .run(id, base.name).lastInsertRowid;
+        .prepare("INSERT INTO bases (product_id, name, prices_linked) VALUES (?, ?, ?)")
+        .run(id, base.name, base.pricesLinked ? 1 : 0).lastInsertRowid;
 
       for (let index = 0; index < base.stocks.length; index += 1) {
         const variant = db
@@ -122,9 +132,19 @@ export function updateInventoryProduct(db, id, product) {
           throw new Error(`Variant lookup failed while updating base "${base.name}".`);
         }
 
+        const prices = base.priceMap?.[variant.id] ?? {};
         db.prepare(
-          "INSERT INTO base_stock (base_id, variant_id, stock) VALUES (?, ?, ?)",
-        ).run(baseId, variant.id, base.stocks[index]);
+          `INSERT INTO base_stock
+            (base_id, variant_id, stock, landing, sales, mp)
+            VALUES (?, ?, ?, ?, ?, ?)`,
+        ).run(
+          baseId,
+          variant.id,
+          base.stocks[index],
+          base.pricesLinked ? null : prices.landing ?? variant.landing,
+          base.pricesLinked ? null : prices.sales ?? variant.sales,
+          base.pricesLinked ? null : prices.mp ?? variant.mp,
+        );
       }
     }
   });
