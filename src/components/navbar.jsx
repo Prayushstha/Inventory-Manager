@@ -136,7 +136,7 @@ export function NavBar({
       ) : (
         ""
       )}
-      <EditConsole ref={addItemToInventory} />
+      <EditConsole ref={addItemToInventory} onSaved={fetchProducts} />
       <dialog ref={addModeDialog} className="inventory-add-mode-dialog">
         <form method="dialog" className="inventory-add-mode-content">
           <button className="inventory-add-mode-close" aria-label="Close" value="cancel">

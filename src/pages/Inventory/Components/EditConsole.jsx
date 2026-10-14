@@ -1,10 +1,10 @@
 import "../Styles/editconsoledialog.css";
-import { UpdateConsole } from "./UpdateConsole";
-import { AddConsole } from "./AddConsole";
+import { AddProductDialog } from "./AddProductDialog";
+import { EditProductDialog } from "./EditProductDialog";
 import { useState, useEffect, forwardRef } from "react";
 
 export const EditConsole = forwardRef((props, ref) => {
-  const { editingItem } = props;
+  const { editingItem, onSaved } = props;
   const [product, setProduct] = useState(null);
 
   useEffect(() => {
@@ -20,12 +20,16 @@ export const EditConsole = forwardRef((props, ref) => {
     fetchProduct();
   }, [editingItem]);
 
+  function closeDialog() {
+    ref.current?.close();
+  }
+
   return (
     <dialog ref={ref} className="edit-console">
       {product ? (
-        <UpdateConsole product={product} setProduct={setProduct} />
+        <EditProductDialog product={product} onClose={closeDialog} onSaved={onSaved} />
       ) : (
-        <AddConsole />
+        <AddProductDialog onClose={closeDialog} onSaved={onSaved} />
       )}
     </dialog>
   );

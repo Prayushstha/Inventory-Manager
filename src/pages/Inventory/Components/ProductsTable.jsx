@@ -382,6 +382,7 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
         ref={dialogRef}
         editingItem={editingItem}
         setEditingItem={setEditingItem}
+        onSaved={fetchProducts}
       />
       <div className="products-list">
         {editMode && selectedProductIds.length > 0 && (
