@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useConfirm } from "../../../hooks/useConfirm";
 import { useErrorHandler } from "../../../hooks/useErrorHandler";
 import { useToast } from "../../../hooks/ToastContext";
@@ -49,13 +49,6 @@ export function ProductDialog({
   const { handleAsync } = useErrorHandler();
   const showToast = useToast();
   const resolvedImage = useResolvedImage(product.images);
-
-  useEffect(() => {
-    const next = normalizeProduct(initialProduct);
-    setProduct(next);
-    setActiveBaseId(next.bases[0]?.id ?? null);
-    setSavedState(true);
-  }, [initialProduct]);
 
   const activeBase = product.bases.find((base) => base.id === activeBaseId) ?? null;
   const presentVariants = useMemo(
@@ -391,6 +384,7 @@ export function ProductDialog({
   function renderEditableCell(value, type, onSave, className = "") {
     return (
       <EditableCell
+        key={`${type}-${value}`}
         value={value}
         type={type}
         className={className}
@@ -557,10 +551,6 @@ function EditableCell({ value, type, className = "", onSave }) {
   const [editing, setEditing] = useState(false);
   const [raw, setRaw] = useState(String(value ?? ""));
   const [flash, setFlash] = useState(false);
-
-  useEffect(() => {
-    if (!editing) setRaw(String(value ?? ""));
-  }, [value, editing]);
 
   async function commit() {
     if (!editing) return;
