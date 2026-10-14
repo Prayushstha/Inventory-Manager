@@ -1,6 +1,6 @@
 dialog.edit-console {
-  width: min(980px, calc(100vw - 2rem));
-  max-height: 95vh;
+  width: min(1120px, calc(100vw - 2rem));
+  max-height: 96vh;
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 0;
@@ -15,8 +15,8 @@ dialog.edit-console::backdrop { background: rgba(0, 0, 0, 0.6); }
 .product-dialog {
   display: flex;
   flex-direction: column;
-  max-height: 92vh;
-  font-size: 0.8rem;
+  max-height: 96vh;
+  font-size: 0.95rem;
 }
 
 .product-dialog-header,
@@ -25,7 +25,7 @@ dialog.edit-console::backdrop { background: rgba(0, 0, 0, 0.6); }
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.9rem 1.25rem;
+  padding: 1.15rem 1.5rem;
   border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
 }
@@ -38,17 +38,13 @@ dialog.edit-console::backdrop { background: rgba(0, 0, 0, 0.6); }
 
 .product-dialog-title { font-weight: 600; }
 .product-dialog-header-right { display: flex; align-items: center; gap: 0.75rem; }
-.product-dialog-status { color: var(--color-muted); font-size: 0.7rem; }
-.product-dialog-status.saved { color: #4ade80; }
-.product-dialog-status.unsaved { color: #facc15; }
-
 .product-dialog-close,
 .product-row-delete {
   border: 0;
   background: none;
   color: var(--color-muted);
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 1.25rem;
 }
 
 .product-dialog-close:hover,
@@ -61,12 +57,12 @@ dialog.edit-console::backdrop { background: rgba(0, 0, 0, 0.6); }
 }
 
 .product-dialog-left {
-  width: 220px;
+  width: 270px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
-  padding: 1.25rem;
+  gap: 1rem;
+  padding: 1.5rem;
   border-right: 1px solid var(--border-color);
   overflow-y: auto;
 }
@@ -93,7 +89,7 @@ dialog.edit-console::backdrop { background: rgba(0, 0, 0, 0.6); }
   color: var(--color-muted);
   cursor: pointer;
   font: inherit;
-  font-size: 0.7rem;
+  font-size: 0.82rem;
 }
 
 .product-image-upload img { width: 100%; height: 100%; object-fit: cover; }
@@ -101,7 +97,7 @@ dialog.edit-console::backdrop { background: rgba(0, 0, 0, 0.6); }
 
 .product-dialog-field { display: grid; gap: 0.3rem; }
 .product-dialog-field > span,
-.product-dialog-label { color: var(--color-muted); font-size: 0.68rem; font-weight: 500; }
+.product-dialog-label { color: var(--color-muted); font-size: 0.8rem; font-weight: 500; }
 .product-dialog-field input,
 .product-inline-add input,
 .product-new-size-fields input {
@@ -109,7 +105,7 @@ dialog.edit-console::backdrop { background: rgba(0, 0, 0, 0.6); }
   width: 100%;
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  padding: 0.4rem 0.55rem;
+  padding: 0.55rem 0.7rem;
   background: var(--background-secondary);
   color: var(--color-primary);
   font: inherit;
@@ -128,7 +124,7 @@ dialog.edit-console::backdrop { background: rgba(0, 0, 0, 0.6); }
   line-height: 1.7;
 }
 
-.product-dialog-bases { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border-color); }
+.product-dialog-bases { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); }
 .product-dialog-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-top: 0.45rem; }
 
 .product-base-chip,
@@ -144,7 +140,7 @@ dialog.edit-console::backdrop { background: rgba(0, 0, 0, 0.6); }
   color: var(--secondary-foreground);
   cursor: pointer;
   font: inherit;
-  font-size: 0.72rem;
+  font-size: 0.85rem;
 }
 
 .product-base-chip.active { border-color: var(--button-primary); background: var(--button-primary); color: var(--primary-foreground); }
@@ -155,18 +151,18 @@ dialog.edit-console::backdrop { background: rgba(0, 0, 0, 0.6); }
 .product-inline-add input { width: 90px; border-radius: 999px; padding: 0.2rem 0.55rem; }
 .product-inline-add button { border: 0; border-radius: 999px; padding: 0.22rem 0.55rem; background: var(--button-primary); color: var(--primary-foreground); cursor: pointer; }
 
-.product-dialog-table-area { flex: 1; min-height: 0; overflow-y: auto; padding: 1rem 1.25rem; }
-.product-dialog-hint { margin-bottom: 0.65rem; color: var(--color-muted); font-size: 0.68rem; }
+.product-dialog-table-area { flex: 1; min-height: 0; overflow-y: auto; padding: 1.35rem 1.5rem; }
+.product-dialog-hint { margin-bottom: 0.8rem; color: var(--color-muted); font-size: 0.8rem; }
 .product-dialog-hint strong { color: var(--color-primary); }
-.product-prices-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
-.product-prices-table th { padding: 0.35rem 0.4rem; border-bottom: 1px solid var(--border-color); color: var(--color-muted); font-size: 0.66rem; font-weight: 500; text-align: left; }
-.product-prices-table td { padding: 0.3rem 0.4rem; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+.product-prices-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.product-prices-table th { padding: 0.5rem 0.55rem; border-bottom: 1px solid var(--border-color); color: var(--color-muted); font-size: 0.8rem; font-weight: 500; text-align: left; }
+.product-prices-table td { padding: 0.45rem 0.55rem; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
 .product-cell-display,
 .product-cell-input {
-  min-width: 60px;
+  min-width: 78px;
   border: 1px solid transparent;
   border-radius: 4px;
-  padding: 0.25rem 0.4rem;
+  padding: 0.4rem 0.55rem;
   background: transparent;
   color: var(--color-primary);
   font: inherit;
@@ -175,9 +171,7 @@ dialog.edit-console::backdrop { background: rgba(0, 0, 0, 0.6); }
 .product-cell-display { cursor: text; }
 .product-cell-display:hover { border-color: var(--border-color); background: var(--background-secondary); }
 .product-cell-display.size { font-weight: 600; }
-.product-cell-display.stock,
-.product-cell-input.stock { color: #4ade80; }
-.product-cell-input { width: 75px; border-color: var(--ring); background: var(--background-secondary); }
+.product-cell-input { width: 95px; border-color: var(--ring); background: var(--background-secondary); }
 .product-cell-display.flash { border-color: #4ade80; }
 .product-add-size-row { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.65rem; }
 .product-dialog-empty { padding: 1.5rem; color: var(--color-muted); text-align: center; }
@@ -187,10 +181,10 @@ dialog.edit-console::backdrop { background: rgba(0, 0, 0, 0.6); }
 .product-dialog-secondary {
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  padding: 0.5rem 0.85rem;
+  padding: 0.65rem 1rem;
   cursor: pointer;
   font: inherit;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 600;
 }
 .product-dialog-primary { border-color: var(--button-primary); background: var(--button-primary); color: var(--primary-foreground); }

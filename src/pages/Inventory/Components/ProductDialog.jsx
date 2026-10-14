@@ -42,7 +42,6 @@ export function ProductDialog({
   const [baseError, setBaseError] = useState("");
   const [addingSize, setAddingSize] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [savedState, setSavedState] = useState(true);
   const [errors, setErrors] = useState({});
   const baseInputRef = useRef(null);
   const { confirm, ConfirmDialogComponent } = useConfirm();
@@ -58,36 +57,6 @@ export function ProductDialog({
     [product.variants, activeBase],
   );
 
-  function markUnsaved() {
-    setSavedState(false);
-  }
-
-  function markSaved() {
-    setSavedState(true);
-  }
-
-  function updateProduct(nextProduct) {
-    setProduct(normalizeProduct(nextProduct));
-    markSaved();
-    onSaved?.();
-  }
-
-  async function refreshProduct() {
-    if (!isEdit || !product.id) return;
-    const products = await window.db.getProducts();
-    const updated = products.find((item) => item.id === product.id);
-    if (updated) updateProduct(updated);
-  }
-
-  async function saveEdit(action, successMessage = "Changes saved.") {
-    const result = await handleAsync(action, "Could not save this change.");
-    if (result === null || result === false) return false;
-    await refreshProduct();
-    markSaved();
-    showToast(successMessage, "success");
-    return true;
-  }
-
   async function handlePickImage() {
     const filePath = await handleAsync(() => window.db.pickImage(), "Failed to pick image.");
     if (!filePath) return;
@@ -97,15 +66,7 @@ export function ProductDialog({
     );
     if (!relativePath) return;
 
-    if (isEdit) {
-      const next = { ...product, images: relativePath };
-      if (await saveEdit(() => window.db.editProduct(product.id, next))) {
-        updateProduct({ ...next });
-      }
-      return;
-    }
     setProduct((current) => ({ ...current, images: relativePath }));
-    markUnsaved();
   }
 
   async function handleNameBlur(event) {
@@ -115,47 +76,32 @@ export function ProductDialog({
       return;
     }
     setErrors((current) => ({ ...current, name: "" }));
-    if (!isEdit || name === product.name) return;
-    const next = { ...product, name };
-    await saveEdit(() => window.db.editProduct(product.id, next));
   }
 
   async function handlePriceSave(variant, field, rawValue) {
     const value = numberValue(rawValue);
     if (value === null) return false;
-    if (!isEdit) {
-      setProduct((current) => ({
-        ...current,
-        variants: current.variants.map((item) =>
-          item.id === variant.id ? { ...item, [field]: value } : item,
-        ),
-      }));
-      markUnsaved();
-      return true;
-    }
-    return saveEdit(() =>
-      window.db.updateVariantPrice(product.id, activeBase.id, variant.id, field, value),
-    );
+    setProduct((current) => ({
+      ...current,
+      variants: current.variants.map((item) =>
+        item.id === variant.id ? { ...item, [field]: value } : item,
+      ),
+    }));
+    return true;
   }
 
   async function handleStockSave(variant, rawValue) {
     const value = numberValue(rawValue);
     if (value === null) return false;
-    if (!isEdit) {
-      setProduct((current) => ({
-        ...current,
-        bases: current.bases.map((base) =>
-          base.id === activeBase.id
-            ? { ...base, stockMap: { ...base.stockMap, [variant.id]: value } }
-            : base,
-        ),
-      }));
-      markUnsaved();
-      return true;
-    }
-    return saveEdit(() =>
-      window.db.updateBaseStock(product.id, activeBase.id, variant.id, value),
-    );
+    setProduct((current) => ({
+      ...current,
+      bases: current.bases.map((base) =>
+        base.id === activeBase.id
+          ? { ...base, stockMap: { ...base.stockMap, [variant.id]: value } }
+          : base,
+      ),
+    }));
+    return true;
   }
 
   async function handleSizeSave(variant, rawValue) {
@@ -165,23 +111,13 @@ export function ProductDialog({
     );
     if (!size || duplicate || numberValue(size) === null || Number(size) <= 0) return false;
     const bucketSize = Number(size);
-    if (!isEdit) {
-      setProduct((current) => ({
-        ...current,
-        variants: current.variants.map((item) =>
-          item.id === variant.id ? { ...item, bucket_size: bucketSize } : item,
-        ),
-      }));
-      markUnsaved();
-      return true;
-    }
-    const next = {
-      ...product,
-      variants: product.variants.map((item) =>
+    setProduct((current) => ({
+      ...current,
+      variants: current.variants.map((item) =>
         item.id === variant.id ? { ...item, bucket_size: bucketSize } : item,
       ),
-    };
-    return saveEdit(() => window.db.editProduct(product.id, next));
+    }));
+    return true;
   }
 
   async function addBase() {
@@ -195,24 +131,12 @@ export function ProductDialog({
       return;
     }
     setBaseError("");
-    if (isEdit) {
-      const baseId = await handleAsync(
-        () => window.db.addBase(product.id, name),
-        "Could not add base.",
-      );
-      if (!baseId) return;
-      await refreshProduct();
-      setActiveBaseId(baseId);
-      showToast("Base added.", "success");
-    } else {
-      const id = `new-${Date.now()}`;
-      setProduct((current) => ({
-        ...current,
-        bases: [...current.bases, { id, name, stockMap: {} }],
-      }));
-      setActiveBaseId(id);
-      markUnsaved();
-    }
+    const id = `new-${Date.now()}`;
+    setProduct((current) => ({
+      ...current,
+      bases: [...current.bases, { id, name, stockMap: {} }],
+    }));
+    setActiveBaseId(id);
     setBaseInput("");
     setAddingBase(false);
   }
@@ -223,15 +147,10 @@ export function ProductDialog({
       return;
     }
     if (!(await confirm(`Delete base "${base.name}" and all its stock?`))) return;
-    if (isEdit) {
-      if (!(await saveEdit(() => window.db.deleteBase(base.id), "Base deleted."))) return;
-    } else {
-      setProduct((current) => ({
-        ...current,
-        bases: current.bases.filter((item) => item.id !== base.id),
-      }));
-      markUnsaved();
-    }
+    setProduct((current) => ({
+      ...current,
+      bases: current.bases.filter((item) => item.id !== base.id),
+    }));
     if (activeBaseId === base.id) {
       setActiveBaseId(product.bases.find((item) => item.id !== base.id)?.id ?? null);
     }
@@ -240,10 +159,6 @@ export function ProductDialog({
   async function removeSize(variant) {
     if (!activeBase) return;
     if (!(await confirm(`Remove size "${variant.bucket_size}" from base "${activeBase.name}"?`))) return;
-    if (isEdit) {
-      await saveEdit(() => window.db.deleteBaseStock(activeBase.id, variant.id), "Size removed from base.");
-      return;
-    }
     setProduct((current) => ({
       ...current,
       bases: current.bases.map((base) => {
@@ -253,20 +168,10 @@ export function ProductDialog({
         return { ...base, stockMap };
       }),
     }));
-    markUnsaved();
   }
 
   async function addExistingSize(variant) {
     if (!activeBase) return;
-    if (isEdit) {
-      const result = await handleAsync(
-        () => window.db.addBaseStock(activeBase.id, variant.id, 0),
-        "Could not add size to base.",
-      );
-      if (result === null) return;
-      await refreshProduct();
-      return;
-    }
     setProduct((current) => ({
       ...current,
       bases: current.bases.map((base) =>
@@ -275,7 +180,6 @@ export function ProductDialog({
           : base,
       ),
     }));
-    markUnsaved();
   }
 
   async function addNewSize(values) {
@@ -298,47 +202,26 @@ export function ProductDialog({
     }
     setErrors({});
 
-    if (isEdit) {
-      const variantId = await handleAsync(
-        () => window.db.addVariant(product.id, {
-          bucket_size: Number(size),
-          landing,
-          mp,
-          sales,
-        }),
-        "Could not add size.",
-      );
-      if (!variantId) return;
-      const stockResult = await handleAsync(
-        () => window.db.addBaseStock(activeBase.id, variantId, stock),
-        "Could not add stock for the new size.",
-      );
-      if (stockResult === null) return;
-      await refreshProduct();
-    } else {
-      const variantId = `new-${Date.now()}`;
-      setProduct((current) => ({
-        ...current,
-        variants: [...current.variants, {
-          id: variantId,
-          bucket_size: Number(size),
-          landing,
-          mp,
-          sales,
-        }],
-        bases: current.bases.map((base) => ({
-          ...base,
-          stockMap: { ...base.stockMap, [variantId]: base.id === activeBase.id ? stock : 0 },
-        })),
-      }));
-      markUnsaved();
-    }
+    const variantId = `new-${Date.now()}`;
+    setProduct((current) => ({
+      ...current,
+      variants: [...current.variants, {
+        id: variantId,
+        bucket_size: Number(size),
+        landing,
+        mp,
+        sales,
+      }],
+      bases: current.bases.map((base) => ({
+        ...base,
+        stockMap: { ...base.stockMap, [variantId]: base.id === activeBase.id ? stock : 0 },
+      })),
+    }));
     setAddingSize(false);
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
-    if (isEdit) return;
     const nextErrors = {};
     if (!product.name.trim()) nextErrors.name = "Product name is required.";
     if (!product.variants.length) nextErrors.variants = "Add at least one size.";
@@ -373,10 +256,24 @@ export function ProductDialog({
         stocks: product.variants.map((variant) => Number(stockFor(base, variant.id))),
       })),
     };
-    const result = await handleAsync(() => window.db.addProduct(payload), "Could not add product.");
+    const result = await handleAsync(
+      async () => {
+        if (!isEdit) return window.db.addProduct(payload);
+        await window.db.editProduct(product.id, payload);
+        for (const base of product.bases) {
+          for (const variant of product.variants) {
+            if (!Object.prototype.hasOwnProperty.call(base.stockMap, variant.id)) {
+              await window.db.deleteBaseStock(base.id, variant.id);
+            }
+          }
+        }
+        return true;
+      },
+      isEdit ? "Could not save product." : "Could not add product.",
+    );
     setSaving(false);
     if (!result) return;
-    showToast("Product added successfully.", "success");
+    showToast(isEdit ? "Product saved successfully." : "Product added successfully.", "success");
     onSaved?.();
     onClose?.();
   }
@@ -402,9 +299,6 @@ export function ProductDialog({
       <header className="product-dialog-header">
         <span className="product-dialog-title">{isEdit ? "Edit Product" : "Add Product"}</span>
         <div className="product-dialog-header-right">
-          <span className={`product-dialog-status ${savedState ? "saved" : "unsaved"}`}>
-            {savedState ? "All changes saved" : "Unsaved changes"}
-          </span>
           <button type="button" className="product-dialog-close" onClick={onClose} aria-label="Close">×</button>
         </div>
       </header>
@@ -421,7 +315,6 @@ export function ProductDialog({
               value={product.name}
               onChange={(event) => {
                 setProduct((current) => ({ ...current, name: event.target.value }));
-                markUnsaved();
               }}
               onBlur={handleNameBlur}
               aria-invalid={Boolean(errors.name)}
@@ -534,14 +427,12 @@ export function ProductDialog({
         </section>
       </div>
 
-      {!isEdit && (
-        <footer className="product-dialog-footer">
-          <button type="button" className="product-dialog-secondary" onClick={onClose}>Cancel</button>
-          <button type="submit" className="product-dialog-primary" disabled={saving}>
-            {saving ? "Saving..." : "Save Product"}
-          </button>
-        </footer>
-      )}
+      <footer className="product-dialog-footer">
+        <button type="button" className="product-dialog-secondary" onClick={onClose}>Cancel</button>
+        <button type="submit" className="product-dialog-primary" disabled={saving}>
+          {saving ? "Saving..." : isEdit ? "Save Changes" : "Save Product"}
+        </button>
+      </footer>
       {ConfirmDialogComponent}
     </form>
   );
