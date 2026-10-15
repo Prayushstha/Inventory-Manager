@@ -240,14 +240,16 @@ export function BillDialog({
       }
     }
 
-    const customerName = form.name.trim() || "Unknown";
-    const customerPhone = form.phone.trim() || "0";
-    const matchingCustomer = isNew
+    const enteredCustomerName = form.name.trim();
+    const customerName = enteredCustomerName || "-";
+    const customerPhone = form.phone.trim();
+    const enteredCustomerAddress = form.address.trim();
+    const matchingCustomer = isNew && enteredCustomerName && customerPhone && enteredCustomerAddress
       ? customers.find(
           (customer) =>
             String(customer.name || "").trim().toLowerCase() === customerName.toLowerCase() &&
             String(customer.phone || "").trim() === customerPhone &&
-            String(customer.address || "").trim().toLowerCase() === form.address.trim().toLowerCase(),
+            String(customer.address || "").trim().toLowerCase() === enteredCustomerAddress.toLowerCase(),
         )
       : null;
 

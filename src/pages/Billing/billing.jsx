@@ -75,11 +75,9 @@ export function Billing() {
   }, [handleAsync]);
 
   const customerGroups = customers.reduce((groups, customer) => {
-    const key = [
-      String(customer.name || "").trim().toLowerCase(),
-      String(customer.phone || "").trim(),
-      String(customer.address || "").trim().toLowerCase(),
-    ].join("|");
+    // A customer can have duplicate details when the user explicitly chose
+    // to create a separate bill, so the persisted customer id is the group key.
+    const key = String(customer.id);
     const bills = (customer.bills || []).map((bill) => ({
       id: bill.id,
       customerId: customer.id,
