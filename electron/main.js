@@ -49,6 +49,7 @@ import {
   restorePortableDatabase,
   saveInventoryProductChanges,
   addCustomerBill,
+  addBillToCustomer,
   editCustomerBill,
   getAppSettings,
   setLocalDataDirectory,
@@ -222,6 +223,9 @@ app.whenReady().then(() => {
     addBill(customerId, bill),
   );
   ipcMain.handle("db:addCustomerBill", (_, customer, bill) => addCustomerBill(customer, bill));
+  ipcMain.handle("db:addBillToCustomer", (_, customerId, bill) =>
+    addBillToCustomer(customerId, bill),
+  );
   ipcMain.handle("db:editCustomerBill", (_, customerId, customer, billId, bill) =>
     editCustomerBill(customerId, customer, billId, bill),
   );

@@ -16,6 +16,7 @@ const DATA_MUTATION_CHANNELS = new Set([
   "db:addCustomer",
   "db:addBill",
   "db:addCustomerBill",
+  "db:addBillToCustomer",
   "db:editCustomerBill",
   "db:deleteCustomer",
   "db:deleteBill",
@@ -95,6 +96,7 @@ contextBridge.exposeInMainWorld("db", {
   addBill: (customerId, bill) =>
     invoke("db:addBill", customerId, bill),
   addCustomerBill: (customer, bill) => invoke("db:addCustomerBill", customer, bill),
+  addBillToCustomer: (customerId, bill) => invoke("db:addBillToCustomer", customerId, bill),
   editCustomerBill: (customerId, customer, billId, bill) =>
     invoke("db:editCustomerBill", customerId, customer, billId, bill),
   getCustomers: () => invoke("db:getCustomers"),

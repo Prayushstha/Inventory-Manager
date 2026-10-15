@@ -87,7 +87,7 @@ export const {
   updateProducts, updateVariantPrice, updateBaseStock,
 } = services[2];
 export const {
-  addCustomer, addBillActivity, getBillActivity, addBill, getCustomers,
+  addCustomer, addBillActivity, getBillActivity, addBill, addBillToCustomer, getCustomers,
   deleteCustomer, addCustomerBill, deleteBill, editCustomer, editBill,
   editCustomerBill,
 } = services[3];

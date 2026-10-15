@@ -13,6 +13,10 @@ function addCustomer(customer) {
     throw new Error(`Customer "${validatedCustomer.name}" already exists.`);
   }
 
+  return insertCustomer(validatedCustomer);
+}
+
+function insertCustomer(validatedCustomer) {
   const result = ctx.db
     .prepare(
       `
@@ -53,6 +57,10 @@ function getBillActivity(billId) {
 
 function addBill(customerId, bill) {
   return createBill(ctx.db, customerId, bill);
+}
+
+function addBillToCustomer(customerId, bill) {
+  return addBill(customerId, bill);
 }
 
 function getCustomers() {
@@ -98,7 +106,7 @@ function deleteCustomer(id) {
 
 function addCustomerBill(customer, bill) {
   const run = ctx.db.transaction(() => {
-    const customerId = addCustomer(customer);
+    const customerId = insertCustomer(validateCustomer(customer));
     addBill(customerId, bill);
     return customerId;
   });
@@ -256,6 +264,7 @@ function getLandingPrice(productName, bucketSize) {
     addBillActivity,
     getBillActivity,
     addBill,
+    addBillToCustomer,
     getCustomers,
     deleteCustomer,
     addCustomerBill,

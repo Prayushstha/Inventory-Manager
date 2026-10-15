@@ -8,6 +8,7 @@ import { formatNepaliDate } from "../../../utils/nepaliDate";
 import { ExpenseInvoiceEditor } from "../../Finances/Components/ExpenseInvoiceEditor";
 import { validateInvoiceDraft } from "../../Finances/Components/expenseInvoiceUtils";
 import { getTodayGregorianISO } from "../../../utils/nepaliDate";
+import { useConfirm } from "../../../hooks/useConfirm";
 
 function normalizeProduct(p) {
   return {
@@ -37,6 +38,7 @@ export function BillDialog({
   asPage = false,
 }) {
   const showToast = useToast();
+  const { confirm, ConfirmDialogComponent } = useConfirm();
 
   const [form, setForm] = useState({
     ...bill,
@@ -177,12 +179,14 @@ export function BillDialog({
 
     const customerName = form.name.trim() || "Unknown";
     const customerPhone = form.phone.trim() || "0";
-    if(isNew && customers.find((customer) => customer.name === customerName && customer.phone === customerPhone) ){
-      showToast("The user already exists!");
-      return;
-    }
-    
-    
+    const matchingCustomer = isNew
+      ? customers.find(
+          (customer) =>
+            String(customer.name || "").trim().toLowerCase() === customerName.toLowerCase() &&
+            String(customer.phone || "").trim() === customerPhone &&
+            String(customer.address || "").trim().toLowerCase() === form.address.trim().toLowerCase(),
+        )
+      : null;
 
     if (form.products.length === 0) {
       showToast("Please add at least one product.", "error");
@@ -235,7 +239,19 @@ export function BillDialog({
       };
 
       if (isNew) {
-        await window.db.addCustomerBill(customer, billPayload);
+        const shouldGroup = matchingCustomer
+          ? await confirm(
+              `A bill already exists for ${customerName} at this address and phone number. Do you want to group this bill with that customer?`,
+              "Group bills",
+              "Create separate",
+            )
+          : false;
+
+        if (shouldGroup) {
+          await window.db.addBillToCustomer(matchingCustomer.id, billPayload);
+        } else {
+          await window.db.addCustomerBill(customer, billPayload);
+        }
       } else {
         await window.db.editCustomerBill(form.customerId, customer, form.id, billPayload);
       }
@@ -387,8 +403,9 @@ export function BillDialog({
 
   if (form.billType === "vat" && isEditing) {
     return (
-      <div className="bill-page-shell bill-vat-page-shell">
-        <ExpenseInvoiceEditor
+      <>
+        <div className="bill-page-shell bill-vat-page-shell">
+          <ExpenseInvoiceEditor
           details={{ id: form.id || "new" }}
           nameOfExpense={form.name || ""}
           setNameOfExpense={(name) => {
@@ -459,8 +476,10 @@ export function BillDialog({
               </strong>
             </div>
           }
-        />
-      </div>
+          />
+        </div>
+        {ConfirmDialogComponent}
+      </>
     );
   }
 
@@ -746,6 +765,7 @@ export function BillDialog({
           onClose={() => setShowPanel(false)}
         />
       )}
+      {ConfirmDialogComponent}
     </div>
   );
 }
