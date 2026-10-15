@@ -27,6 +27,55 @@ function computeStatus(totalPurchased, amountPaid) {
   return "Due";
 }
 
+function CustomerHistory({ bills }) {
+  const billsByDate = bills.reduce((groups, bill) => {
+    const date = bill.date || "Undated";
+    const dateBills = groups.get(date) || [];
+    dateBills.push(bill);
+    groups.set(date, dateBills);
+    return groups;
+  }, new Map());
+
+  return (
+    <section className="dialog-section customer-history-section">
+      <p className="section-label">Customer History</p>
+      {[...billsByDate.entries()]
+        .sort(([first], [second]) => second.localeCompare(first))
+        .map(([date, dateBills]) => (
+          <div className="customer-history-day" key={date}>
+            <h3>{formatNepaliDate(date)}</h3>
+            {dateBills.map((historyBill) => (
+              <div className="customer-history-bill" key={historyBill.id}>
+                <div className="customer-history-bill-header">
+                  <strong>Bill #{historyBill.id}</strong>
+                  <span>
+                    Rs {Number(historyBill.totalPurchased || 0).toLocaleString()} ·{" "}
+                    {historyBill.paymentMethod || "Cash"}
+                  </span>
+                </div>
+                <ul>
+                  {(historyBill.products || []).map((item, index) => (
+                    <li key={`${historyBill.id}-${index}`}>
+                      <span>{item.product_name || item.productName}</span>
+                      <span>
+                        {item.quantity} × Rs{" "}
+                        {Number(item.price_at_sale ?? item.priceAtSale ?? 0).toLocaleString()}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="customer-history-payment">
+                  Paid: Rs {Number(historyBill.amountPaid || 0).toLocaleString()} · Due: Rs{" "}
+                  {Number(historyBill.amountDue || 0).toLocaleString()}
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+    </section>
+  );
+}
+
 export function BillDialog({
   bill,
   products,
@@ -534,6 +583,9 @@ export function BillDialog({
         </div>
 
         <div className="dialog-body">
+          {!isNew && Array.isArray(bill.history) && bill.history.length > 0 && (
+            <CustomerHistory bills={bill.history} />
+          )}
           <section className="dialog-section">
             <p className="section-label">Customer Information</p>
             <div className="field-grid">

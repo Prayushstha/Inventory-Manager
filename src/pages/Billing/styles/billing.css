@@ -257,6 +257,64 @@
   background: color-mix(in srgb, var(--danger) 8%, transparent);
 }
 
+.customer-history-section {
+  background: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.customer-history-day + .customer-history-day {
+  margin-top: 18px;
+}
+
+.customer-history-day h3 {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  color: var(--color-primary);
+}
+
+.customer-history-bill {
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--background-primary);
+}
+
+.customer-history-bill + .customer-history-bill {
+  margin-top: 10px;
+}
+
+.customer-history-bill-header,
+.customer-history-bill li,
+.customer-history-payment {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.customer-history-bill-header {
+  font-size: 0.85rem;
+}
+
+.customer-history-bill ul {
+  margin: 10px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.customer-history-bill li {
+  padding: 4px 0;
+  color: var(--color-secondary);
+  font-size: 0.82rem;
+}
+
+.customer-history-payment {
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+  color: var(--color-secondary);
+  font-size: 0.8rem;
+}
+
 .dialog-overlay {
   position: fixed;
   inset: 0;

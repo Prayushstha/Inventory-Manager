@@ -74,9 +74,13 @@ export function Billing() {
     return () => { cancelled = true; };
   }, [handleAsync]);
 
-  // Flatten customers + their bills into one row-per-bill list for the table
-  const rows = customers.flatMap((customer) =>
-    customer.bills.map((bill) => ({
+  const customerGroups = customers.reduce((groups, customer) => {
+    const key = [
+      String(customer.name || "").trim().toLowerCase(),
+      String(customer.phone || "").trim(),
+      String(customer.address || "").trim().toLowerCase(),
+    ].join("|");
+    const bills = (customer.bills || []).map((bill) => ({
       id: bill.id,
       customerId: customer.id,
       name: customer.name,
@@ -84,7 +88,6 @@ export function Billing() {
       address: customer.address,
       notes: customer.notes,
       totalPurchased: bill.total_purchased,
-      totalDue: customer.totalDue,
       amountDue: bill.amount_due,
       amountPaid: bill.amount_paid,
       date: bill.date,
@@ -94,12 +97,44 @@ export function Billing() {
       billNumber: bill.bill_number || "",
       invoiceData: bill.invoice_data ? JSON.parse(bill.invoice_data) : null,
       status: bill.status,
-      products: bill.products,
-    })),
-  );
+      products: bill.products || [],
+    }));
+    const existing = groups.get(key);
 
+    if (existing) {
+      existing.bills.push(...bills);
+      existing.totalDue += Number(customer.totalDue || 0);
+    } else {
+      groups.set(key, {
+        id: key,
+        customerId: customer.id,
+        name: customer.name,
+        phone: customer.phone,
+        address: customer.address,
+        notes: customer.notes,
+        totalDue: Number(customer.totalDue || 0),
+        bills,
+      });
+    }
+    return groups;
+  }, new Map());
 
-  
+  const rows = [...customerGroups.values()].map((group) => {
+    const latestBill = [...group.bills].sort((a, b) => Number(b.id) - Number(a.id))[0];
+    return {
+      ...latestBill,
+      id: latestBill?.id || group.id,
+      customerId: group.customerId,
+      name: group.name,
+      phone: group.phone,
+      address: group.address,
+      notes: group.notes,
+      totalPurchased: group.bills.reduce((sum, bill) => sum + Number(bill.totalPurchased || 0), 0),
+      totalDue: group.totalDue,
+      history: group.bills,
+    };
+  });
+
   const filtered = rows.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -123,7 +158,8 @@ export function Billing() {
   };
 
   const openExisting = (customer) => {
-    setSelectedBill({ ...customer, invoiceDefaults });
+    const latestBill = [...customer.history].sort((a, b) => Number(b.id) - Number(a.id))[0];
+    setSelectedBill({ ...latestBill, ...customer, invoiceDefaults });
     setIsNewBill(false);
   };
 
