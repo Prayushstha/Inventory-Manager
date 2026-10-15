@@ -28,6 +28,7 @@ function computeStatus(totalPurchased, amountPaid) {
 }
 
 function CustomerHistory({ bills }) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const billsByDate = bills.reduce((groups, bill) => {
     const date = bill.date || "Undated";
     const dateBills = groups.get(date) || [];
@@ -38,7 +39,19 @@ function CustomerHistory({ bills }) {
 
   return (
     <section className="dialog-section customer-history-section">
-      <p className="section-label">Customer History</p>
+      <div className="customer-history-header">
+        <p className="section-label">Customer History</p>
+        <button
+          type="button"
+          className="customer-history-toggle"
+          aria-expanded={isExpanded}
+          onClick={() => setIsExpanded((expanded) => !expanded)}
+        >
+          {isExpanded ? "Hide history" : "Show history"}
+          <span aria-hidden="true">{isExpanded ? "▴" : "▾"}</span>
+        </button>
+      </div>
+      {isExpanded && <div className="customer-history-content">
       {[...billsByDate.entries()]
         .sort(([first], [second]) => second.localeCompare(first))
         .map(([date, dateBills]) => (
@@ -72,6 +85,7 @@ function CustomerHistory({ bills }) {
             ))}
           </div>
         ))}
+      </div>}
     </section>
   );
 }
@@ -583,9 +597,6 @@ export function BillDialog({
         </div>
 
         <div className="dialog-body">
-          {!isNew && Array.isArray(bill.history) && bill.history.length > 0 && (
-            <CustomerHistory bills={bill.history} />
-          )}
           <section className="dialog-section">
             <p className="section-label">Customer Information</p>
             <div className="field-grid">
@@ -766,6 +777,10 @@ export function BillDialog({
               </div>
             </div>
           </section>
+
+          {!isNew && Array.isArray(bill.history) && bill.history.length > 0 && (
+            <CustomerHistory bills={bill.history} />
+          )}
 
           {activity.length > 0 && (
             <section className="dialog-section">
