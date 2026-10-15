@@ -780,7 +780,12 @@ export function BillDialog({
             </div>
           </section>
 
-          {!isNew && Array.isArray(bill.history) && bill.history.length > 0 && (
+          {!isNew &&
+            String(bill.name || "").trim() !== "" &&
+            String(bill.name || "").trim() !== "-" &&
+            String(bill.name || "").trim().toLowerCase() !== "unknown" &&
+            Array.isArray(bill.history) &&
+            bill.history.length > 0 && (
             <CustomerHistory bills={bill.history} />
           )}
 
