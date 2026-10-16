@@ -5,7 +5,7 @@ import { access, constants } from "node:fs/promises";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-const XLSX = require("xlsx");
+const ExcelJS = require("exceljs");
 const PDFDocument = require("pdfkit");
 const { ZipArchive } = require("archiver");
 
@@ -125,16 +125,20 @@ function sheetRows(rows) {
 }
 
 function addSheet(workbook, name, rows) {
-  const worksheet = XLSX.utils.json_to_sheet(sheetRows(rows));
+  const worksheet = workbook.addWorksheet(name);
+  const outputRows = sheetRows(rows);
   const headers = rows.length ? Object.keys(rows[0]) : ["No records"];
-  worksheet["!cols"] = headers.map((header) => {
+  worksheet.addRow(headers);
+  for (const row of outputRows) {
+    worksheet.addRow(headers.map((header) => row[header] ?? ""));
+  }
+  worksheet.columns = headers.map((header) => {
     const width = Math.max(
       header.length,
       ...rows.map((row) => String(row[header] ?? "").length),
     );
-    return { wch: Math.min(Math.max(width + 2, 12), 55) };
+    return { header, key: header, width: Math.min(Math.max(width + 2, 12), 55) };
   });
-  XLSX.utils.book_append_sheet(workbook, worksheet, name);
 }
 
 function createPdfBuffer(build) {
@@ -377,7 +381,7 @@ export async function exportData(db, destinationPath, selections, appVersion) {
   const normalizedSelections = normalizeSelections(selections);
   const destination = await assertWritableDirectory(destinationPath);
   const rows = selectedRows(db, normalizedSelections);
-  const workbook = XLSX.utils.book_new();
+  const workbook = new ExcelJS.Workbook();
 
   const sheets = [
     ["Products", "products"],
@@ -405,7 +409,7 @@ export async function exportData(db, destinationPath, selections, appVersion) {
     },
     {
       name: "data.xlsx",
-      content: XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }),
+      content: await workbook.xlsx.writeBuffer(),
     },
   ];
   if (normalizedSelections.bills || normalizedSelections.customers) {

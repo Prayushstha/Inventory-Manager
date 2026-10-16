@@ -360,7 +360,7 @@ app.whenReady().then(() => {
   ipcMain.handle("dialog:pickExcelFile", async () => {
     const result = await dialog.showOpenDialog({
       properties: ["openFile"],
-      filters: [{ name: "Excel Files", extensions: ["xlsx", "xls"] }],
+      filters: [{ name: "Excel Files", extensions: ["xlsx"] }],
     });
     if (result.canceled || result.filePaths.length === 0) return null;
     return result.filePaths[0];

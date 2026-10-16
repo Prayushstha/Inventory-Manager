@@ -3,7 +3,7 @@ import path from "path";
 import { randomUUID } from "crypto";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const XLSX = require("xlsx");
+const ExcelJS = require("exceljs");
 import {
   addInventoryProduct,
   updateInventoryProduct,
@@ -203,26 +203,29 @@ function deleteBase(baseId) {
 function deleteVariant(variantId) {
   deleteVariantAndStock(ctx.db, variantId);
 }
-function importProductsFromExcel(filePath) {
+async function importProductsFromExcel(filePath) {
   if (typeof filePath !== "string" || filePath.trim() === "") {
     throw new Error("Choose an Excel file to import.");
   }
 
-  let workbook;
+  const workbook = new ExcelJS.Workbook();
   try {
-    workbook = XLSX.readFile(filePath);
+    await workbook.xlsx.readFile(filePath);
   } catch (error) {
     throw new Error(
       "Could not read the selected Excel file. Check that it is a valid, accessible workbook.",
       { cause: error },
     );
   }
-  const sheet = workbook.Sheets["JESTH- 2083"];
+  const sheet = workbook.getWorksheet("JESTH- 2083");
   if (!sheet) {
     throw new Error('Sheet "JESTH- 2083" not found in this file.');
   }
 
-  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, range: 1 });
+  const rows = [];
+  sheet.eachRow((row, rowNumber) => {
+    if (rowNumber > 1) rows.push(row.values.slice(1));
+  });
   const BASE_DIGIT_RE = /^([A-Za-z]+)((?:\d+)(?:\/\d+)*)$/;
   const ROMAN_RE = /^([A-Za-z]+?)(I{1,3}|IV)$/;
   const ALLOWED_SIZES = new Set([1, 4, 10, 20]);
