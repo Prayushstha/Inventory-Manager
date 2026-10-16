@@ -27,7 +27,7 @@ This app is already feature-rich enough to be useful, but reliability is the mai
 - [ ] Better customer payment tracking with partial payments and outstanding aging
 - [x] Tax-aware billing calculations and invoice totals
 - [ ] Tax reporting and reconciliation (VAT collected, discounts, PAN/VAT bill-number sequences)
-- [ ] Export options for sales, products, customers, and expenses (CSV / Excel)
+- [x] Export options for sales, products, customers, and expenses (CSV / Excel)
 - [ ] Printable invoice and receipt templates
 - [ ] Search and filter improvements for products, bills, and customers
 
@@ -112,6 +112,63 @@ These are valid long-term ideas, but they should come after the app is stable, t
 ## Current status
 
 The project already has a solid base: a desktop app, local database storage, inventory management, billing, expenses, and analytics. The main remaining opportunities are stronger tax-aware reporting, auditable financial changes, and automated UI-level regression coverage for connected invoice workflows.
+
+## Recommended next implementation batch
+
+The next development cycle should prioritize correctness and resilience before adding larger business features:
+
+1. Enable SQLite foreign-key enforcement and add migration-managed indexes and uniqueness constraints.
+2. Prevent silent stock-adjustment failures and report missing product, variant, or base references explicitly.
+3. Add strict date validation and bounded text, item-count, workbook-size, and import-row limits at backend boundaries.
+4. Centralize safe parsing for persisted JSON fields such as `invoice_data` so one malformed record cannot break an entire screen or report.
+5. Verify delete operations change the expected number of rows and surface stale-record failures.
+6. Add focused tests for stock reduction/restoration, bill editing, partial payments, import expense editing, malformed data, backup/restore, and VAT/PAN invoice flows.
+
+These changes reduce the risk of incorrect stock and financial records and create a safer base for reporting improvements.
+
+## Security and Electron hardening
+
+After the data-integrity batch, harden the Electron boundary with:
+
+- Validate the IPC sender and argument contract for every handler.
+- Enforce allowed directories, extensions, file sizes, workbook sizes, row counts, and cell lengths in the main process rather than relying only on renderer file pickers.
+- Ensure image-copy and workbook-import handlers cannot read arbitrary sensitive files.
+- Keep custom protocol access restricted to application-owned product images.
+- Preserve explicit `contextIsolation`, `nodeIntegration`, `sandbox`, navigation, and window-opening restrictions during Electron upgrades.
+
+Relevant areas include `electron/main.js`, `electron/preload.cjs`, and the product import/image services.
+
+## Database integrity and performance
+
+- Store stable product, variant, and base IDs with bills and import items instead of relying only on display names.
+- Add indexes for bill dates and customer joins, expense dates and item joins, invoice lookup, product variants, bases, and stock rows.
+- Replace recurring N+1 customer and analytics reads with bounded joins and aggregations.
+- Replace renderer-facing `SELECT *` queries with explicit column lists.
+- Add inventory audit/reconciliation with adjustment reason, date, and profile metadata.
+
+Stable references are especially important before implementing larger reporting or multi-user features because renamed catalog entries must not change historical stock accounting.
+
+## Frontend resilience and accessibility
+
+- Verify the existing error boundary is mounted around the routed application and provides retry/reload recovery.
+- Make image resolution handle rejected IPC calls and ignore stale asynchronous results.
+- Replace index-based React keys in financial detail lists with stable record identifiers.
+- Make clickable expense rows keyboard accessible and provide accessible names for icon-only actions.
+- Add end-to-end UI coverage for bill creation/editing, partial payments, stock changes, import editing, backup/restore, and VAT/PAN invoice flows.
+
+## Business features after reliability work
+
+Once the integrity and hardening work is complete, prioritize:
+
+1. Customer outstanding aging and partial-payment reporting.
+2. VAT/PAN reconciliation and tax reports.
+3. Stock valuation and profit/loss reporting.
+4. Printable invoice and receipt templates.
+5. Supplier and purchase-order workflows.
+6. Encrypted backups with restore verification.
+7. Multi-user roles and permissions.
+
+Cloud sync, external APIs, e-commerce integrations, and mobile views should remain later-stage work until local data integrity, testing, and operational reporting are dependable.
 
 ---
 
