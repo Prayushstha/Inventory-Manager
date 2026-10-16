@@ -82,6 +82,53 @@
   line-height: 1.5;
 }
 
+.onboarding-choice {
+  display: grid;
+  gap: 12px;
+  margin: 26px 0 0;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.onboarding-choice legend {
+  padding: 0 5px;
+  color: var(--color-primary);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.onboarding-choice label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--color-muted);
+  cursor: pointer;
+}
+
+.onboarding-choice input {
+  accent-color: var(--primary);
+}
+
+.onboarding-import {
+  width: fit-content;
+  min-height: 38px;
+  margin-top: 2px;
+  padding: 7px 12px;
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.onboarding-import:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
 .onboarding-fields {
   display: grid;
   gap: 15px;

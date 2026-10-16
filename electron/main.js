@@ -299,6 +299,18 @@ app.whenReady().then(() => {
     process.nextTick(restartApplication);
     return restoreResult;
   });
+  ipcMain.handle("settings:importPortableBackup", async (event) => {
+    const result = await dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender), {
+      title: "Import StockWise Portable Backup",
+      properties: ["openFile"],
+      filters: [{ name: "StockWise Portable Backup", extensions: ["zip"] }],
+    });
+    if (result.canceled || result.filePaths.length === 0) return null;
+    const restoreResult = await restorePortableDatabase(result.filePaths[0]);
+    completeOnboarding();
+    process.nextTick(restartApplication);
+    return restoreResult;
+  });
   ipcMain.handle("settings:pickExportDirectory", async (event) => {
     const result = await dialog.showOpenDialog(
       BrowserWindow.fromWebContents(event.sender),

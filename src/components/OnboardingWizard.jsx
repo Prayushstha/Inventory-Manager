@@ -12,6 +12,7 @@ export function OnboardingWizard({ settings, onComplete }) {
   const [shopTelephone, setShopTelephone] = useState(settings.invoiceDefaults?.shopTelephone || "");
   const [paymentMethod, setPaymentMethod] = useState(settings.defaultPaymentMethod || "Cash");
   const [password, setPassword] = useState("");
+  const [importChoice, setImportChoice] = useState("new");
   const showToast = useToast();
 
   async function finish(skipSetup = false) {
@@ -40,6 +41,18 @@ export function OnboardingWizard({ settings, onComplete }) {
     setStep((current) => Math.min(current + 1, STEPS.length - 1));
   }
 
+  async function importBackup() {
+    setBusy(true);
+    try {
+      const result = await window.db.importPortableBackup();
+      if (result) return;
+    } catch (error) {
+      showToast(error?.message || "Could not import the portable backup.", "error");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="onboarding-backdrop" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
       <section className="onboarding-card">
@@ -65,6 +78,34 @@ export function OnboardingWizard({ settings, onComplete }) {
               <li>Choose the default payment method</li>
               <li>Protect this profile with an optional password</li>
             </ul>
+            <fieldset className="onboarding-choice">
+              <legend>Do you want to import existing data?</legend>
+              <label>
+                <input
+                  type="radio"
+                  name="import-choice"
+                  value="new"
+                  checked={importChoice === "new"}
+                  onChange={(event) => setImportChoice(event.target.value)}
+                />
+                <span>Start with a new workspace</span>
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="import-choice"
+                  value="portable"
+                  checked={importChoice === "portable"}
+                  onChange={(event) => setImportChoice(event.target.value)}
+                />
+                <span>Import a portable StockWise backup</span>
+              </label>
+              {importChoice === "portable" && (
+                <button type="button" className="onboarding-import" onClick={importBackup} disabled={busy}>
+                  {busy ? "Importing..." : "Choose portable backup"}
+                </button>
+              )}
+            </fieldset>
           </div>
         )}
 
