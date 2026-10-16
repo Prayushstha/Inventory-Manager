@@ -39,6 +39,7 @@ const DATA_MUTATION_CHANNELS = new Set([
   "settings:updateInvoiceDefaults",
   "settings:updateInventoryAddItemMode",
   "settings:updateAppearance",
+  "settings:completeOnboarding",
   "settings:changeDataDirectory",
 ]);
 
@@ -141,6 +142,7 @@ contextBridge.exposeInMainWorld("db", {
     invoke("settings:updateInventoryAddItemMode", mode),
   updateAppearanceSettings: (theme, mode) =>
     invoke("settings:updateAppearance", theme, mode),
+  completeOnboarding: () => invoke("settings:completeOnboarding"),
   openDataDirectory: () => invoke("settings:openDataDirectory"),
   changeDataDirectory: () => invoke("settings:changeDataDirectory"),
 });

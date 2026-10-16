@@ -57,6 +57,7 @@ import {
   updateInvoiceDefaults,
   updateInventoryAddItemMode,
   updateAppearanceSettings,
+  completeOnboarding,
   deleteProducts,
   deleteInventoryRows,
   findProductsReferencedByBills,
@@ -339,6 +340,7 @@ app.whenReady().then(() => {
   ipcMain.handle("settings:updateAppearance", (_, theme, mode) =>
     updateAppearanceSettings(theme, mode),
   );
+  ipcMain.handle("settings:completeOnboarding", () => completeOnboarding());
   ipcMain.handle("settings:openDataDirectory", async () => {
     const error = await shell.openPath(getAppSettings().dataDirectory);
     if (error) throw new Error(`Could not open the data folder: ${error}`);

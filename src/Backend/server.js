@@ -75,7 +75,7 @@ const services = [
 export const {
   getAppSettings, setDefaultProfilePassword, createProfile, switchProfile,
   updateDefaultPaymentMethod, updateInvoiceDefaults, updateInventoryAddItemMode,
-  updateAppearanceSettings, setLocalDataDirectory,
+  updateAppearanceSettings, completeOnboarding, setLocalDataDirectory,
 } = services[0];
 export const { backupDatabase, exportDatabase, createPortableDatabaseBackup, restoreDatabase, restorePortableDatabase } = services[1];
 export const {

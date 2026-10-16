@@ -55,7 +55,7 @@ Move from simple transaction recording to actionable business reporting.
 ## Priority 4: User workflow and UX
 
 ### Recommended improvements
-- [ ] Better onboarding and first-run setup for new users
+- [x] Better onboarding and first-run setup for new users
 - [ ] Standardized dialogs and validation messages
 - [ ] Quick actions for frequent tasks: duplicate, restore, export, delete
 - [x] Theme and layout polish for desktop usability

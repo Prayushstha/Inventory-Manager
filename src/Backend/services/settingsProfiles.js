@@ -179,6 +179,15 @@ function updateAppearanceSettings(appearanceTheme, appearanceMode) {
   return getAppSettings();
 }
 
+function completeOnboarding() {
+  const nextConfig = saveAppConfig(ctx.appConfigPath, {
+    ...ctx.appConfig,
+    onboardingCompleted: true,
+  });
+  ctx.appConfig = nextConfig;
+  return getAppSettings();
+}
+
 async function setLocalDataDirectory(destinationDirectory) {
   if (typeof destinationDirectory !== "string" || !destinationDirectory.trim()) {
     throw new Error("A data directory is required.");
@@ -233,6 +242,7 @@ async function setLocalDataDirectory(destinationDirectory) {
     updateInvoiceDefaults,
     updateInventoryAddItemMode,
     updateAppearanceSettings,
+    completeOnboarding,
     setLocalDataDirectory,
   };
 }

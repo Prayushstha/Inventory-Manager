@@ -12,10 +12,13 @@ import "./index.css";
 import { useState, useEffect } from "react";
 import { Billing } from "./pages/Billing/billing";
 import { useToast } from "./hooks/ToastContext";
+import { OnboardingWizard } from "./components/OnboardingWizard";
 
 function App() {
   const [appearanceTheme, setAppearanceTheme] = useState("lara");
   const [appearanceMode, setAppearanceMode] = useState("dark");
+  const [appSettings, setAppSettings] = useState(null);
+  const [onboardingComplete, setOnboardingComplete] = useState(null);
   const showToast = useToast();
 
   useEffect(() => {
@@ -23,6 +26,8 @@ function App() {
     window.db.getAppSettings()
       .then((settings) => {
         if (!cancelled) {
+          setAppSettings(settings);
+          setOnboardingComplete(import.meta.env.DEV ? false : settings.onboardingCompleted);
           setAppearanceTheme(settings.appearanceTheme);
           setAppearanceMode(settings.appearanceMode);
         }
@@ -67,6 +72,12 @@ function App() {
             <Route path="/billing" element={<Billing />} />
           </Routes>
         </div>
+        {appSettings && onboardingComplete === false && (
+          <OnboardingWizard
+            settings={appSettings}
+            onComplete={() => setOnboardingComplete(true)}
+          />
+        )}
       </div>
     </HashRouter>
   );

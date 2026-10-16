@@ -30,6 +30,7 @@ export function defaultAppConfig() {
     profiles: [],
     activeProfileId: "user",
     defaultProfileCredentials: null,
+    onboardingCompleted: false,
   };
 }
 
@@ -95,6 +96,10 @@ function validateAppConfig(config) {
   ) {
     throw new Error("The active profile must exist in the profile list.");
   }
+  const onboardingCompleted = config.onboardingCompleted ?? true;
+  if (typeof onboardingCompleted !== "boolean") {
+    throw new Error("Onboarding completion status must be a boolean.");
+  }
 
   return {
     defaultPaymentMethod,
@@ -106,6 +111,7 @@ function validateAppConfig(config) {
     profiles,
     activeProfileId,
     defaultProfileCredentials,
+    onboardingCompleted,
   };
 }
 

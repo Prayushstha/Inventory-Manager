@@ -1,0 +1,188 @@
+.onboarding-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: color-mix(in srgb, var(--background) 70%, black);
+}
+
+.onboarding-card {
+  width: min(100%, 600px);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  padding: 30px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--background-primary);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-xl);
+}
+
+.onboarding-progress {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 30px;
+}
+
+.onboarding-step {
+  display: grid;
+  flex: 1;
+  gap: 6px;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+}
+
+.onboarding-step span {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--background-tertiary);
+}
+
+.onboarding-step.is-active {
+  color: var(--color-primary);
+}
+
+.onboarding-step.is-active span {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.onboarding-content h1 {
+  max-width: 480px;
+  margin: 7px 0 10px;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+}
+
+.onboarding-content > p:not(.onboarding-eyebrow) {
+  max-width: 500px;
+  color: var(--color-muted);
+  line-height: 1.55;
+}
+
+.onboarding-eyebrow {
+  margin: 0;
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.onboarding-benefits {
+  display: grid;
+  gap: 12px;
+  margin: 25px 0 0;
+  padding-left: 20px;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+
+.onboarding-fields {
+  display: grid;
+  gap: 15px;
+  margin-top: 22px;
+}
+
+.onboarding-fields label,
+.onboarding-password-field {
+  display: grid;
+  gap: 7px;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.onboarding-fields input,
+.onboarding-fields select,
+.onboarding-password-field input {
+  min-height: 40px;
+  box-sizing: border-box;
+  padding: 8px 11px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--background-secondary);
+  color: var(--color-primary);
+  font: inherit;
+  font-weight: 400;
+}
+
+.onboarding-fields input:focus-visible,
+.onboarding-fields select:focus-visible,
+.onboarding-password-field input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.onboarding-password-field {
+  max-width: 340px;
+  margin-top: 24px;
+}
+
+.onboarding-note {
+  margin-top: 24px;
+  padding: 12px;
+  border-radius: 6px;
+  background: var(--background-tertiary);
+}
+
+.onboarding-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 30px;
+}
+
+.onboarding-actions button {
+  min-height: 40px;
+  padding: 8px 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--background-secondary);
+  color: var(--color-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.onboarding-actions button:hover:not(:disabled) {
+  background: var(--button-secondary-hover);
+}
+
+.onboarding-actions button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.onboarding-actions .onboarding-primary {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.onboarding-actions .onboarding-skip {
+  margin-right: auto;
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-muted);
+}
+
+.onboarding-actions button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+@media (max-width: 520px) {
+  .onboarding-card {
+    padding: 22px;
+  }
+
+  .onboarding-step small {
+    display: none;
+  }
+}
