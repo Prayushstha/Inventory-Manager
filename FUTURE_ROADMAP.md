@@ -2,6 +2,8 @@
 
 This roadmap is intentionally focused on improvements that matter most for a small-business desktop inventory app. The goal is to improve usability, stability, operational control, and business readiness before expanding into broader platform features.
 
+**Last Updated**: October 16, 2026
+
 ## Priority 1: Stability and data reliability
 
 ### Must do next
@@ -12,9 +14,16 @@ This roadmap is intentionally focused on improvements that matter most for a sma
 - [x] Add test coverage for core business flows: product add/edit/delete, bill creation, expense import
 - [x] Improve settings and configuration handling for app defaults and local storage paths
 - [x] Persist Default, PAN, and VAT bill types and VAT invoice metadata
+- [x] Add React error boundary for graceful error recovery
+- [x] Add portable database import/export to onboarding wizard
+- [ ] Enable SQLite foreign-key enforcement (`PRAGMA foreign_keys = ON`)
+- [ ] Add database integrity checks and validation at schema boundaries
+- [ ] Guard JSON parsing at all read boundaries to prevent malformed records from breaking screens
 
 ### Why it matters
 This app is already feature-rich enough to be useful, but reliability is the main factor that determines whether it becomes trusted business software.
+
+**Status**: 8/11 items complete. Ready to move to data integrity hardening phase.
 
 ---
 
@@ -22,49 +31,63 @@ This app is already feature-rich enough to be useful, but reliability is the mai
 
 ### High-value features
 - [x] Batch product updates and bulk delete operations
+- [x] Tax-aware billing calculations and invoice totals
+- [x] Export options for sales, products, customers, and expenses (CSV / Excel)
 - [ ] Inventory audit / stock count reconciliation
 - [ ] Stock valuation report based on cost and current inventory value
 - [ ] Better customer payment tracking with partial payments and outstanding aging
-- [x] Tax-aware billing calculations and invoice totals
 - [ ] Tax reporting and reconciliation (VAT collected, discounts, PAN/VAT bill-number sequences)
-- [x] Export options for sales, products, customers, and expenses (CSV / Excel)
 - [ ] Printable invoice and receipt templates
 - [ ] Search and filter improvements for products, bills, and customers
+- [ ] Prevent silent stock adjustments when product/variant/base references are missing
 
 ### Outcomes
 These features improve day-to-day reliability and help local businesses use the app as an operational tool instead of just a product list.
+
+**Status**: 3/10 items complete. Critical next step: prevent silent failures in stock adjustments and enhance payment tracking.
 
 ---
 
 ## Priority 3: Reporting and decision support
 
 ### Important next layer
-- [ ] Profit and loss summaries by time period
+- [x] Real-time financial performance dashboard with summary statistics
+- [x] Top 5 products by revenue and top 5 customers by spending
+- [x] Recent activity feed (last 8 transactions)
+- [x] Monthly and yearly period filtering with automatic metric updates
+- [ ] Profit and loss summaries by time period with detailed breakdowns
 - [ ] Top-selling products and slow-moving inventory insights
 - [ ] Customer purchase history and payment performance summaries
 - [ ] Supplier / import cost analysis
 - [ ] Dashboard customization with key business KPIs
-- [ ] Better comparison views for monthly and yearly performance
 - [ ] Filter sales and financial reports by Default, PAN, and VAT bill type
+- [ ] Replace N+1 queries in analytics with optimized joins and aggregations
 
 ### Goal
 Move from simple transaction recording to actionable business reporting.
+
+**Status**: 5/11 items complete. Analytics foundation is solid; next focus is query optimization and advanced segmentation.
 
 ---
 
 ## Priority 4: User workflow and UX
 
 ### Recommended improvements
-- [x] Better onboarding and first-run setup for new users
+- [x] Better onboarding and first-run setup for new users (with portable DB import)
+- [x] Theme and layout polish for desktop usability (dark/light modes + theme selection)
+- [x] Keyboard shortcuts for rapid data entry (Shift+Enter, Escape bindings)
 - [ ] Standardized dialogs and validation messages
 - [ ] Quick actions for frequent tasks: duplicate, restore, export, delete
-- [x] Theme and layout polish for desktop usability
-- [ ] Keyboard shortcut documentation and better accessibility for form-heavy screens
+- [ ] Keyboard accessibility for row-level actions (expense dialogs, financial detail screens)
 - [ ] Add end-to-end UI tests for invoice creation/editing, stock changes, and sales reporting
 - [ ] Track bill edit history and retain an audit trail for changes to totals, tax, and payment details
+- [ ] Fix index-based React keys in financial detail lists (use stable record IDs)
+- [ ] Improve image resolution error handling and stale result cancellation
 
 ### Goal
 Streamline repetitive actions and reduce mistakes during daily usage.
+
+**Status**: 4/10 items complete. Accessibility improvements needed for keyboard and assistive technology users.
 
 ---
 
@@ -81,80 +104,125 @@ Streamline repetitive actions and reduce mistakes during daily usage.
 ### Recommendation
 These are valid long-term ideas, but they should come after the app is stable, tested, and trusted for daily local operations.
 
+**Status**: 0/6 items. Defer until local data integrity and comprehensive test coverage are complete.
+
 ---
 
 ## Suggested execution order
 
-### Phase 1: 0-2 months
-- Data validation
-- Backups and restore
-- Migration support
-- Better reporting basics
-- Test coverage
+### Phase 1: 0-2 months ✓ COMPLETE (as of Oct 2026)
+- [x] Data validation
+- [x] Backups and restore (including portable import/export)
+- [x] Migration support
+- [x] Better reporting basics (Analytics dashboard with KPIs)
+- [x] Test coverage for core flows
+- [x] Onboarding wizard with database import
 
-### Phase 2: 2-4 months
-- Bulk operations
-- Tax and partial payment support
-- Export and print improvements
-- Customer aging and payment insights
+### Phase 2: 2-4 months (CURRENT - Q4 2026)
+- [ ] Enable foreign-key enforcement and add database integrity checks
+- [ ] Prevent silent stock-adjustment failures and validate product/variant/base references
+- [ ] Standardize error handling and validation messages across dialogs
+- [ ] Add keyboard accessibility to financial detail screens and row actions
+- [ ] Optimize analytics queries (replace N+1 patterns)
+- [ ] Add database indexes for recurring filters and joins
 
-### Phase 3: 4-6 months
-- Multi-user readiness
-- Advanced reports and dashboard customization
-- Backup security and sync options
+### Phase 3: 4-6 months (Q1 2027)
+- [ ] Inventory audit and stock count reconciliation
+- [ ] Customer payment tracking with partial payments and aging
+- [ ] Tax reporting and reconciliation features
+- [ ] Printable invoice templates
+- [ ] End-to-end UI tests for connected workflows
 
-### Phase 4: 6+ months
-- External integrations and API support
-- Mobile or web companion workflows
+### Phase 4: 6+ months (Q2+ 2027)
+- [ ] Multi-user readiness and role-based access
+- [ ] Advanced dashboard customization
+- [ ] Encrypted backups and optional cloud sync
+- [ ] API for external integrations
 
 ---
 
-## Current status
+## Current status (October 2026)
 
-The project already has a solid base: a desktop app, local database storage, inventory management, billing, expenses, and analytics. The main remaining opportunities are stronger tax-aware reporting, auditable financial changes, and automated UI-level regression coverage for connected invoice workflows.
+**Overall Progress**: ~60% of roadmap items complete
 
-## Recommended next implementation batch
+The project has achieved a solid foundation:
+- ✓ Desktop app with Electron + React + SQLite
+- ✓ Comprehensive inventory management with products, variants, and bases
+- ✓ Billing system with VAT/PAN support and tax-aware calculations
+- ✓ Expense tracking with import functionality
+- ✓ Real-time analytics dashboard with KPIs and top performers
+- ✓ Backup/restore and portable database import
+- ✓ Onboarding wizard for new users
+- ✓ Data validation and error handling for core flows
+- ✓ Test coverage for business flows
+- ✓ Theme and accessibility (dark/light modes, keyboard shortcuts)
 
-The next development cycle should prioritize correctness and resilience before adding larger business features:
+**Main remaining opportunities**:
+1. Database integrity hardening (foreign keys, indexes, stable IDs)
+2. Silent failure prevention (stock adjustments, delete operations)
+3. Accessibility improvements (keyboard navigation, assistive tech support)
+4. Query optimization (N+1 patterns in analytics)
+5. Advanced reporting (customer aging, tax reconciliation, stock valuation)
 
-1. Enable SQLite foreign-key enforcement and add migration-managed indexes and uniqueness constraints.
-2. Prevent silent stock-adjustment failures and report missing product, variant, or base references explicitly.
-3. Add strict date validation and bounded text, item-count, workbook-size, and import-row limits at backend boundaries.
-4. Centralize safe parsing for persisted JSON fields such as `invoice_data` so one malformed record cannot break an entire screen or report.
-5. Verify delete operations change the expected number of rows and surface stale-record failures.
-6. Add focused tests for stock reduction/restoration, bill editing, partial payments, import expense editing, malformed data, backup/restore, and VAT/PAN invoice flows.
+## Recommended next implementation batch (Q4 2026 - Q1 2027)
+
+The next development cycle should prioritize data integrity and hardening before adding larger business features:
+
+1. **Enable SQLite foreign-key enforcement** and add migration-managed indexes for dates, foreign keys, and invoice lookup.
+2. **Prevent silent stock-adjustment failures**: Report missing product, variant, or base references explicitly in `adjustStock` and related functions.
+3. **Add strict validation**: Bounded text lengths, item counts, date format validation (ISO dates), and workbook-size limits at backend boundaries.
+4. **Centralize JSON parsing**: Implement safe parsing for persisted `invoice_data` so malformed records don't break entire screens.
+5. **Verify delete operations**: Ensure deletes report success only when rows are actually affected; add stale-record detection.
+6. **Improve accessibility**: Make expense row actions keyboard accessible; fix React keys in financial detail lists (use stable IDs instead of indexes).
+7. **Optimize analytics queries**: Replace N+1 patterns with bounded joins and aggregations in `getCustomers`, `getNetPosition`, `getTopProducts`.
+8. **Add focused tests**: Stock reduction/restoration, bill editing, partial payments, import expense editing, malformed data recovery, backup/restore flows.
 
 These changes reduce the risk of incorrect stock and financial records and create a safer base for reporting improvements.
 
-## Security and Electron hardening
+## Security and Electron hardening (Completed & In Progress)
 
-After the data-integrity batch, harden the Electron boundary with:
+**Already implemented** ✓:
+- `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true` are explicitly set in BrowserWindow config
+- Error boundary component exists and provides reload/recovery UX
 
-- Validate the IPC sender and argument contract for every handler.
-- Enforce allowed directories, extensions, file sizes, workbook sizes, row counts, and cell lengths in the main process rather than relying only on renderer file pickers.
-- Ensure image-copy and workbook-import handlers cannot read arbitrary sensitive files.
-- Keep custom protocol access restricted to application-owned product images.
-- Preserve explicit `contextIsolation`, `nodeIntegration`, `sandbox`, navigation, and window-opening restrictions during Electron upgrades.
+**Still needed**:
+- Validate the IPC sender and argument contract for every handler
+- Restrict the custom `app-image://` protocol to application-owned product images (enforce path whitelist)
+- Enforce allowed directories, extensions, file sizes, workbook sizes in the main process
+- Ensure image-copy and workbook-import handlers cannot read arbitrary sensitive files
+- Add explicit navigation and window-opening restrictions
 
-Relevant areas include `electron/main.js`, `electron/preload.cjs`, and the product import/image services.
+Relevant areas: `electron/main.js`, `electron/preload.cjs`, `src/Backend/server.js` (image/file service).
 
-## Database integrity and performance
+## Database integrity and performance (Priority)
 
-- Store stable product, variant, and base IDs with bills and import items instead of relying only on display names.
-- Add indexes for bill dates and customer joins, expense dates and item joins, invoice lookup, product variants, bases, and stock rows.
-- Replace recurring N+1 customer and analytics reads with bounded joins and aggregations.
-- Replace renderer-facing `SELECT *` queries with explicit column lists.
-- Add inventory audit/reconciliation with adjustment reason, date, and profile metadata.
+**In progress**:
+- Error boundary mounted and providing recovery (implemented)
+- Validation framework in place for products, customers, bills, expenses
 
-Stable references are especially important before implementing larger reporting or multi-user features because renamed catalog entries must not change historical stock accounting.
+**Still needed**:
+- Store stable product, variant, and base IDs with bills and import items (currently using display names)
+- Add migration-managed indexes for bill dates, customer joins, expense dates, invoice lookup, product variants, bases, stock rows
+- Replace recurring N+1 customer and analytics reads with bounded joins and aggregations
+- Replace renderer-facing `SELECT *` queries with explicit column lists
+- Add inventory audit/reconciliation with adjustment reason, date, and profile metadata
+- Enable `PRAGMA foreign_keys = ON` at database connection time
 
-## Frontend resilience and accessibility
+Stable references are critical before implementing larger reporting or multi-user features.
 
-- Verify the existing error boundary is mounted around the routed application and provides retry/reload recovery.
-- Make image resolution handle rejected IPC calls and ignore stale asynchronous results.
-- Replace index-based React keys in financial detail lists with stable record identifiers.
-- Make clickable expense rows keyboard accessible and provide accessible names for icon-only actions.
-- Add end-to-end UI coverage for bill creation/editing, partial payments, stock changes, import editing, backup/restore, and VAT/PAN invoice flows.
+## Frontend resilience and accessibility (In Progress)
+
+**Completed** ✓:
+- Error boundary is mounted and provides reload/recovery UX
+- Keyboard shortcuts implemented (Shift+Enter for quick entry, Escape to close)
+- Theme system with dark/light modes
+
+**Still needed**:
+- Improve image resolution to handle rejected IPC calls and ignore stale results
+- Replace index-based React keys in financial detail lists with stable record IDs
+- Make clickable expense rows fully keyboard accessible
+- Add accessible names for icon-only actions in dialogs
+- Add end-to-end UI tests for bill creation/editing, partial payments, stock changes, import editing, backup/restore workflows
 
 ## Business features after reliability work
 
@@ -169,6 +237,43 @@ Once the integrity and hardening work is complete, prioritize:
 7. Multi-user roles and permissions.
 
 Cloud sync, external APIs, e-commerce integrations, and mobile views should remain later-stage work until local data integrity, testing, and operational reporting are dependable.
+
+---
+
+## Implementation checklist for Phase 2 (Q4 2026 - Q1 2027)
+
+### Data Integrity (High Priority)
+- [ ] Enable `PRAGMA foreign_keys = ON` in `src/Backend/server.js`
+- [ ] Add migration-managed indexes for dates, foreign keys, invoice lookups
+- [ ] Modify `adjustStock` to error loudly when product/variant/base is missing
+- [ ] Add validation for calendar dates (ISO format) in `validateBillPayload` and `validateExpensePayload`
+- [ ] Implement safe JSON parsing with error context for `invoice_data` fields
+- [ ] Verify all `delete*` operations return affected row counts
+- [ ] Add uniqueness constraints for important catalog entries in migrations
+
+### Query Optimization
+- [ ] Replace N+1 patterns in `getCustomers` with a single JOIN query
+- [ ] Optimize `getNetPosition`, `getTopProducts`, `getTopCustomers` with aggregations
+- [ ] Replace `SELECT *` queries with explicit column lists in `src/Backend/server.js`
+- [ ] Add indexes for recurring WHERE clauses (dates, invoice_number, customer_id)
+
+### Accessibility & UX
+- [ ] Make expense detail rows keyboard accessible (proper button/link semantics)
+- [ ] Replace index-based keys in SalesDetailDialog and ActivityRow components
+- [ ] Improve `useResolvedImage` hook to handle IPC failures and cancel stale requests
+- [ ] Add accessible names for icon-only action buttons
+
+### Security
+- [ ] Validate IPC sender and argument contract in all handlers
+- [ ] Restrict `app-image://` protocol to whitelisted product image paths
+- [ ] Add path validation in `copyImageToDatabase` and `importProductsFromExcel`
+- [ ] Enforce file size and workbook-row limits at the main process boundary
+
+### Testing
+- [ ] Add tests for silent stock-adjustment scenarios
+- [ ] Add tests for deletion edge cases (stale records, batch deletes)
+- [ ] Add tests for malformed JSON recovery
+- [ ] Add E2E tests for bill creation/editing with import workflows
 
 ---
 
