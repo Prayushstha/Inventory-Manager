@@ -4,9 +4,14 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 export function useConfirm() {
   const [confirmState, setConfirmState] = useState(null);
 
-  const confirm = (message, confirmLabel = "Yes, Delete", cancelLabel = "Cancel") => {
+  const confirm = (
+    message,
+    confirmLabel = "Yes, Delete",
+    cancelLabel = "Cancel",
+    title = "Confirm action",
+  ) => {
     return new Promise((resolve) => {
-       setConfirmState({ message, confirmLabel, cancelLabel, resolve });
+       setConfirmState({ message, confirmLabel, cancelLabel, title, resolve });
     });
   };
 
@@ -23,6 +28,7 @@ export function useConfirm() {
   const ConfirmDialogComponent = confirmState ? (
     <ConfirmDialog
       message={confirmState.message}
+      title={confirmState.title}
       confirmLabel={confirmState.confirmLabel}
       cancelLabel={confirmState.cancelLabel}
       onConfirm={handleConfirm}

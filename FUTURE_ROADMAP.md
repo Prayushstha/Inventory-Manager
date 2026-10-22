@@ -76,7 +76,7 @@ Move from simple transaction recording to actionable business reporting.
 - [x] Better onboarding and first-run setup for new users (with portable DB import)
 - [x] Theme and layout polish for desktop usability (dark/light modes + theme selection)
 - [x] Keyboard shortcuts for rapid data entry (Shift+Enter, Escape bindings)
-- [ ] Standardized dialogs and validation messages
+- [x] Standardized dialogs and validation messages
 - [ ] Quick actions for frequent tasks: duplicate, restore, export, delete
 - [ ] Keyboard accessibility for row-level actions (expense dialogs, financial detail screens)
 - [ ] Add end-to-end UI tests for invoice creation/editing, stock changes, and sales reporting
@@ -121,7 +121,7 @@ These are valid long-term ideas, but they should come after the app is stable, t
 ### Phase 2: 2-4 months (CURRENT - Q4 2026)
 - [ ] Enable foreign-key enforcement and add database integrity checks
 - [ ] Prevent silent stock-adjustment failures and validate product/variant/base references
-- [ ] Standardize error handling and validation messages across dialogs
+- [x] Standardize error handling and validation messages across dialogs
 - [ ] Add keyboard accessibility to financial detail screens and row actions
 - [ ] Optimize analytics queries (replace N+1 patterns)
 - [ ] Add database indexes for recurring filters and joins

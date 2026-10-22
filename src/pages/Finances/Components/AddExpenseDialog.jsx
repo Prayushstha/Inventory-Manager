@@ -3,6 +3,8 @@ import { useDialogKeyboard } from "../../../hooks/useDialogKeyboard";
 import { useToast } from "../../../hooks/ToastContext";
 import { NepaliDatePicker } from "../../../components/NepaliDatePicker";
 import { getTodayGregorianISO } from "../../../utils/nepaliDate";
+import { requiredText, positiveNumber, nonNegativeNumber } from "../../../utils/validationMessages";
+import { ValidationMessage } from "../../../components/Dialog";
 
 const emptyImportItem = {
   productName: "",
@@ -26,6 +28,7 @@ export function AddExpenseDialog({
   const [typeOfExpense, setTypeOfExpense] = useState("General");
   const [amountOfExpense, setAmountOfExpense] = useState("");
   const [date, setDate] = useState(initialDate);
+  const [errors, setErrors] = useState({});
 
   const [importItems, setImportItems] = useState([]);
   const [itemForm, setItemForm] = useState(emptyImportItem);
@@ -51,10 +54,19 @@ export function AddExpenseDialog({
   }
 
   function handleAddItem() {
-    if (!itemForm.productName || !itemForm.base || !itemForm.bucketSize || !itemForm.quantity || !itemForm.costPrice) {
-      showToast("Please fill in all item fields.", "error");
+    const itemErrors = {
+      productName: requiredText(itemForm.productName, "Product name"),
+      base: requiredText(itemForm.base, "Base"),
+      bucketSize: positiveNumber(itemForm.bucketSize, "bucket size"),
+      quantity: positiveNumber(itemForm.quantity, "quantity"),
+      costPrice: nonNegativeNumber(itemForm.costPrice, "cost price"),
+    };
+    if (Object.values(itemErrors).some(Boolean)) {
+      setErrors((current) => ({ ...current, item: itemErrors }));
+      showToast("Review the highlighted item fields.", "error");
       return;
     }
+    setErrors((current) => ({ ...current, item: {} }));
     setImportItems((prev) => [
       ...prev,
       { ...itemForm, id: `expense-item-${prev.length}-${Date.now()}` },
@@ -70,10 +82,13 @@ export function AddExpenseDialog({
 
   async function handleSave() {
     if (isSaving) return;
-    if (!nameOfExpense) {
-      showToast("Please enter a name for this expense.", "error");
+    const nameError = requiredText(nameOfExpense, "Expense name");
+    if (nameError) {
+      setErrors((current) => ({ ...current, name: nameError }));
+      showToast(nameError, "error");
       return;
     }
+    setErrors((current) => ({ ...current, name: "" }));
 
     setIsSaving(true);
     try {
@@ -84,8 +99,10 @@ export function AddExpenseDialog({
         }
         await window.db.recordImportExpense({ date, nameOfExpense }, importItems);
       } else {
-        if (!amountOfExpense) {
-          showToast("Please enter an amount.", "error");
+        const amountError = positiveNumber(amountOfExpense, "amount");
+        if (amountError) {
+          setErrors((current) => ({ ...current, amount: amountError }));
+          showToast(amountError, "error");
           return;
         }
         await window.db.addExpense({
@@ -146,13 +163,20 @@ export function AddExpenseDialog({
         <div className="dialog-body">
           <div className="field-grid">
             <div className="field">
-              <label>Expense Name</label>
+              <label htmlFor="expense-name">Expense Name</label>
               <input
+                id="expense-name"
                 type="text"
                 value={nameOfExpense}
-                onChange={(e) => setNameOfExpense(e.target.value)}
+                aria-invalid={Boolean(errors.name)}
+                aria-describedby={errors.name ? "expense-name-error" : undefined}
+                onChange={(e) => {
+                  setNameOfExpense(e.target.value);
+                  setErrors((current) => ({ ...current, name: "" }));
+                }}
                 placeholder="e.g. August stock import"
               />
+              {errors.name && <small className="validation-message" id="expense-name-error" role="alert">{errors.name}</small>}
             </div>
             <div className="field">
               <label>Type</label>
@@ -163,13 +187,20 @@ export function AddExpenseDialog({
               </select>
             </div>
             <div className="field">
-              <label>Amount (NPR)</label>
+              <label htmlFor="expense-amount">Amount (NPR)</label>
               <input
+                id="expense-amount"
                 type="number"
                 value={amountOfExpense}
-                onChange={(e) => setAmountOfExpense(e.target.value)}
+                aria-invalid={Boolean(errors.amount)}
+                aria-describedby={errors.amount ? "expense-amount-error" : undefined}
+                onChange={(e) => {
+                  setAmountOfExpense(e.target.value);
+                  setErrors((current) => ({ ...current, amount: "" }));
+                }}
                 placeholder="0"
               />
+              {errors.amount && <small className="validation-message" id="expense-amount-error" role="alert">{errors.amount}</small>}
             </div>
             <div className="field">
               <label>Date</label>
@@ -187,41 +218,66 @@ export function AddExpenseDialog({
                   type="text"
                   placeholder="Product name"
                   value={itemForm.productName}
-                  onChange={(e) => setItemForm((f) => ({ ...f, productName: e.target.value }))}
+                  aria-invalid={Boolean(errors.item?.productName)}
+                  onChange={(e) => {
+                    setItemForm((f) => ({ ...f, productName: e.target.value }));
+                    setErrors((current) => ({ ...current, item: { ...current.item, productName: "" } }));
+                  }}
                   onFocus={() => setCurrentFieldIndex(0)}
                 />
+                <ValidationMessage>{errors.item?.productName}</ValidationMessage>
                 <input
                   ref={baseRef}
                   type="text"
                   placeholder="Base (e.g. AC1)"
                   value={itemForm.base}
-                  onChange={(e) => setItemForm((f) => ({ ...f, base: e.target.value }))}
+                  aria-invalid={Boolean(errors.item?.base)}
+                  onChange={(e) => {
+                    setItemForm((f) => ({ ...f, base: e.target.value }));
+                    setErrors((current) => ({ ...current, item: { ...current.item, base: "" } }));
+                  }}
                   onFocus={() => setCurrentFieldIndex(1)}
                 />
+                <ValidationMessage>{errors.item?.base}</ValidationMessage>
                 <input
                   ref={bucketSizeRef}
                   type="number"
                   placeholder="Bucket size"
                   value={itemForm.bucketSize}
-                  onChange={(e) => setItemForm((f) => ({ ...f, bucketSize: e.target.value }))}
+                  aria-invalid={Boolean(errors.item?.bucketSize)}
+                  onChange={(e) => {
+                    setItemForm((f) => ({ ...f, bucketSize: e.target.value }));
+                    setErrors((current) => ({ ...current, item: { ...current.item, bucketSize: "" } }));
+                  }}
                   onFocus={() => setCurrentFieldIndex(2)}
                 />
+                <ValidationMessage>{errors.item?.bucketSize}</ValidationMessage>
                 <input
                   ref={quantityRef}
                   type="number"
                   placeholder="Quantity"
                   value={itemForm.quantity}
-                  onChange={(e) => setItemForm((f) => ({ ...f, quantity: e.target.value }))}
+                  aria-invalid={Boolean(errors.item?.quantity)}
+                  onChange={(e) => {
+                    setItemForm((f) => ({ ...f, quantity: e.target.value }));
+                    setErrors((current) => ({ ...current, item: { ...current.item, quantity: "" } }));
+                  }}
                   onFocus={() => setCurrentFieldIndex(3)}
                 />
+                <ValidationMessage>{errors.item?.quantity}</ValidationMessage>
                 <input
                   ref={costPriceRef}
                   type="number"
                   placeholder="Cost price (per unit)"
                   value={itemForm.costPrice}
-                  onChange={(e) => setItemForm((f) => ({ ...f, costPrice: e.target.value }))}
+                  aria-invalid={Boolean(errors.item?.costPrice)}
+                  onChange={(e) => {
+                    setItemForm((f) => ({ ...f, costPrice: e.target.value }));
+                    setErrors((current) => ({ ...current, item: { ...current.item, costPrice: "" } }));
+                  }}
                   onFocus={() => setCurrentFieldIndex(4)}
                 />
+                <ValidationMessage>{errors.item?.costPrice}</ValidationMessage>
               </div>
               <button type="button" className="btn-secondary" onClick={handleAddItem}>
                 Add Item

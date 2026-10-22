@@ -104,6 +104,13 @@
   color: var(--color-primary);
 }
 
+.dialog-close:focus-visible,
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--button-primary) 45%, transparent);
+  outline-offset: 2px;
+}
+
 /* ── Dialog Body ── */
 .dialog-body {
   flex: 1;
@@ -189,6 +196,19 @@
   background: var(--background-secondary);
   color: var(--color-muted);
   cursor: not-allowed;
+}
+
+.validation-message {
+  display: block;
+  margin-top: 5px;
+  color: var(--danger);
+  font-size: 0.78rem;
+}
+
+.field input[aria-invalid="true"],
+.field select[aria-invalid="true"],
+.field textarea[aria-invalid="true"] {
+  border-color: var(--danger);
 }
 
 /* ── Remove/Delete Button ── */

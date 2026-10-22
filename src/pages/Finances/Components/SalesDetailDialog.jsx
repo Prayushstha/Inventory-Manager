@@ -1,17 +1,11 @@
 import { formatNepaliDate } from "../../../utils/nepaliDate";
+import { Dialog } from "../../../components/Dialog";
 
 export function SalesDetailDialog({ day, onClose }) {
   return (
-    <div className="dialog-overlay" onClick={onClose}>
-      <div className="dialog" onClick={(e) => e.stopPropagation()}>
-        <div className="dialog-header">
-          <h2 className="dialog-title">
-            Sales on {formatNepaliDate(day.date)}
-          </h2>
-          <button className="dialog-close" onClick={onClose}>✕</button>
-        </div>
-
-        <div className="dialog-body">
+    <Dialog title={`Sales on ${formatNepaliDate(day.date)}`} onClose={onClose} footer={(
+      <button className="btn-secondary" onClick={onClose}>Close</button>
+    )}>
           <section className="dialog-section">
             <p className="section-label">
               {day.salesCount} sale{day.salesCount !== 1 ? "s" : ""} — NPR{" "}
@@ -48,12 +42,6 @@ export function SalesDetailDialog({ day, onClose }) {
               </tbody>
             </table>
           </section>
-        </div>
-
-        <div className="dialog-footer">
-          <button className="btn-secondary" onClick={onClose}>Close</button>
-        </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }
