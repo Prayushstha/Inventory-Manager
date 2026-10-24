@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import { app } from "electron";
 import { loadAppConfig, resolveDataDirectory } from "./appConfig.js";
 import { migrateDatabase } from "./migrations.js";
+import { assertDatabaseIntegrity } from "./databaseIntegrity.js";
 import { createSettingsService } from "./services/settingsProfiles.js";
 import { createBackupService } from "./services/backupExport.js";
 import { createProductsService } from "./services/products.js";
@@ -48,6 +49,7 @@ function openDatabase() {
   fs.mkdirSync(dataDirectory, { recursive: true });
   db = new Database(dbPath);
   migrateDatabase(db);
+  assertDatabaseIntegrity(db);
 }
 openDatabase();
 

@@ -17,7 +17,7 @@ This roadmap is intentionally focused on improvements that matter most for a sma
 - [x] Add React error boundary for graceful error recovery
 - [x] Add portable database import/export to onboarding wizard
 - [x] Enable SQLite foreign-key enforcement (`PRAGMA foreign_keys = ON`)
-- [ ] Add database integrity checks and validation at schema boundaries
+- [x] Add database integrity checks and validation at schema boundaries
 - [ ] Guard JSON parsing at all read boundaries to prevent malformed records from breaking screens
 
 ### Why it matters
@@ -119,7 +119,7 @@ These are valid long-term ideas, but they should come after the app is stable, t
 - [x] Onboarding wizard with database import
 
 ### Phase 2: 2-4 months (CURRENT - Q4 2026)
-- [ ] Enable foreign-key enforcement and add database integrity checks
+- [x] Enable foreign-key enforcement and add database integrity checks
 - [ ] Prevent silent stock-adjustment failures and validate product/variant/base references
 - [x] Standardize error handling and validation messages across dialogs
 - [ ] Add keyboard accessibility to financial detail screens and row actions

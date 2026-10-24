@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import Database from "better-sqlite3";
 import { migrateDatabase } from "./migrations.js";
+import { assertDatabaseIntegrity, validateDatabaseIntegrity } from "./databaseIntegrity.js";
 
 test("migrates a fresh database once and records its schema version", () => {
   const db = new Database(":memory:");
@@ -49,6 +50,37 @@ test("rejects rows that reference missing parent records", () => {
         `).run(999, "2026-10-24", "Cash", 10, 0, 10, "Due"),
       /FOREIGN KEY constraint failed/,
     );
+  } finally {
+    db.close();
+  }
+});
+
+test("passes integrity checks for a migrated schema", () => {
+  const db = new Database(":memory:");
+
+  try {
+    migrateDatabase(db);
+    assert.deepEqual(validateDatabaseIntegrity(db), []);
+    assert.doesNotThrow(() => assertDatabaseIntegrity(db));
+  } finally {
+    db.close();
+  }
+});
+
+test("reports missing schema columns and foreign-key violations", () => {
+  const db = new Database(":memory:");
+
+  try {
+    migrateDatabase(db);
+    db.pragma("foreign_keys = OFF");
+    db.prepare("INSERT INTO bills (customer_id, date, total_purchased, amount_paid, amount_due, status) VALUES (?, ?, ?, ?, ?, ?)")
+      .run(999, "2026-10-24", 10, 0, 10, "Due");
+    db.exec("ALTER TABLE customers DROP COLUMN notes");
+
+    const issues = validateDatabaseIntegrity(db);
+    assert.ok(issues.some((issue) => issue.includes("foreign-key violation")));
+    assert.ok(issues.some((issue) => issue.includes('Required column "customers.notes" is missing')));
+    assert.throws(() => assertDatabaseIntegrity(db), /Database integrity check failed/);
   } finally {
     db.close();
   }
