@@ -7,7 +7,9 @@ test("migrates a fresh database once and records its schema version", () => {
   const db = new Database(":memory:");
 
   try {
+    assert.equal(db.pragma("foreign_keys", { simple: true }), 0);
     assert.equal(migrateDatabase(db), 4);
+    assert.equal(db.pragma("foreign_keys", { simple: true }), 1);
     assert.equal(db.pragma("user_version", { simple: true }), 4);
     assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE name = 'products'").get());
     assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE name = 'expenses'").get());
@@ -26,6 +28,27 @@ test("migrates a fresh database once and records its schema version", () => {
       assert.ok(billColumns.some((row) => row.name === column));
     }
     assert.equal(migrateDatabase(db), 4);
+  } finally {
+    db.close();
+  }
+});
+
+test("rejects rows that reference missing parent records", () => {
+  const db = new Database(":memory:");
+
+  try {
+    migrateDatabase(db);
+
+    assert.throws(
+      () =>
+        db.prepare(`
+          INSERT INTO bills (
+            customer_id, date, payment_method, total_purchased,
+            amount_paid, amount_due, status
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).run(999, "2026-10-24", "Cash", 10, 0, 10, "Due"),
+      /FOREIGN KEY constraint failed/,
+    );
   } finally {
     db.close();
   }

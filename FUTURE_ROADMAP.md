@@ -16,7 +16,7 @@ This roadmap is intentionally focused on improvements that matter most for a sma
 - [x] Persist Default, PAN, and VAT bill types and VAT invoice metadata
 - [x] Add React error boundary for graceful error recovery
 - [x] Add portable database import/export to onboarding wizard
-- [ ] Enable SQLite foreign-key enforcement (`PRAGMA foreign_keys = ON`)
+- [x] Enable SQLite foreign-key enforcement (`PRAGMA foreign_keys = ON`)
 - [ ] Add database integrity checks and validation at schema boundaries
 - [ ] Guard JSON parsing at all read boundaries to prevent malformed records from breaking screens
 

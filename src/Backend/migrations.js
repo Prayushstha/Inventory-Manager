@@ -170,6 +170,8 @@ const migrations = [
 ];
 
 export function migrateDatabase(db) {
+  db.pragma("foreign_keys = ON");
+
   let currentVersion = db.pragma("user_version", { simple: true });
   const latestVersion = migrations.at(-1)?.version ?? 0;
 
