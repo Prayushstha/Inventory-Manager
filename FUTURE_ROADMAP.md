@@ -131,7 +131,7 @@ These are valid long-term ideas, but they should come after the app is stable, t
 - [ ] Customer payment tracking with partial payments and aging
 - [ ] Tax reporting and reconciliation features
 - [ ] Printable invoice templates
-- [ ] End-to-end UI tests for connected workflows
+- [x] End-to-end UI tests for connected workflows
 
 ### Phase 4: 6+ months (Q2+ 2027)
 - [ ] Multi-user readiness and role-based access

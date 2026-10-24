@@ -59,6 +59,18 @@ Only works with electron version 38.7.0!
    npm run dev
    ```
 
+### Run End-to-End UI Tests
+
+The Playwright suite runs against a production Vite preview with a deterministic
+test database adapter, so it does not modify a developer's local inventory
+database.
+
+```bash
+npm run build
+npx playwright install chromium
+npm run test:e2e
+```
+
 ### Build the Installer
 
 Native modules must be rebuilt on the same platform as the installer. In
