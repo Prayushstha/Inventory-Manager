@@ -61,6 +61,7 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
   const { handleAsync } = useErrorHandler();
   const showToast = useToast();
   const { confirm, ConfirmDialogComponent } = useConfirm();
+  const [lowStocksAlert, setLowStocksAlert] = useState(false);
   const sortValues = {
     name: (product) => product.name,
     base: (product) => product.bases[0]?.name ?? "",
@@ -84,6 +85,7 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
   useEffect(() => () => {
     dragCleanup.current?.();
   }, []);
+  const handleLowStocksAlert = () => setLowStocksAlert(true);
 
   const visibleKeys = new Set(rows.map((row) => row.key));
   const activeSelectedKeys = selectedKeys.filter((key) => visibleKeys.has(key));
@@ -419,8 +421,8 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
             <col className="price-column" />
             <col className="price-column" />
             <col className="price-column" />
-            <col className="stock-column" />
-            <col className="actions-column" />
+            <col className={`stock-column` } />
+            {/* <col className="actions-column" /> */}
           </colgroup>
           <thead>
             <tr>
@@ -431,7 +433,7 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
               {sortableHeading("Market Price", "mp")}
               {sortableHeading("Sales Price", "sales")}
               {sortableHeading("Stock", "stock")}
-              <th className="th-actions" />
+              {/* <th className="th-actions" /> */}
             </tr>
           </thead>
           <tbody>
@@ -567,8 +569,13 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
                       >
                         {inlineCell(row, "stock", row.stock)}
                         {row.stock < 4 && (
-                          <p className="low-stocks-message">Stocks Low!</p>
-                        )}
+                          <>
+                            <p className="low-stocks-message">Stocks Low!</p> 
+                          {handleLowStocksAlert}
+                          
+                          </>
+                        ) }
+                        
                         <button
                           type="button"
                           className="btn-remove-row"
@@ -584,7 +591,8 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
                           ×
                         </button>
                       </td>
-                      {groupIndex === 0 && rowIndex === 0 && (
+                      {/* Edit Pen button */}
+                      {/* {groupIndex === 0 && rowIndex === 0 && (
                         <td rowSpan={productRows.length}>
                           <button
                             className="edit-btn"
@@ -599,7 +607,7 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
                             <i className="fa-solid fa-pen" />
                           </button>
                         </td>
-                      )}
+                      )} */}
                     </tr>
                   );
                 }),
