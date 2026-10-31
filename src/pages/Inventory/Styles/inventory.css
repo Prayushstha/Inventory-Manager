@@ -42,7 +42,7 @@
 
 .table-products .stock-column {
   width: 10%;
-  
+
 }
 .table-products .stock-column-danger{
   background-color: var(--danger);

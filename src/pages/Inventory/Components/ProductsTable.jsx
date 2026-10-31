@@ -85,7 +85,6 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
   useEffect(() => () => {
     dragCleanup.current?.();
   }, []);
-  const handleLowStocksAlert = () => setLowStocksAlert(true);
 
   const visibleKeys = new Set(rows.map((row) => row.key));
   const activeSelectedKeys = selectedKeys.filter((key) => visibleKeys.has(key));
@@ -218,6 +217,13 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
   }
 
   function inlineCell(row, field, value) {
+    // useEffect(()=>{
+    //   if(!editMode && field === 'stock' && row.stock < 4) {
+    //   console.log(row.stock);
+    //   setLowStocksAlert(true)
+    // }
+    // })
+    
     if (!editMode)
       return field === "stock"
         ? value
@@ -570,9 +576,7 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
                         {inlineCell(row, "stock", row.stock)}
                         {row.stock < 4 && (
                           <>
-                            <p className="low-stocks-message">Stocks Low!</p> 
-                          {handleLowStocksAlert}
-                          
+                            <p className="low-stocks-message">Stocks Low!</p>                           
                           </>
                         ) }
                         
