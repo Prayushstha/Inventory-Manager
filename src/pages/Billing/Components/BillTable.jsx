@@ -11,11 +11,12 @@ export function BillTable({ filtered, statusMeta, openExisting, onDelete }) {
   ];
 
   const sortedFiltered = [...filtered].sort((a, b) => {
+    console.table(filtered)
     if (sortKey === "status") {
       const currentOrder = statusCycles[sortStatus];
       return currentOrder[a[sortKey]] - currentOrder[b[sortKey]];
     }
-    if (typeof a[sortKey] === "string" || typeof b[sortKey] === "string") {
+    if (typeof a[sortKey] === "string" && typeof b[sortKey] === "string") {
       if (sortOrder) return a[sortKey].localeCompare(b[sortKey]);
       else return b[sortKey].localeCompare(a[sortKey]);
     }
@@ -127,6 +128,7 @@ export function BillTable({ filtered, statusMeta, openExisting, onDelete }) {
                 <td>Rs {c.totalDue.toLocaleString()}</td>
                 <td>{formatNepaliDate(c.date)}</td>
                 <td>
+                  {console.log(statusMeta)}
                   <span className={`status-badge ${statusMeta[c.status].cls}`}>
                     {statusMeta[c.status].label}
                   </span>

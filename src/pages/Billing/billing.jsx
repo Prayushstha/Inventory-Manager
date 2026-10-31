@@ -25,14 +25,19 @@ export function Billing() {
     async function fetchCustomers() {
       const data = await handleAsync(
         () => window.db.getCustomers(),
-        "Failed to load customers"
+        "Failed to load customers",
       );
+      // console.table(data);
+      // console.log(data.length)
+      console.log(data[0].status, "status" in data[0]);
       if (!cancelled && data) {
         setCustomers(data);
       }
     }
     fetchCustomers();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [handleAsync]);
 
   useDataChanged(async () => {
@@ -53,10 +58,13 @@ export function Billing() {
         () => window.db.getAppSettings(),
         "Failed to load invoice defaults",
       );
-      if (!cancelled && settings) setInvoiceDefaults(settings.invoiceDefaults || {});
+      if (!cancelled && settings)
+        setInvoiceDefaults(settings.invoiceDefaults || {});
     }
     loadInvoiceDefaults();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [handleAsync]);
 
   useEffect(() => {
@@ -64,14 +72,16 @@ export function Billing() {
     async function fetchProducts() {
       const data = await handleAsync(
         () => window.db.getProducts(),
-        "Failed to load products"
+        "Failed to load products",
       );
       if (!cancelled && data) {
         setProducts(data.filter((product) => product?.id && product?.name));
       }
     }
     fetchProducts();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [handleAsync]);
 
   const customerGroups = customers.reduce((groups, customer) => {
@@ -117,21 +127,28 @@ export function Billing() {
     return groups;
   }, new Map());
 
-  const rows = [...customerGroups.values()].map((group) => {
-    const latestBill = [...group.bills].sort((a, b) => Number(b.id) - Number(a.id))[0];
-    return {
-      ...latestBill,
-      id: latestBill?.id || group.id,
-      customerId: group.customerId,
-      name: group.name,
-      phone: group.phone,
-      address: group.address,
-      notes: group.notes,
-      totalPurchased: group.bills.reduce((sum, bill) => sum + Number(bill.totalPurchased || 0), 0),
-      totalDue: group.totalDue,
-      history: group.bills,
-    };
-  });
+  const rows = [...customerGroups.values()]
+    .filter((group) => group.bills.length > 0)
+    .map((group) => {
+      const latestBill = [...group.bills].sort(
+        (a, b) => Number(b.id) - Number(a.id),
+      )[0];
+      return {
+        ...latestBill,
+        id: latestBill?.id || group.id,
+        customerId: group.customerId,
+        name: group.name,
+        phone: group.phone,
+        address: group.address,
+        notes: group.notes,
+        totalPurchased: group.bills.reduce(
+          (sum, bill) => sum + Number(bill.totalPurchased || 0),
+          0,
+        ),
+        totalDue: group.totalDue,
+        history: group.bills,
+      };
+    });
 
   const filtered = rows.filter(
     (c) =>
@@ -156,7 +173,9 @@ export function Billing() {
   };
 
   const openExisting = (customer) => {
-    const latestBill = [...customer.history].sort((a, b) => Number(b.id) - Number(a.id))[0];
+    const latestBill = [...customer.history].sort(
+      (a, b) => Number(b.id) - Number(a.id),
+    )[0];
     setSelectedBill({ ...latestBill, ...customer, invoiceDefaults });
     setIsNewBill(false);
   };
@@ -170,7 +189,7 @@ export function Billing() {
     closeDialog();
     const data = await handleAsync(
       () => window.db.getCustomers(),
-      "Failed to refresh customers"
+      "Failed to refresh customers",
     );
     if (data) {
       setCustomers(data);
@@ -179,18 +198,18 @@ export function Billing() {
 
   async function handleDelete(billId) {
     const confirmed = await confirm(
-      "Delete this bill? This will restore the stock it used."
+      "Delete this bill? This will restore the stock it used.",
     );
     if (!confirmed) return;
 
     await handleAsync(
       () => window.db.deleteBill(billId),
-      "Failed to delete bill"
+      "Failed to delete bill",
     );
 
     const data = await handleAsync(
       () => window.db.getCustomers(),
-      "Failed to refresh customers"
+      "Failed to refresh customers",
     );
     if (data) {
       setCustomers(data);
@@ -202,7 +221,11 @@ export function Billing() {
       <div className="billing-page">
         {!selectedBill ? (
           <>
-            <BillHeader search={search} setSearch={setSearch} openNew={openNew} />
+            <BillHeader
+              search={search}
+              setSearch={setSearch}
+              openNew={openNew}
+            />
             <BillTable
               filtered={filtered}
               statusMeta={statusMeta}
@@ -213,7 +236,11 @@ export function Billing() {
         ) : (
           <>
             <div className="billing-detail-topbar">
-              <button className="btn-secondary" type="button" onClick={closeDialog}>
+              <button
+                className="btn-secondary"
+                type="button"
+                onClick={closeDialog}
+              >
                 <i className="ti ti-arrow-left" aria-hidden="true" />
                 <span>Back to Bills</span>
               </button>
