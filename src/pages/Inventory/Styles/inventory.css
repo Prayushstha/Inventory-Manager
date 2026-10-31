@@ -140,9 +140,9 @@
 .low-stocks-message {
   color: var(--danger);
   font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
-  font-size: 10px;
+  font-size: 15px;
   display: inline;
-  margin-left: 20px;
+  margin-left: 0px;
   padding: 5px;
 }
 
@@ -213,6 +213,7 @@
 .table-products tbody tr.size-row:hover > td.size-data-cell:not(.selected-row-cell) {
   background: var(--background-secondary);
 }
+
 .edit-btn {
   background: none;
   border: none;

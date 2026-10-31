@@ -61,7 +61,6 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
   const { handleAsync } = useErrorHandler();
   const showToast = useToast();
   const { confirm, ConfirmDialogComponent } = useConfirm();
-  const [lowStocksAlert, setLowStocksAlert] = useState(false);
   const sortValues = {
     name: (product) => product.name,
     base: (product) => product.bases[0]?.name ?? "",
@@ -69,7 +68,8 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
     landing: (product) => product.variants[0]?.landing ?? 0,
     mp: (product) => product.variants[0]?.mp ?? 0,
     sales: (product) => product.variants[0]?.sales ?? 0,
-    stock: (product) => product.bases[0]?.stockMap?.[product.variants[0]?.id] ?? 0,
+    stock: (product) =>
+      product.bases[0]?.stockMap?.[product.variants[0]?.id] ?? 0,
   };
   const sortedProducts = [...products].sort((a, b) => {
     const first = sortValues[sortKey](a);
@@ -82,9 +82,12 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
   });
   const rows = buildRows(sortedProducts);
 
-  useEffect(() => () => {
-    dragCleanup.current?.();
-  }, []);
+  useEffect(
+    () => () => {
+      dragCleanup.current?.();
+    },
+    [],
+  );
 
   const visibleKeys = new Set(rows.map((row) => row.key));
   const activeSelectedKeys = selectedKeys.filter((key) => visibleKeys.has(key));
@@ -103,15 +106,19 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
     .filter(
       (row) =>
         row.type === "product" ||
-        (row.type === "base" &&
-          !activeSelectedKeys.includes(row.productKey)) ||
+        (row.type === "base" && !activeSelectedKeys.includes(row.productKey)) ||
         (row.type === "size" &&
           !activeSelectedKeys.includes(row.parentKey) &&
           !activeSelectedKeys.includes(row.productKey)),
     )
     .map((row) => ({
       type: row.type,
-      id: row.type === "product" || row.type === "base" ? row.type === "product" ? row.product.id : row.base.id : row.variant.id,
+      id:
+        row.type === "product" || row.type === "base"
+          ? row.type === "product"
+            ? row.product.id
+            : row.base.id
+          : row.variant.id,
       baseId: row.type === "size" ? row.base?.id : undefined,
       variantId: row.type === "size" ? row.variant.id : undefined,
     }));
@@ -217,13 +224,8 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
   }
 
   function inlineCell(row, field, value) {
-    // useEffect(()=>{
-    //   if(!editMode && field === 'stock' && row.stock < 4) {
-    //   console.log(row.stock);
-    //   setLowStocksAlert(true)
-    // }
-    // })
-    
+
+
     if (!editMode)
       return field === "stock"
         ? value
@@ -311,9 +313,15 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
       await window.db.deleteInventoryRows(selectedDeleteTargets);
       setSelectedKeys([]);
       await fetchProducts();
-      showToast(`Deleted ${selectedDeleteTargets.length} inventory items`, "success");
+      showToast(
+        `Deleted ${selectedDeleteTargets.length} inventory items`,
+        "success",
+      );
     } catch (error) {
-      showToast(error?.message || "Could not delete the selected products.", "error");
+      showToast(
+        error?.message || "Could not delete the selected products.",
+        "error",
+      );
     } finally {
       setBulkBusy("");
     }
@@ -331,7 +339,10 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
       [sellingPrice, "Selling price"],
       [baseStock, "Base stock quantity"],
     ]) {
-      if (value !== "" && (!Number.isFinite(Number(value)) || Number(value) < 0)) {
+      if (
+        value !== "" &&
+        (!Number.isFinite(Number(value)) || Number(value) < 0)
+      ) {
         showToast(`${label} must be a non-negative number.`, "error");
         return;
       }
@@ -355,7 +366,10 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
       await fetchProducts();
       showToast(`Updated ${selectedProductIds.length} products`, "success");
     } catch (error) {
-      showToast(error?.message || "Could not update the selected products.", "error");
+      showToast(
+        error?.message || "Could not update the selected products.",
+        "error",
+      );
     } finally {
       setBulkBusy("");
     }
@@ -397,7 +411,10 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
       <div className="products-list">
         {editMode && selectedProductIds.length > 0 && (
           <div className="bulk-actions-toolbar" aria-live="polite">
-            <strong>{selectedDeleteTargets.length} item{selectedDeleteTargets.length === 1 ? "" : "s"} selected</strong>
+            <strong>
+              {selectedDeleteTargets.length} item
+              {selectedDeleteTargets.length === 1 ? "" : "s"} selected
+            </strong>
             <button
               type="button"
               className="btn-secondary"
@@ -427,7 +444,7 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
             <col className="price-column" />
             <col className="price-column" />
             <col className="price-column" />
-            <col className={`stock-column` } />
+            <col className={`stock-column`} />
             {/* <col className="actions-column" /> */}
           </colgroup>
           <thead>
@@ -453,11 +470,15 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
               const groups = [];
 
               for (const row of productRows) {
-                let group = groups.find((candidate) => candidate.key === row.parentKey);
+                let group = groups.find(
+                  (candidate) => candidate.key === row.parentKey,
+                );
                 if (!group) {
                   group = {
                     key: row.parentKey,
-                    descriptor: rows.find((candidate) => candidate.key === row.parentKey),
+                    descriptor: rows.find(
+                      (candidate) => candidate.key === row.parentKey,
+                    ),
                     rows: [],
                   };
                   groups.push(group);
@@ -468,7 +489,9 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
               return groups.flatMap((group, groupIndex) =>
                 group.rows.map((row, rowIndex) => {
                   const selected = activeSelectedKeys.includes(row.key);
-                  const productSelected = activeSelectedKeys.includes(productDescriptor.key);
+                  const productSelected = activeSelectedKeys.includes(
+                    productDescriptor.key,
+                  );
                   const baseSelected = activeSelectedKeys.includes(group.key);
                   const setRef = (element) => {
                     if (element) rowRefs.current.set(row.key, element);
@@ -497,7 +520,9 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
                             event.stopPropagation();
                             selectRow(productDescriptor, event.shiftKey);
                           }}
-                          onMouseEnter={() => setHoveredKey(productDescriptor.key)}
+                          onMouseEnter={() =>
+                            setHoveredKey(productDescriptor.key)
+                          }
                           onMouseLeave={() => setHoveredKey(null)}
                         >
                           <strong>{product.name}</strong>
@@ -516,7 +541,9 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
                           onMouseEnter={() => setHoveredKey(group.key)}
                           onMouseLeave={() => setHoveredKey(null)}
                         >
-                          <strong>{group.descriptor.base?.name ?? "NULL"}</strong>
+                          <strong>
+                            {group.descriptor.base?.name ?? "NULL"}
+                          </strong>
                           {group.descriptor.base && (
                             <button
                               type="button"
@@ -570,16 +597,17 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
                       <td
                         className={`size-data-cell${
                           selected ? " selected-row-cell" : ""
-                        }${hoveredKeys.has(row.key) ? " target-hover" : ""}`}
+                        }${hoveredKeys.has(row.key) ? " target-hover" : ""}
+                       `}
                         onClick={(event) => event.stopPropagation()}
                       >
                         {inlineCell(row, "stock", row.stock)}
                         {row.stock < 4 && (
                           <>
-                            <p className="low-stocks-message">Stocks Low!</p>                           
+                            <p className="low-stocks-message">!</p>
                           </>
-                        ) }
-                        
+                        )}
+
                         <button
                           type="button"
                           className="btn-remove-row"
@@ -629,7 +657,10 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
       )}
       {bulkUpdateOpen && (
         <div className="dialog-overlay" role="presentation">
-          <form className="dialog bulk-update-dialog" onSubmit={handleBulkUpdate}>
+          <form
+            className="dialog bulk-update-dialog"
+            onSubmit={handleBulkUpdate}
+          >
             <div className="dialog-body">
               <h2>Update {selectedProductIds.length} products</h2>
               <p>Leave a field blank to keep its current value.</p>
@@ -663,7 +694,11 @@ export function ProductsTable({ products, fetchProducts, editMode }) {
               >
                 Cancel
               </button>
-              <button type="submit" className="btn-primary" disabled={Boolean(bulkBusy)}>
+              <button
+                type="submit"
+                className="btn-primary"
+                disabled={Boolean(bulkBusy)}
+              >
                 {bulkBusy === "updating" ? "Updating..." : "Update products"}
               </button>
             </div>
