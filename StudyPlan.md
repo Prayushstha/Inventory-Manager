@@ -34,10 +34,10 @@
 ## Application Structure Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    ELECTRON DESKTOP APP                     │
-├─────────────────────────────────────────────────────────────┤
-│                                                               │
+┌────────────────────────────────────────────────────────────┐
+│                    ELECTRON DESKTOP APP                    │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
 │  ┌──────────────────────┐      ┌──────────────────────┐    │
 │  │   RENDERER PROCESS   │      │    MAIN PROCESS      │    │
 │  │   (React Frontend)   │◄────►│  (Node.js Backend)   │    │
@@ -55,12 +55,12 @@
 │  │        useErrorHndl  │      │ - Settings/Profiles  │    │
 │  │                      │      │ - Backup/Export      │    │
 │  └──────────────────────┘      └──────────────────────┘    │
-│           │                              │                   │
-│           └──────────────────┬───────────┘                   │
-│                              │ Preload Bridge               │
-│                   window.db API + window.app                │
-│                                                               │
-└─────────────────────────────────────────────────────────────┘
+│           │                              │                 │
+│           └──────────────────┬───────────┘                 │
+│                              │ Preload Bridge              │
+│                   window.db API + window.app               │
+│                                                            │
+└────────────────────────────────────────────────────────────┘
                               │
                     ┌─────────▼─────────┐
                     │   SQLite Database │
@@ -3168,4 +3168,3 @@ After completing this plan, you will:
 5. Run the application and interact with features
 6. Document your own understanding
 
-Good luck with your learning journey! 🚀
